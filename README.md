@@ -36,7 +36,7 @@ conda activate DMS-snake
 1. **IMPORTANT**: Read the [config documentation](config/README.md) and **edit the main config**. If you plan on sending the pipeline to SLURM, make sure you also **edit the technical config file**.
 
 ### Check pipeline
-2. (recommended) Perform a dry run using: `snakemake -n`
+2. (recommended) Perform a dry run using: `snakemake --use-conda -n`
 
 This step is strongly recommended. It will make sure the prepared workflow does not contain any error and will display the rules (steps) that need to be run in order to reach the specified target(s) (default value for the target is the dataframe of selection coefficients, which is produced during the very last step of the workflow). For both the dry run and the actual run, you can decide to run the workflow only until a certain file is generated or rule is completed, using the `--until` flag in the snakemake command line, for example: `snakemake -n --until stats`
 

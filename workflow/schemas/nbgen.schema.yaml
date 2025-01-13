@@ -1,0 +1,21 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+
+description: number of mitotic generations between time points
+
+type: object
+
+properties:
+  Replicate:
+    type: string
+    description: Replicate (e.g. cultured in two separate tubes with the same set of conditions)
+  Timepoint:
+    type: string
+    description: Time point (at least one time point other than T0)
+  Nb_gen:
+    type: number
+    description: Number of mitotic generations between the indicated time point and the previous one (1 if you don''t want to normalize)
+
+required:
+  - Replicate
+  - Timepoint
+  - Nb_gen
