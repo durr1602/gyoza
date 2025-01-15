@@ -38,14 +38,17 @@ else:
     print("Ready to normalize with provided growth data.")
 
 ##### Validate sample attributes #####
-for x in config["samples"]["attributes"]:
-    if x not in layout_csv.columns:
-        raise Exception(f"Error.. The sample attribute '{x}' does not feature as a column in the sample layout.")
-    elif x not in nbgen.columns:
-        raise Exception(f"Error.. The sample attribute '{x}' does not feature as a column in the EXCEL file with the number of mitotic generations.")
-    else:
-        pass
-print('Sample attributes imported.')
+if len(config["samples"]["attributes"])>0:
+    for x in config["samples"]["attributes"]:
+        if x not in layout_csv.columns:
+            raise Exception(f"Error.. The sample attribute '{x}' does not feature as a column in the sample layout.")
+        elif x not in nbgen.columns:
+            raise Exception(f"Error.. The sample attribute '{x}' does not feature as a column in the EXCEL file with the number of mitotic generations.")
+        else:
+            pass
+    print('Sample attributes imported.')
+else:
+    print('No sample attributes provided.')
 
 ##### Validate codon table #####
 codon_table = pd.read_csv(config["codon"]["table"], header=0)
