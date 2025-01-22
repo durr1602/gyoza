@@ -25,22 +25,22 @@ rule process_read_counts:
         ),
         timepoints_plot = report('results/graphs/timepoints_plot.svg',
             '../report/timepoints_plot.rst',
-            category="3. Selection coefficients",
+            category="3. Functional impact",
             labels={"figure": "3.3. Correlation between time points"}
         ),
         scoeff_violin_plot = report('results/graphs/scoeff_violin_plot.svg',
             '../report/scoeff_violin_plot.rst',
-            category="3. Selection coefficients",
-            labels={"figure": "3.1. Distribution of selection coefficients"}
+            category="3. Functional impact",
+            labels={"figure": "3.1. Distribution of functional impact scores"}
         ),
         s_through_time_plot = report('results/graphs/s_through_time_plot.svg',
             '../report/s_through_time_plot.rst',
-            category="3. Selection coefficients",
-            labels={"figure": "3.4. Selection through time"}
+            category="3. Functional impact",
+            labels={"figure": "3.4. Functional impact over time"}
         ),
         replicates_plot = report('results/graphs/replicates_plot.svg',
             '../report/replicates_plot.rst',
-            category="3. Selection coefficients",
+            category="3. Functional impact",
             labels={"figure": "3.2. Correlation between replicates"}
         )
     resources:
@@ -48,7 +48,7 @@ rule process_read_counts:
         threads = 1,
         time = "00:02:00"
     message:
-        "Processing read counts... converting to selection coefficients"
+        "Processing read counts... converting to functional impact scores"
     log:
         notebook="logs/notebooks/process_read_counts.ipynb"
     conda:
