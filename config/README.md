@@ -1,8 +1,8 @@
-# Snakemake workflow: configuration
+# Configuration of gyōza
 
 ## Project-specific files
 
-A few files should be provided to properly analyze your data. What follows is the general procedure, however an example dataset is provided in order to test the workflow. If you simply want to run the workflow with the example dataset, please go to step 3a in the [main README](../README.md).
+A few files should be provided to properly analyze your data. What follows is the general procedure, however a toy dataset is provided in order to test the workflow. If you simply want to run the workflow with the toy dataset, enter the following: `snakemake --use-conda`.
 
 ### Sequencing data
 
@@ -31,7 +31,7 @@ Please provide a tsv-formatted list of WT DNA sequences. The file should be name
 
 ### Number of mitotic generations
 
-Please provide an excel file containing the number of mitotic generations. The file should be named `nbgen.xlsx` and be located in the `config/project_files` folder. Here is [an example](project_files/nbgen.xlsx). The file should contain **exactly** the following columns: one for each of your sample attributes + Replicate + Timepoint and finally "Nb_gen" that will contain the number of mitotic generations.
+Please provide an excel file containing the number of mitotic generations. The file should be named `nbgen.xlsx` and be located in the `config/project_files` folder. Here is [an example](project_files/nbgen.xlsx). The file should contain **exactly** the following columns: one for each of your sample attributes + Replicate + Timepoint and finally "Nb_gen" that will contain the number of mitotic generations. Fill this last column with 1 if you don't want to normalize with growth data.
 
 ### Codon table
 
@@ -51,7 +51,7 @@ The main config file is located [here](config_file.yaml). Please make sure to:
 
 ## Note on validation
 
-Currently, all the following files are validated against a YAML schema to help spot formatting issues (misspelled column headers, missing mandatory properties, improper format, etc.): main config file, sample layout, file with WT DNA sequences and the codon table.
+Currently, all the following files are validated against a YAML schema to help spot formatting issues (misspelled column headers, missing mandatory properties, improper format, etc.): main config file, sample layout, file with WT DNA sequences, codon table, file with the number of mitotic generations.
 
 ## Technical configuration
 

@@ -26,3 +26,7 @@ rc_aims:
 filter:
     # Specify read count threshold (integer) to label variants with a confidence score
     rc_threshold: 10
+
+report:
+    # Set to True if you want the HTML report to be automatically generated upon full completion of the workflow
+    generate: True

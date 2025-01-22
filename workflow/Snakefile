@@ -24,5 +24,6 @@ rule all:
         get_target()
 
 ##### Generate report if workflow runs succesfully #####
-onsuccess:
-    shell("snakemake --report results/report.html")
+if config['report']['generate']:
+    onsuccess:
+        shell("snakemake --use-conda --report results/report.html")

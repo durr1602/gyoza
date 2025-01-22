@@ -78,8 +78,19 @@ properties:
     required:
       - rc_threshold
 
+  report:
+    type: object
+    properties:
+      generate:
+        description: Set to True for automatic generation of the report upon completion of the workflow, else False
+        type: boolean
+        default: True
+    required:
+      - generate
+  
 required:
   - samples
   - codon
   - rc_aims
   - filter
+  - report
