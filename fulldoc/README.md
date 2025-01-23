@@ -6,11 +6,11 @@
 
 2. Clone this repository:
 ```
-git clone https://github.com/durr1602/DMS_analysis_snakemake.git
+git clone https://github.com/durr1602/gyoza.git
 ```
 3. Move to the corresponding directory:
 ```
-cd DMS_analysis_snakemake
+cd gyoza
 ```
 4. If you correctly followed instructions at step 1, you should be able to use `conda`, first update to a recent version (>=24.7.1, ideally even more recent such as >=24.9.1). You might run into some issues, so one workaround is to update using `mamba`:
 ```
@@ -19,8 +19,8 @@ mamba update conda
 
 5. Install the required dependencies for gyōza in a virtual environment using the provided requirements file (the "solving environment" step can take some time, normally not longer than a few minutes). Again, you could run into some issues if you have multiple instances of `conda` on your system (e.g. anaconda and miniforge), in which case you can uninstall (for example) anaconda by running `rm -rf anaconda3`.
 ```
-conda env create --name=DMS-snake --file=env.yml
-conda activate DMS-snake
+conda env create --name=gyoza --file=env.yml
+conda activate gyoza
 ```
 ## Usage
 
@@ -48,7 +48,7 @@ Fore more info on cluster execution: read the doc on [smk-cluster-generic plugin
 
 To launch the pipeline and ensure that it continues to run in the background even when the terminal is closed, one should use [`tmux`](https://github.com/tmux/tmux/wiki/Getting-Started). Please make sure the tool is installed first (already installed on some servers). Then, follow the steps:
 1. Type `tmux new -s snakes` to launch a new tmux session
-2. Activate the conda env with `mamba activate DMS-snake` or `conda activate DMS-snake`
+2. Activate the conda env with `mamba activate gyoza` or `conda activate gyoza`
 3. Navigate to the Snakefile directory and launch the pipeline with `snakemake --profile profile`
 4. To close (detach) the session, type `<Ctrl+b>`, then `<d>`. You should see the message: `[detached (from session snakes)]`
 5. To reconnect (attach) to the session, for example from a different machine: `tmux attach -t snakes`. You can also see existing sessions with `tmux ls`.

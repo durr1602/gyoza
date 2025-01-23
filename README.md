@@ -2,7 +2,7 @@
 
 [![Conda](https://img.shields.io/badge/conda-≥24.9.1-brightgreen.svg)](https://github.com/conda/conda)
 [![Snakemake](https://img.shields.io/badge/snakemake-≥8.23.2-brightgreen.svg)](https://snakemake.github.io)
-[![GitHub actions status](https://github.com/durr1602/DMS_analysis_snakemake/workflows/Tests/badge.svg?branch=main)](https://github.com/durr1602/DMS_analysis_snakemake/actions?query=branch%3Amain+workflow%3ATests)
+[![GitHub actions status](https://github.com/durr1602/gyoza/workflows/Tests/badge.svg?branch=main)](https://github.com/durr1602/gyoza/actions?query=branch%3Amain+workflow%3ATests)
 
 
 A Snakemake workflow to analyze demultiplexed sequencing data of a DMS experiment, produce diagnostics plots and generate a dataframe of selection coefficients.
@@ -11,8 +11,8 @@ A Snakemake workflow to analyze demultiplexed sequencing data of a DMS experimen
 
 If you are not familiar with cloning a repo / conda environments, etc, or if you like reading, please refer to [the full installation instructions](fulldoc/README.md). Otherwise, after cloning the repo, make sure your version of conda is up to date (>=24.7.1 required) and create the base env from the provided requirements file:
 ```
-conda env create --name=DMS-snake --file=env.yml
-conda activate DMS-snake
+conda env create --name=gyoza --file=env.yml
+conda activate gyoza
 ```
 
 ## Usage

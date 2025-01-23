@@ -1,6 +1,6 @@
 ##### Ad-hoc conda apptainer #####
 
-containerized: "docker://durr1602/dms_analysis_snakemake:latest"
+containerized: "docker://durr1602/gyōza:latest"
 
 ##### Set up report #####
 

@@ -1,3 +1,5 @@
+# Main configuration file for gyōza
+
 samples:
     # Specify path to sample layout
     path: 'config/project_files/layout.csv'

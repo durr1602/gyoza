@@ -1,4 +1,4 @@
-This workflow analyzes deep-mutational scanning (DMS) data to convert allele frequencies of all single mutants of specified loci measured at several time points into functional impact scores.
+gyōza analyzes deep-mutational scanning (DMS) data to convert allele frequencies of all single mutants of specified loci measured at several time points into functional impact scores.
 The main steps are :
 
 1. Trimming with `Cutadapt <http://cutadapt.readthedocs.io>`_ using constant regions

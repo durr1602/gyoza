@@ -1,3 +1,5 @@
+# Technical configuration file for gyōza
+
 executor: cluster-generic
 cluster-generic-submit-cmd:
   sbatch
