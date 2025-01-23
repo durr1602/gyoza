@@ -1,8 +1,10 @@
 ##### Setting rule agnostic env #####
-
-conda:
-    "../envs/global.yaml"
-
+#
+#The following could be useful in certain cases, but I decided to include the global requirements in the gyoza env.
+#
+#conda:
+#    "../envs/global.yaml"
+#
 ##### Import libraries #####
 
 import pandas as pd

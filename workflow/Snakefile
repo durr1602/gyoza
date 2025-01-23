@@ -1,6 +1,6 @@
 ##### Ad-hoc conda apptainer #####
 
-containerized: "docker://durr1602/gyōza:latest"
+containerized: "docker://durr1602/gyoza:latest"
 
 ##### Set up report #####
 

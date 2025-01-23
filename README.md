@@ -21,9 +21,9 @@ conda activate gyoza
 1. **IMPORTANT**: Read the [config documentation](config/README.md) and **edit the main config**. If you plan on sending the pipeline to SLURM, make sure you also **edit the technical config file**.
 
 ### Check pipeline
-2. (recommended) Perform a dry run using: `snakemake --use-conda -n`
+2. (recommended) Perform a dry run using: `snakemake -n`
 
 This step is strongly recommended. It will make sure the prepared workflow does not contain any error and will display the rules (steps) that need to be run in order to reach the specified target(s) (default targets include the dataframe of functional impact scores, which is produced during the very last step of the workflow).
 
 ### Run pipeline
-3. Run the workflow either locally: `snakemake --use-conda` **or** send to SLURM: `snakemake --use-conda --profile profile`. In the latter case, make sure to first edit the [tech config file](profile/config.v8+.yaml).
+3. Run the workflow either locally: `snakemake --use-conda` **or** send to SLURM: `snakemake --profile profile`. In the latter case, make sure to first edit the [tech config file](profile/config.v8+.yaml).

@@ -28,10 +28,10 @@ conda activate gyoza
 1. **IMPORTANT**: Read the [config documentation](config/README.md) and **edit the main config**. If you plan on sending the pipeline to SLURM, make sure you also **edit the technical config file**.
 
 ### (optional) Prepare environments
-2. (optional) Create all conda environments using: `snakemake --use-conda --conda-create-envs-only`. This step is only required before first use and is always included when running the workflow.
+2. (optional) Create all conda environments using: `snakemake --conda-create-envs-only`. This step is only required before first use and is always included when running the workflow.
 
 ### Check pipeline
-3. (recommended) Perform a dry run using: `snakemake --use-conda -n`
+3. (recommended) Perform a dry run using: `snakemake -n`
 
 This step is strongly recommended. It will make sure the prepared workflow does not contain any error and will display the rules (steps) that need to be run in order to reach the specified target(s) (default targets include the dataframe of functional impact scores, which is produced during the very last step of the workflow).
 
@@ -40,7 +40,7 @@ This step is strongly recommended. It will make sure the prepared workflow does 
 
     a) Locally: `snakemake --use-conda --cores 4` (recommended only for small steps or to run the workflow on the provided example dataset, with the `--cores` flag indicating the max number of CPUs to use in parallel - can be adapted depending on the resources available on your machine, defaults to the number of available CPUs).
     
-    b) **or** send to SLURM (1 job per rule per sample): `snakemake --use-conda --profile profile` (make sure to edit the parameters specified in the [tech config file](profile/config.v8+.yaml), jobs wait in the queue until the resources are allocated. For example, if you're allowed 40 CPUs, only 4 jobs at 10 CPUs each will be able to run at once. Once those jobs are completed, the next ones in the queue will automatically start.
+    b) **or** send to SLURM (1 job per rule per sample): `snakemake --profile profile` (make sure to edit the parameters specified in the [tech config file](profile/config.v8+.yaml), jobs wait in the queue until the resources are allocated. For example, if you're allowed 40 CPUs, only 4 jobs at 10 CPUs each will be able to run at once. Once those jobs are completed, the next ones in the queue will automatically start.
 
 Fore more info on cluster execution: read the doc on [smk-cluster-generic plugin](https://github.com/jdblischak/smk-simple-slurm/tree/main)
 
@@ -57,7 +57,7 @@ To launch the pipeline and ensure that it continues to run in the background eve
 ### Useful Snakemake command lines
 For both the dry run and the actual run, you can decide to run the workflow only until a certain file is generated or rule is completed, using the `--until` flag in the snakemake command line, for example: `snakemake -n --until stats`. However, if the HTML report is configured to be generated automatically, an error will be raised (if a plot is missing, the report cannot be generated). To prevent this, edit the configuration file by setting the report generation to False. Generating the report manually can still be done but currently raises an error if a file is missing (i.e. if the workflow has not run fully).
 ```
-snakemake --use-conda --report results/report.html
+snakemake --report results/report.html
 ```
 
 ## Apptainer support
