@@ -44,9 +44,16 @@ This step is strongly recommended. It will make sure the prepared workflow does 
 
 Fore more info on cluster execution: read the doc on [smk-cluster-generic plugin](https://github.com/jdblischak/smk-simple-slurm/tree/main)
 
-**Important** If snakemake is launched directly from the command line, the process will be output to the terminal. Exiting with `<Ctrl+C>` is currently interpreted (as specified in the [tech config file](profile/config.v8+.yaml)) as cancelling all submitted jobs (`scancel`). Exiting during a local execution will **also** abort the workflow. For a small run, this should not be too inconvenient, and you can still open a new terminal to get a prompt. For workflows with a longer runtime, one might want to use `tmux` as described below.
+### Abort pipeline / exit terminal
 
-To launch the pipeline and ensure that it continues to run in the background even when the terminal is closed, one should use [`tmux`](https://github.com/tmux/tmux/wiki/Getting-Started). Please make sure the tool is installed first (already installed on some servers). Then, follow the steps:
+If snakemake is launched directly from the command line, the process will be output to the terminal. Exiting with `<Ctrl+C>` is currently interpreted (as specified in the [tech config file](profile/config.v8+.yaml)) as cancelling all submitted jobs (`scancel`). Exiting during a local execution will **also** abort the workflow. This means that while the workflow is running, the user cannot get the prompt back.
+
+There are 3 possible options to get the prompt back and/or exit the terminal without aborting the workflow:
+1. Open a new tab on your terminal (may require to log into the session again)
+2. Use `nohup` (e.g. `nohup snakemake --use-conda`). Closing the tab will not abort the workflow.
+3. Use the terminal multiplexer [`tmux`](https://github.com/tmux/tmux/wiki/Getting-Started). This way you can get the prompt back right away, exit without aborting and even reconnect to the session from a different machine.
+
+Please make sure `tmux` is installed (already installed on some servers). Then, follow the steps:
 1. Type `tmux new -s snakes` to launch a new tmux session
 2. Activate the conda env with `mamba activate gyoza` or `conda activate gyoza`
 3. Navigate to the Snakefile directory and launch the pipeline with `snakemake --profile profile`
