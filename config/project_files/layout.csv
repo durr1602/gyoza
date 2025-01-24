@@ -3,5 +3,5 @@ CN_alp_r1_F1_T0,CN_alp_r1_F1_T0_R1_small.fastq.gz,CN_alp_r1_F1_T0_R2_small.fastq
 CN_alp_r2_F1_T0,CN_alp_r2_F1_T0_R1_small.fastq.gz,CN_alp_r2_F1_T0_R2_small.fastq.gz,TTCATAGCTAATG,GGAACTCTGCCTAAATTTTC,2,71,CN_F1,CN,alp,r2,F1,T0
 CN_alp_r1_F1_T1,CN_alp_r1_F1_T1_R1_small.fastq.gz,CN_alp_r1_F1_T1_R2_small.fastq.gz,TTCATAGCTAATG,GGAACTCTGCCTAAATTTTC,2,71,CN_F1,CN,alp,r1,F1,T1
 CN_alp_r2_F1_T1,CN_alp_r2_F1_T1_R1_small.fastq.gz,CN_alp_r2_F1_T1_R2_small.fastq.gz,TTCATAGCTAATG,GGAACTCTGCCTAAATTTTC,2,71,CN_F1,CN,alp,r2,F1,T1
-CN_alp_r1_F1_T2,CN_alp_r1_F1_T1_R1_small.fastq.gz,CN_alp_r1_F1_T1_R2_small.fastq.gz,TTCATAGCTAATG,GGAACTCTGCCTAAATTTTC,2,71,CN_F1,CN,alp,r1,F1,T2
+CN_alp_r1_F1_T2,CN_alp_r1_F1_T2_R1_small.fastq.gz,CN_alp_r1_F1_T2_R2_small.fastq.gz,TTCATAGCTAATG,GGAACTCTGCCTAAATTTTC,2,71,CN_F1,CN,alp,r1,F1,T2
 CN_alp_r2_F1_T2,CN_alp_r2_F1_T2_R1_small.fastq.gz,CN_alp_r2_F1_T2_R2_small.fastq.gz,TTCATAGCTAATG,GGAACTCTGCCTAAATTTTC,2,71,CN_F1,CN,alp,r2,F1,T2
