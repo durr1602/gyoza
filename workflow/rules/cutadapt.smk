@@ -1,7 +1,7 @@
 rule cutadapt:
     input:
-        read1 = lambda wildcards: f"config/reads/{sample_layout.loc[wildcards.sample, "R1"]}",
-        read2 = lambda wildcards: f"config/reads/{sample_layout.loc[wildcards.sample, "R2"]}"
+        read1 = lambda wildcards: f"config/reads/{sample_layout.loc[wildcards.sample, 'R1']}",
+        read2 = lambda wildcards: f"config/reads/{sample_layout.loc[wildcards.sample, 'R2']}"
     params:
         Nfwd = lambda wildcards: sample_layout.loc[wildcards.sample, "N_forward"],
         Nrev = lambda wildcards: sample_layout.loc[wildcards.sample, "N_reverse"]
