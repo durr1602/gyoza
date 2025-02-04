@@ -3,7 +3,7 @@ rule pandaseq:
         read1 = rules.cutadapt.output.read1,
         read2 = rules.cutadapt.output.read2
     output:
-        'results/2_merge/{sample}_merged.fasta'
+        temp('results/2_merge/{sample}_merged.fasta')
     resources:
         threads = 4,
         time = "00:05:00"

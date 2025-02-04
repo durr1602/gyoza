@@ -6,8 +6,8 @@ rule cutadapt:
         Nfwd = lambda wildcards: sample_layout.loc[wildcards.sample, "N_forward"],
         Nrev = lambda wildcards: sample_layout.loc[wildcards.sample, "N_reverse"]
     output:
-        read1 = 'results/1_trim/{sample}_trimmed.R1.fastq.gz',
-        read2 = 'results/1_trim/{sample}_trimmed.R2.fastq.gz'
+        read1 = temp('results/1_trim/{sample}_trimmed.R1.fastq.gz'),
+        read2 = temp('results/1_trim/{sample}_trimmed.R2.fastq.gz')
     resources:
         threads = 10,
         time = lambda _, attempt: f'00:{attempt*12}:00'
