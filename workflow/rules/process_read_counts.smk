@@ -26,7 +26,7 @@ rule process_read_counts:
         timepoints_plot = report('results/graphs/timepoints_plot.svg',
             '../report/timepoints_plot.rst',
             category="3. Functional impact",
-            labels={"figure": "3.3. Correlation between time points"}
+            labels={"figure": "3.4. Correlation between time points"}
         ),
         scoeff_violin_plot = report('results/graphs/scoeff_violin_plot.svg',
             '../report/scoeff_violin_plot.rst',
@@ -36,12 +36,17 @@ rule process_read_counts:
         s_through_time_plot = report('results/graphs/s_through_time_plot.svg',
             '../report/s_through_time_plot.rst',
             category="3. Functional impact",
-            labels={"figure": "3.4. Functional impact over time"}
+            labels={"figure": "3.5. Functional impact over time"}
+        ),
+        replicates_heatmap_plot = report('results/graphs/replicates_heatmap_plot.svg',
+            '../report/replicates_heatmap_plot.rst',
+            category="3. Functional impact",
+            labels={"figure": "3.2. Correlation between replicates (1/2)"}
         ),
         replicates_plot = report('results/graphs/replicates_plot.svg',
             '../report/replicates_plot.rst',
             category="3. Functional impact",
-            labels={"figure": "3.2. Correlation between replicates"}
+            labels={"figure": "3.3. Correlation between replicates (2/2)"}
         )
     resources:
         mem_gb = 2, # > default to read csv.gz
