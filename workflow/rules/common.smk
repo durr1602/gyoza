@@ -21,8 +21,10 @@ print("Main config validated.")
 
 ##### Import and validate sample layout #####
 
+layout_mandatory_cols = ['Sample_name','R1','R2','N_forward','N_reverse','Mutated_seq','Pos_start','Replicate','Timepoint']
 layout_csv = pd.read_csv(config["samples"]["path"])
 validate(layout_csv, schema="../schemas/sample_layout.schema.yaml")
+layout_add_cols = [x for x in layout_csv.columns if x not in layout_mandatory_cols]
 sample_layout = layout_csv.set_index("Sample_name")
 print("Sample layout validated.")
 
@@ -47,7 +49,8 @@ if len(config["samples"]["attributes"])>0:
         elif x not in nbgen.columns:
             raise Exception(f"Error.. The sample attribute '{x}' does not feature as a column in the EXCEL file with the number of mitotic generations.")
         else:
-            pass
+            [warnings.warn(f"The column '{x}' is not listed in your sample attributes"
+                          ) for x in layout_add_cols if x not in config["samples"]["attributes"]]
     print('Sample attributes imported.')
 else:
     print('No sample attributes provided.')
