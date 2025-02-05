@@ -25,7 +25,7 @@ Finally, additional columns can be added by the user to specify what makes this 
 
 ### WT DNA sequences
 
-Please provide a tsv-formatted list of WT DNA sequences. The file should be named `wt_seq.tsv` and be located in the `config/project_files` folder. Here is [an example](project_files/wt_seq.tsv). The file should contain **exactly** the two following columns:
+Please provide a csv-formatted list of WT DNA sequences. The file should be named `wt_seq.tsv` and be located in the `config/project_files` folder. Here is [an example](project_files/wt_seq.csv). The file should contain **exactly** the two following columns:
 - Mutated_seq: all possible values for the Mutated_seq flag from the layout
 - WT_seq: corresponding WT DNA sequence
 

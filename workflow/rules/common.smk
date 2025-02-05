@@ -1,10 +1,3 @@
-##### Setting rule agnostic env #####
-#
-#The following could be useful in certain cases, but I decided to include the global requirements in the gyoza env.
-#
-#conda:
-#    "../envs/global.yaml"
-#
 ##### Import libraries #####
 
 import pandas as pd
@@ -38,8 +31,8 @@ if len(config["samples"]["attributes"])>0:
 else:
     print('No sample attributes provided.')
 
-##### Validate TSV file containing WT DNA sequences #####
-wtseqs = pd.read_csv(config["samples"]["wt"], sep='\t')
+##### Validate CSV file containing WT DNA sequences #####
+wtseqs = pd.read_csv(config["samples"]["wt"])
 validate(wtseqs, schema="../schemas/wt_seqs.schema.yaml")
 print("WT imported.")
 

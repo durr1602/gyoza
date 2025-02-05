@@ -11,7 +11,7 @@ samples:
     # Specify path to create file containing the number of mitotic generations for each condition
     generations: 'config/project_files/nbgen.csv'
     # Specify path to file containing the wild-type DNA sequences
-    wt: 'config/project_files/wt_seq.tsv'
+    wt: 'config/project_files/wt_seq.csv'
     
 codon:
     # Codon table
