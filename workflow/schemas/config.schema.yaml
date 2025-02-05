@@ -78,6 +78,16 @@ properties:
     required:
       - rc_threshold
 
+  normalize:
+    type: object
+    properties:
+      with_growth:
+        description: Set to True to normalize impact scores with growth data
+        type: boolean
+        default: False
+    required:
+      - with_growth
+
   report:
     type: object
     properties:
@@ -93,4 +103,5 @@ required:
   - codon
   - rc_aims
   - filter
+  - normalize
   - report

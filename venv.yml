@@ -1,4 +1,3 @@
 snakemake
 pandas
-openpyxl
 snakemake-executor-plugin-cluster-generic

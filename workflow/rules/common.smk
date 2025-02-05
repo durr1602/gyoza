@@ -11,11 +11,9 @@ import pandas as pd
 from snakemake.utils import validate
 import warnings
 
-##### Import main config ####
+##### Import and validate main config ####
 
 configfile: "config/config_file.yaml"
-
-## Validate config
 validate(config, schema="../schemas/config.schema.yaml")
 print("Main config validated.")
 
@@ -28,32 +26,49 @@ layout_add_cols = [x for x in layout_csv.columns if x not in layout_mandatory_co
 sample_layout = layout_csv.set_index("Sample_name")
 print("Sample layout validated.")
 
-##### Validate TSV file containing WT DNA sequences #####
-wtseqs = pd.read_csv(config["samples"]["wt"], sep='\t')
-validate(wtseqs, schema="../schemas/wt_seqs.schema.yaml")
-print("WT imported.")
-
-##### Validate EXCEL file containing number of mitotic generations between time points #####
-nbgen = pd.read_excel(config["samples"]["generations"])
-validate(nbgen, schema="../schemas/nbgen.schema.yaml")
-if (nbgen.Nb_gen == 1).all(0):
-    warnings.warn("Numbers of mitotic generations all equal to 1 = No normalization with growth data.")
-else:
-    print("Ready to normalize with provided growth data.")
-
 ##### Validate sample attributes #####
 if len(config["samples"]["attributes"])>0:
     for x in config["samples"]["attributes"]:
         if x not in layout_csv.columns:
             raise Exception(f"Error.. The sample attribute '{x}' does not feature as a column in the sample layout.")
-        elif x not in nbgen.columns:
-            raise Exception(f"Error.. The sample attribute '{x}' does not feature as a column in the EXCEL file with the number of mitotic generations.")
         else:
             [warnings.warn(f"The column '{x}' is not listed in your sample attributes"
                           ) for x in layout_add_cols if x not in config["samples"]["attributes"]]
     print('Sample attributes imported.')
 else:
     print('No sample attributes provided.')
+
+##### Validate TSV file containing WT DNA sequences #####
+wtseqs = pd.read_csv(config["samples"]["wt"], sep='\t')
+validate(wtseqs, schema="../schemas/wt_seqs.schema.yaml")
+print("WT imported.")
+
+##### Generate template CSV file to write the number of mitotic generations between time points #####
+# Note: At this time, this file is required to exist even if the user opts out of normalization with growth data
+# A template is generated with the column for the number of generations set to 1
+# If the user opts out of normalization, this template will be used, dividing all scores by 1 (therefore no normalization)
+# If the user does want to normalize with growth data, a warning will notify the user that the template needs to be filled with growth data
+# Once the column contains other values than 1 for every row, we'll use the data for normalization
+
+if exists(config["samples"]["generations"]):
+    nbgen = pd.read_csv(config["samples"]["generations"])
+    validate(nbgen, schema="../schemas/nbgen.schema.yaml")
+    if (config["normalize"]["with_growth"]) & ((nbgen.Nb_gen == 1).all(0)):
+        raise Exception(f">>Please fill in the file {config["samples"]["generations"]} with the number of mitotic generations<<" \
+                         +"\n>>(or deactivate normalization with growth data in the main config file)<<")
+    elif config["normalize"]["with_growth"]:
+        print("Ready to normalize with provided growth data.")
+    else:
+        print("No normalization with growth data")
+else:
+    nbgen_temp = layout_csv[layout_csv.Timepoint != 'T0'][config["samples"]["attributes"]+['Replicate','Timepoint']].drop_duplicates()
+    nbgen_temp['Nb_gen'] = 1
+    nbgen_temp.to_csv(config["samples"]["generations"], index=None)
+    if config["normalize"]["with_growth"]:
+        raise Exception(f">>Please fill in the file {config["samples"]["generations"]} with the number of mitotic generations<<" \
+                         +"\n>>(or deactivate normalization with growth data in the main config file)<<")
+    else:
+        print("No normalization with growth data")
 
 ##### Validate codon table #####
 codon_table = pd.read_csv(config["codon"]["table"], header=0)

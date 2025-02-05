@@ -29,13 +29,13 @@ Please provide a tsv-formatted list of WT DNA sequences. The file should be name
 - Mutated_seq: all possible values for the Mutated_seq flag from the layout
 - WT_seq: corresponding WT DNA sequence
 
-### Number of mitotic generations
-
-Please provide an excel file containing the number of mitotic generations. The file should be named `nbgen.xlsx` and be located in the `config/project_files` folder. Here is [an example](project_files/nbgen.xlsx). The file should contain **exactly** the following columns: one for each of your sample attributes + Replicate + Timepoint and finally "Nb_gen" that will contain the number of mitotic generations. Fill this last column with 1 if you don't want to normalize with growth data.
-
 ### Codon table
 
 To prevent any typing mistake, the genetic code is imported from a [CoCoPUTs](https://dnahive.fda.gov/dna.cgi?cmd=codon_usage&id=537&mode=cocoputs) table (which also features codon frequencies, although the workflow does not make use of this). [The one provided](project_files/ScerevisiaeTAXID559292_Cocoputs_codon_table.csv) corresponds to *Saccharomyces cerevisiae* TAXID 559292. Please edit the main [config file](config_file.yaml) if you ever need to specify a different genetic code. Any csv-formatted file with at least two columns ("codon" and "aminoacid") should do.
+
+### Normalization with growth data
+
+Normalization with growth data in the form of numbers of mitotic generations for each condition is **optional**. If you do want to normalize with growth data, please set the corresponding parameter to True (see section below on the main config file). In any case, a csv-formatted file will be **automatically generated** the first time the workflow is run (even if it is a dry run). Again, if normalization is set to True in the config, you will be prompted to edit the file to add the number of mitotic generations for each condition in the column 'Nb_gen'. Once the file is edited, re-run the workflow.
 
 ### Codon mode
 
@@ -47,6 +47,8 @@ The main config file is located [here](config_file.yaml). Please make sure to:
 * select the samples to be processed (or leave 'all' if you want to process all samples)
 * list your sample attributes
 * replace all parameter values with the ones adapted for your project
+* set the "normalize with growth" parameter to True if you want to normalize with growth
+* set the "generate report" parameter to True if you want the HTML report to be automatically generated upon full completion of the workflow
 * edit file paths if you've changed the file names listed in the previous section
 
 ## Note on validation
