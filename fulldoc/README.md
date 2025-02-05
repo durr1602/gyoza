@@ -68,6 +68,8 @@ snakemake --report results/report.html
 ```
 
 ## Apptainer support
+**Note : Apptainer is currently not supported.. despite our best efforts :'(**
+
 After cloning the repo on a login node, create a Python virtual environment with the requirements specified in [the provided file](env.yml), for example using `venv`. Run the workflow using: `snakemake --profile profile --sdm conda apptainer`. The container should be created first, then conda envs will be created for each rule inside the container. This option is meant to be used on a system where you want to isolate the (many) files installed by `conda`. This option is **not** suited for local execution. Refer to step 4b for additional details.
 
 ## Edit pipeline
@@ -76,7 +78,7 @@ One can manually edit the [Snakefile](workflow/Snakefile) and/or the rules (.smk
 **Editing template jupyter notebooks** is tricky to do manually because the paths and kernel are not shared between platforms. Thankfully, there is a snakemake command that allows interactive editing of any template notebook, using any output file (from the notebook) as argument. The following example will generate URLs to open `jupyter`, in which we can edit the process_read_counts notebook that outputs the upset_plot.svg file, as specified in [the corresponding .smk file](workflow/rules/process_read_counts.smk).
 
 ```
-snakemake --use-conda --cores 1 --edit-notebook ../results/graphs/upset_plot.svg
+snakemake --use-conda --cores 1 --edit-notebook results/graphs/upset_plot.svg
 ```
 
 **Careful**, if you are running `snakemake` on a server, you might need to open a SSH tunnel between your local machine and the server by running the following command from a local terminal (should not be necessary when running locally on your machine):
