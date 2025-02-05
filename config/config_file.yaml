@@ -1,5 +1,9 @@
 # Main configuration file for gyōza
 
+reads:
+    # Specify path to directory containing sequencing data
+    path: 'config/reads/'
+
 samples:
     # Specify path to sample layout
     path: 'config/project_files/layout.csv'

@@ -6,7 +6,7 @@ A few files should be provided to properly analyze your data. What follows is th
 
 ### Sequencing data
 
-Please provide the raw reads (forward and reverse) of your DMS sequencing data in the `config/reads` folder. The file names should be featured in the layout (see section below).
+Please provide the raw reads (forward and reverse) of your DMS sequencing data in the `config/reads` folder (or specify a different path in the main config file). The file names should be featured in the layout (see section below).
 
 ### Layout
 
@@ -25,7 +25,7 @@ Finally, additional columns can be added by the user to specify what makes this 
 
 ### WT DNA sequences
 
-Please provide a csv-formatted list of WT DNA sequences. The file should be named `wt_seq.tsv` and be located in the `config/project_files` folder. Here is [an example](project_files/wt_seq.csv). The file should contain **exactly** the two following columns:
+Please provide a csv-formatted list of WT DNA sequences. The file should be named `wt_seq.csv` and be located in the `config/project_files` folder. Here is [an example](project_files/wt_seq.csv). The file should contain **exactly** the two following columns:
 - Mutated_seq: all possible values for the Mutated_seq flag from the layout
 - WT_seq: corresponding WT DNA sequence
 
@@ -49,7 +49,7 @@ The main config file is located [here](config_file.yaml). Please make sure to:
 * replace all parameter values with the ones adapted for your project
 * set the "normalize with growth" parameter to True if you want to normalize with growth
 * set the "generate report" parameter to True if you want the HTML report to be automatically generated upon full completion of the workflow
-* edit file paths if you've changed the file names listed in the previous section
+* edit all directory/file paths if necessary
 
 ## Note on validation
 
