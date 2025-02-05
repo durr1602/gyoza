@@ -28,6 +28,7 @@ rerun-incomplete: True
 restart-times: 3
 printshellcmds: True
 scheduler: greedy
+use-conda: True
 cluster-generic-cancel-cmd: scancel
 cluster-generic-cancel-nargs: 1000
 cluster-generic-status-cmd: status-sacct.sh
