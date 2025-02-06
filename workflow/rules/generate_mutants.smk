@@ -5,7 +5,7 @@ rule generate_mutants:
         threads = 1,
         time = lambda _, attempt: f'00:{attempt}:00'
     message:
-        "Generating expected mutants based on the experimental design (codon mode = {params.codon_mode})"
+        f'Generating expected mutants based on the experimental design (codon mode = {config["codon"]["mode"]})'
     log:
         notebook="logs/notebooks/generate_mutants.ipynb"
     conda:
