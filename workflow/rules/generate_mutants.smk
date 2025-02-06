@@ -2,6 +2,7 @@ rule generate_mutants:
     output:
         'results/df/master_layout.csv.gz'
     resources:
+        mem_gb = 2, # > default to compress csv
         threads = 1,
         time = lambda _, attempt: f'00:{attempt}:00'
     message:
