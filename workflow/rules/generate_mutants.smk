@@ -8,7 +8,7 @@ rule generate_mutants:
         'results/df/master_layout.csv.gz'
     resources:
         threads = 1,
-        time = "00:01:00"
+        time = lambda _, attempt: f'00:{attempt}:00'
     message:
         "Generating expected mutants based on the experimental design (codon mode = {params.codon_mode})"
     log:

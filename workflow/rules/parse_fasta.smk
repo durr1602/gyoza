@@ -20,7 +20,7 @@ rule parse_fasta:
     resources:
         mem_gb = 2, # > default to read csv.gz
         threads = 1,
-        time = "00:01:00"
+        time = lambda _, attempt: f'00:{attempt}:00'
     message:
         "Parsing fasta files and comparing sequenced mutants with expectations..."
     log:

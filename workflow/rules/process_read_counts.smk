@@ -51,7 +51,7 @@ rule process_read_counts:
     resources:
         mem_gb = 2, # > default to read csv.gz
         threads = 1,
-        time = "00:02:00"
+        time = lambda _, attempt: f'00:{attempt*2}:00'
     message:
         "Processing read counts... converting to functional impact scores"
     log:

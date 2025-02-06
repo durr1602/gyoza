@@ -5,7 +5,7 @@ rule vsearch:
         'results/3_aggregate/{sample}_aggregated.fasta'
     resources:
         threads = 1, # This command of vsearch is not multi-threaded
-        time = "00:01:00"
+        time = lambda _, attempt: f'00:{attempt}:00'
     message:
         "Counting reads for every unique sequence..."
     log:
