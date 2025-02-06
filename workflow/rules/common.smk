@@ -47,8 +47,8 @@ if exists(config["samples"]["generations"]):
     nbgen = pd.read_csv(config["samples"]["generations"])
     validate(nbgen, schema="../schemas/nbgen.schema.yaml")
     if (config["normalize"]["with_growth"]) & ((nbgen.Nb_gen == 1).all(0)):
-        raise Exception(f">>Please fill in the file {config["samples"]["generations"]} with the number of mitotic generations<<" \
-                         +"\n>>(or deactivate normalization with growth data in the main config file)<<")
+        raise Exception(f'>>Please fill in the file {config["samples"]["generations"]} with the number of mitotic generations<<' \
+                         +'\n>>(or deactivate normalization with growth data in the main config file)<<')
     elif config["normalize"]["with_growth"]:
         print("Ready to normalize with provided growth data.")
     else:
@@ -58,8 +58,8 @@ else:
     nbgen_temp['Nb_gen'] = 1
     nbgen_temp.to_csv(config["samples"]["generations"], index=None)
     if config["normalize"]["with_growth"]:
-        raise Exception(f">>Please fill in the file {config["samples"]["generations"]} with the number of mitotic generations<<" \
-                         +"\n>>(or deactivate normalization with growth data in the main config file)<<")
+        raise Exception(f'>>Please fill in the file {config["samples"]["generations"]} with the number of mitotic generations<<' \
+                         +'\n>>(or deactivate normalization with growth data in the main config file)<<')
     else:
         print("No normalization with growth data")
 
