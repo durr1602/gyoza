@@ -1,9 +1,4 @@
 rule generate_mutants:
-    params:
-        layout = config["samples"]["path"],
-        seqs = config["samples"]["wt"], # Projet-specific file containing the wild-type sequences
-        codon_table = config["codon"]["table"], # Projet-specific file containing the genetic code
-        codon_mode = config["codon"]["mode"] # Project-specific parameter to specify which degenerate codons were introduced
     output:
         'results/df/master_layout.csv.gz'
     resources:

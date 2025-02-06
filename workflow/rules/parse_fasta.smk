@@ -3,8 +3,6 @@ rule parse_fasta:
         fasta_files = expand(rules.vsearch.output, sample=samples),
         read_stats = rules.stats.output[0],
         expected_mutants = rules.generate_mutants.output[0]
-    params:
-        exp_rc_per_sample = float(config['rc_aims']['exp_rc_per_sample'])
     output:
         read_counts = 'results/df/readcounts.csv.gz',
         rc_filter_plot = report('results/graphs/rc_filter_plot.svg',

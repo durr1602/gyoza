@@ -1,11 +1,6 @@
 rule process_read_counts:
     input:
         rules.parse_fasta.output.read_counts
-    params:
-        sample_attributes = config['samples']['attributes'],
-        exp_rc_per_var = config['rc_aims']['exp_rc_per_var'],
-        rc_threshold = config['filter']['rc_threshold'],
-        nb_gen = config['samples']['generations']
     output:
         selcoeffs = 'results/df/selcoeffs.csv',
         hist_plot = report('results/graphs/hist_plot.svg',
