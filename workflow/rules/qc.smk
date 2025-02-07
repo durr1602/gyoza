@@ -6,7 +6,7 @@
 
 rule fastqc:
     input:
-        lambda wildcards: f'{config["reads"]["path"]}{sample_layout.loc[wildcards.sample, wildcards.RF]}''
+        lambda wildcards: f'{config["reads"]["path"]}{sample_layout.loc[wildcards.sample, wildcards.RF]}'
     output:
         html="results/0_qc/{sample}_{RF}_fastqc.html",
         zip="results/0_qc/{sample}_{RF}_fastqc.zip",
