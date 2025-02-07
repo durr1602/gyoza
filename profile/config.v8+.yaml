@@ -9,7 +9,7 @@ cluster-generic-submit-cmd:
     --time={resources.time}
     --job-name=smk-{rule}-{wildcards}
     --output=logs/SLURM_out/{rule}/{rule}-%j-{wildcards}.out
-    --mail-type=END,FAIL
+    --mail-type=FAIL
     --mail-user={resources.mail}
     --parsable
 default-resources:
