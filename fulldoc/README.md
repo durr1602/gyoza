@@ -28,12 +28,12 @@ conda activate gyoza
 1. **IMPORTANT**: Read the [config documentation](config/README.md) and **edit the main config**. If you plan on sending the pipeline to SLURM, make sure you also **edit the technical config file**.
 
 ### (optional) Prepare environments
-2. (optional) Create all conda environments using: `snakemake --conda-create-envs-only`. This step is only required before first use and is always included when running the workflow.
+2. (optional) Create all conda environments using: `snakemake --conda-create-envs-only`. This step is only required before first use and is always included when running the workflow. Unfortunately, at the time of writing, validations will be run even for these command lines. This means that you need to fully prepare the workflow before creating all envs.
 
 ### Check pipeline
-3. (recommended) Perform a dry run using: `snakemake -n`
+3. Perform a dry run using: `snakemake -n`
 
-This step is strongly recommended. It will make sure the prepared workflow does not contain any error and will display the rules (steps) that need to be run in order to reach the specified target(s) (default targets include the dataframe of functional impact scores, which is produced during the very last step of the workflow).
+This step is strongly recommended. It will make sure the prepared workflow does not contain any error and will display the rules (steps) that need to be run in order to reach the specified target(s) (default targets include the dataframe of functional impact scores, which is produced during the very last step of the workflow). If you're running the workflow for the first time and you toggled in normalization with growth data, you should see a warning prompting you to edit the generated template file (for more details, go back to step 1).
 
 ### Run pipeline
 4. Running the workflow with `conda`
@@ -62,10 +62,7 @@ Please make sure `tmux` is installed (already installed on some servers). Then, 
 6. To close the session when everything is finished, type `<Ctrl+b>`, then `<:>`, then `kill-session` and finally `<Enter>`.
 
 ### Useful Snakemake command lines
-For both the dry run and the actual run, you can decide to run the workflow only until a certain file is generated or rule is completed, using the `--until` flag in the snakemake command line, for example: `snakemake -n --until stats`. However, if the HTML report is configured to be generated automatically, an error will be raised (if a plot is missing, the report cannot be generated). To prevent this, edit the configuration file by setting the report generation to False. Generating the report manually can still be done but currently raises an error if a file is missing (i.e. if the workflow has not run fully).
-```
-snakemake --report results/report.html
-```
+For both the dry run and the actual run, you can decide to run the workflow only until a certain file is generated or rule is completed, using the `--until` flag in the snakemake command line, for example: `snakemake -n --until stats`. However, if the HTML report is configured to be generated automatically, an error will be raised (if a plot is missing, the report cannot be generated). To prevent this, edit the configuration file by setting the report generation to False. Generating the report manually can still be done but will raise an error if a file is missing (i.e. if the workflow has not run fully): `snakemake --report results/report.html`. Alternatively, you can manually generate an intermediate report by specifying the rules (or output files) that you want to include (separated by a space), using the following syntax: `snakemake multiqc parse_fasta --report results/report.html`
 
 ## Apptainer support
 **Note : Apptainer is currently not supported.. despite our best efforts :'(**

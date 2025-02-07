@@ -57,4 +57,4 @@ Currently, all the following files are validated against a YAML schema to help s
 
 ## Technical configuration
 
-The file containing technical config parameters to run the snakemake pipeline on HPC is [here](../profile/config.v8+.yaml). Apart from your email adress (please replace `<...>`), this file does not need to be modified too much, and flags added to the snakemake command line will supersede the default values specified in the file.
+The file containing technical config parameters to run the snakemake pipeline on HPC is [here](../profile/config.v8+.yaml). Apart from your email adress (please replace `<...>`), this file does not need to be modified too much, and flags added to the snakemake command line will supersede the default values specified in the file. **Careful**, by default, an email will be sent every time a job fails. This is useful to catch TIMEOUT and MEM_OUT errors, but we recommend automatically redirecting emails to prevent inbox overflow.
