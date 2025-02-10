@@ -1,3 +1,9 @@
+# Main configuration file for gyōza
+
+reads:
+    # Specify path to directory containing sequencing data
+    path: 'config/reads/'
+
 samples:
     # Specify path to sample layout
     path: 'config/project_files/layout.csv'
@@ -6,10 +12,10 @@ samples:
     selection: 'all'
     # Specify what makes each sample unique (other than Timepoint and Replicate)
     attributes: ['Species', 'Mating_type', 'Fragment']
-    # Specify path to file containing the number of mitotic generations for each condition
-    generations: 'config/project_files/nbgen.xlsx'
+    # Specify path to create file containing the number of mitotic generations for each condition
+    generations: 'config/project_files/nbgen.csv'
     # Specify path to file containing the wild-type DNA sequences
-    wt: 'config/project_files/wt_seq.tsv'
+    wt: 'config/project_files/wt_seq.csv'
     
 codon:
     # Codon table
@@ -26,3 +32,11 @@ rc_aims:
 filter:
     # Specify read count threshold (integer) to label variants with a confidence score
     rc_threshold: 10
+
+normalize:
+    # Set to True if you want to normalize impact scores with growth data
+    with_growth: False
+    
+report:
+    # Set to True if you want the HTML report to be automatically generated upon full completion of the workflow
+    generate: True

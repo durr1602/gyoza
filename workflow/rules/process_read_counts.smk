@@ -1,11 +1,6 @@
 rule process_read_counts:
     input:
         rules.parse_fasta.output.read_counts
-    params:
-        sample_attributes = config['samples']['attributes'],
-        exp_rc_per_var = config['rc_aims']['exp_rc_per_var'],
-        rc_threshold = config['filter']['rc_threshold'],
-        nb_gen = config['samples']['generations']
     output:
         selcoeffs = 'results/df/selcoeffs.csv',
         hist_plot = report('results/graphs/hist_plot.svg',
@@ -25,30 +20,35 @@ rule process_read_counts:
         ),
         timepoints_plot = report('results/graphs/timepoints_plot.svg',
             '../report/timepoints_plot.rst',
-            category="3. Selection coefficients",
-            labels={"figure": "3.3. Correlation between time points"}
+            category="3. Functional impact",
+            labels={"figure": "3.4. Correlation between time points"}
         ),
         scoeff_violin_plot = report('results/graphs/scoeff_violin_plot.svg',
             '../report/scoeff_violin_plot.rst',
-            category="3. Selection coefficients",
-            labels={"figure": "3.1. Distribution of selection coefficients"}
+            category="3. Functional impact",
+            labels={"figure": "3.1. Distribution of functional impact scores"}
         ),
         s_through_time_plot = report('results/graphs/s_through_time_plot.svg',
             '../report/s_through_time_plot.rst',
-            category="3. Selection coefficients",
-            labels={"figure": "3.4. Selection through time"}
+            category="3. Functional impact",
+            labels={"figure": "3.5. Functional impact over time"}
+        ),
+        replicates_heatmap_plot = report('results/graphs/replicates_heatmap_plot.svg',
+            '../report/replicates_heatmap_plot.rst',
+            category="3. Functional impact",
+            labels={"figure": "3.2. Correlation between replicates (1/2)"}
         ),
         replicates_plot = report('results/graphs/replicates_plot.svg',
             '../report/replicates_plot.rst',
-            category="3. Selection coefficients",
-            labels={"figure": "3.2. Correlation between replicates"}
+            category="3. Functional impact",
+            labels={"figure": "3.3. Correlation between replicates (2/2)"}
         )
     resources:
         mem_gb = 2, # > default to read csv.gz
         threads = 1,
-        time = "00:02:00"
+        time = lambda _, attempt: f'00:{attempt*2}:00'
     message:
-        "Processing read counts... converting to selection coefficients"
+        "Processing read counts... converting to functional impact scores"
     log:
         notebook="logs/notebooks/process_read_counts.ipynb"
     conda:

@@ -7,7 +7,7 @@ rule stats:
         'results/read_stats.csv'
     resources:
         threads = 1,
-        time = "00:01:00"
+        time = lambda _, attempt: f'00:{attempt}:00'
     message:
         "Parsing log files to aggregate read statistics..."
     log:

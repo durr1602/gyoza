@@ -7,7 +7,6 @@ dependencies:
   - jupyterlab_code_formatter=3.0.2
   - ipykernel
   - pandas>=2.2.2
-  - openpyxl>=3.1.5
   - numpy>=2.1.0
   - matplotlib==3.9.2
   - seaborn>=0.13.2

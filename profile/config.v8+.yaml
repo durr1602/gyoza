@@ -1,3 +1,5 @@
+# Technical configuration file for gyōza
+
 executor: cluster-generic
 cluster-generic-submit-cmd:
   sbatch
@@ -7,7 +9,7 @@ cluster-generic-submit-cmd:
     --time={resources.time}
     --job-name=smk-{rule}-{wildcards}
     --output=logs/SLURM_out/{rule}/{rule}-%j-{wildcards}.out
-    --mail-type=END,FAIL
+    --mail-type=FAIL
     --mail-user={resources.mail}
     --parsable
 default-resources:
@@ -26,6 +28,7 @@ rerun-incomplete: True
 restart-times: 3
 printshellcmds: True
 scheduler: greedy
+use-conda: True
 cluster-generic-cancel-cmd: scancel
 cluster-generic-cancel-nargs: 1000
 cluster-generic-status-cmd: status-sacct.sh
