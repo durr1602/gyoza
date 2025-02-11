@@ -12,10 +12,7 @@ git clone https://github.com/durr1602/gyoza.git
 ```
 cd gyoza
 ```
-4. If you correctly followed instructions at step 1, you should be able to use `conda`, first update to a recent version (>=24.7.1, ideally even more recent such as >=24.9.1). You might run into some issues, so one workaround is to update using `mamba`:
-```
-mamba update conda
-```
+4. If you correctly followed instructions at step 1, you should be able to use `conda`, first update to a recent version (>=24.7.1, ideally even more recent such as >=24.9.1). You might run into some issues with the suggested command line, so another possibility is the following: `conda update -n base -c defaults conda --repodata-fn=repodata.json`, or as a third option: `mamba update conda`
 
 5. Install the required dependencies for gyōza in a virtual environment using the provided requirements file (the "solving environment" step can take some time, normally not longer than a few minutes). Again, you could run into some issues if you have multiple instances of `conda` on your system (e.g. anaconda and miniforge), in which case you can uninstall (for example) anaconda by running `rm -rf anaconda3`.
 ```
