@@ -78,6 +78,16 @@ properties:
     required:
       - rc_threshold
 
+  qc:
+    type: object
+    properties:
+      perform:
+        description: Set to True to run FASTQC and MultiQC
+        type: boolean
+        default: True
+    required:
+      - perform
+
   normalize:
     type: object
     properties:
@@ -103,5 +113,6 @@ required:
   - codon
   - rc_aims
   - filter
+  - qc
   - normalize
   - report

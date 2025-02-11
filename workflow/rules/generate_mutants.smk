@@ -10,6 +10,6 @@ rule generate_mutants:
     log:
         notebook="logs/notebooks/generate_mutants.ipynb"
     conda:
-        '../envs/jupyter_basic.yaml'
+        '../envs/jupyter.yaml'
     notebook:
         '../notebooks/generate_mutants.py.ipynb'

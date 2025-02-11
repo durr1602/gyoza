@@ -33,6 +33,10 @@ filter:
     # Specify read count threshold (integer) to label variants with a confidence score
     rc_threshold: 10
 
+qc:
+    # Set to True if you want to run FASTQC on all raw FASTQ files and generate a MultiQC report
+    perform: True
+
 normalize:
     # Set to True if you want to normalize impact scores with growth data
     with_growth: False

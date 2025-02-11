@@ -14,7 +14,8 @@ rule parse_fasta:
             '../report/unexp_rc_plot.rst',
             category='1. Read filtering',
             labels={"figure": "1.2. Read counts of unexpected variants"}
-        )
+        ),
+        done = touch('results/done/parse_fasta.done')
     resources:
         mem_gb = 2, # > default to read csv.gz
         threads = 1,
@@ -24,6 +25,6 @@ rule parse_fasta:
     log:
         notebook="logs/notebooks/parse_fasta.ipynb"
     conda:
-        '../envs/jupyter_plotting.yaml'
+        '../envs/jupyter.yaml'
     notebook:
         '../notebooks/parse_fasta.py.ipynb'

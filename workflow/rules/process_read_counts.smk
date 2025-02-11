@@ -42,7 +42,8 @@ rule process_read_counts:
             '../report/replicates_plot.rst',
             category="3. Functional impact",
             labels={"figure": "3.3. Correlation between replicates (2/2)"}
-        )
+        ),
+        done = touch('results/done/process_read_counts.done')
     resources:
         mem_gb = 2, # > default to read csv.gz
         threads = 1,
@@ -52,6 +53,6 @@ rule process_read_counts:
     log:
         notebook="logs/notebooks/process_read_counts.ipynb"
     conda:
-        '../envs/jupyter_plotting.yaml'
+        '../envs/jupyter.yaml'
     notebook:
         '../notebooks/process_read_counts.py.ipynb'

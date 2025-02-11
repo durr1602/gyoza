@@ -23,7 +23,12 @@ rule all:
     input:
         get_target()
 
-##### Generate report if workflow runs succesfully #####
+##### Generate report that includes all completed steps #####
 if config['report']['generate']:
-    onsuccess:
-        shell("snakemake --use-conda --report results/report.html")
+    expected_in_report = ['multiqc', 'parse_fasta', 'process_read_counts']
+    report_args = []
+    for r in expected_in_report:
+        if exists(f"results/done/{r}.done"):
+            report_args.append(r)
+    if len(report_args) > 0:
+        shell(f"snakemake {' '.join(report_args)} --report results/report.html")

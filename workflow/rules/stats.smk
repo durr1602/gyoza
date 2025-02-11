@@ -13,6 +13,6 @@ rule stats:
     log:
         'logs/4_stats/stats.log'
     conda:
-        '../envs/jupyter_basic.yaml'
+        '../envs/jupyter.yaml'
     script:
         '../scripts/get_read_stats.py'
