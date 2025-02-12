@@ -33,7 +33,6 @@ rule multiqc:
             category="0. Quality control",
             labels={"report": "Interactive QC report"}
         ),
-        done = touch('results/done/multiqc.done')
     log:
         "logs/0_qc/multiqc.log",
     params:

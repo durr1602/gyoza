@@ -9,7 +9,6 @@ report: "report/workflow.rst"
 ##### Load rules #####
 
 include: "rules/common.smk"
-include: "rules/qc.smk"
 include: "rules/cutadapt.smk"
 include: "rules/pandaseq.smk"
 include: "rules/vsearch.smk"
@@ -18,17 +17,25 @@ include: "rules/generate_mutants.smk"
 include: "rules/parse_fasta.smk"
 include: "rules/process_read_counts.smk"
 
+if config["qc"]["perform"]:
+    include: "rules/qc.smk"
+
 ##### Target(s) #####
 rule all:
     input:
         get_target()
 
 ##### Generate report that includes all completed steps #####
-if config['report']['generate']:
-    expected_in_report = ['multiqc', 'parse_fasta', 'process_read_counts']
-    report_args = []
-    for r in expected_in_report:
-        if exists(f"results/done/{r}.done"):
-            report_args.append(r)
-    if len(report_args) > 0:
-        shell(f"snakemake {' '.join(report_args)} --report results/report.html")
+if config["report"]["generate"]:
+    onsuccess:
+        STEPs, = glob_wildcards('results/done/{step}.done')
+        if (config["qc"]["perform"] ) & (exists("results/0_qc/multiqc.html")):
+            STEPs.append('multiqc')
+        shell(f"snakemake {' '.join(STEPs)} --report results/report.html")
+    
+    onerror:
+        STEPs, = glob_wildcards('results/done/{step}.done')
+        if (config["qc"]["perform"] ) & (exists("results/0_qc/multiqc.html")):
+            STEPs.append('multiqc')
+        if len(report_args) > 0:
+            shell(f"snakemake {' '.join(STEPs)} --report results/report.html")
