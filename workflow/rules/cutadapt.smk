@@ -10,7 +10,7 @@ rule cutadapt:
         read2 = temp('results/1_trim/{sample}_trimmed.R2.fastq.gz')
     resources:
         threads = 10,
-        time = lambda _, attempt: f'00:{attempt*12}:00'
+        time = lambda _, input, attempt: max(0,5*input.size_mb + (attempt-1), attempt)
     message:
         "Trimming constant sequences forward={params.Nfwd} and reverse={params.Nrev} from input files {input.read1} and {input.read2}, respectively"
     log:
