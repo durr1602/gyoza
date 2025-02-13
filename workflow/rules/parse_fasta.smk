@@ -17,9 +17,9 @@ rule parse_fasta:
         ),
         done = touch('results/done/parse_fasta.done')
     resources:
-        mem_gb = 2, # > default to read csv.gz
+        mem_gb = lambda _, input, attempt: max(0.005*input.size_mb + (attempt-1)*0.005*input.size_mb, 1),
         threads = 1,
-        time = lambda _, attempt: f'00:{attempt}:00'
+        time = lambda _, input, attempt: max(0.002*input.size_mb + (attempt-1)*0.002*input.size_mb, 1)
     message:
         "Parsing fasta files and comparing sequenced mutants with expectations..."
     log:

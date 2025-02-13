@@ -34,6 +34,8 @@ else:
 ##### Validate CSV file containing WT DNA sequences #####
 wtseqs = pd.read_csv(config["samples"]["wt"])
 validate(wtseqs, schema="../schemas/wt_seqs.schema.yaml")
+# Retrieve total number of codons to mutate for dynamic allocation of computing ressources
+totalNbCodons = sum([len(x)/3 for x in wtseqs.WT_seq.values])
 print("WT imported.")
 
 ##### Generate template CSV file to write the number of mitotic generations between time points #####
