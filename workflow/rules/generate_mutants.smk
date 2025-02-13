@@ -7,7 +7,7 @@ rule generate_mutants:
     resources:
         mem_gb = lambda _, input, attempt: max(50*input.size_mb + (attempt-1)*50*input.size_mb, 2),
         threads = 1,
-        time = lambda _, input, attempt: max(80*input.size_mb + (attempt-1)*80*input.size_mb, 1)
+        time = lambda _, input, attempt: max((80*input.size_mb + (attempt-1)*80*input.size_mb).__ceil__(), 1)
     message:
         f'Generating expected mutants based on the experimental design (codon mode = {config["codon"]["mode"]})'
     log:

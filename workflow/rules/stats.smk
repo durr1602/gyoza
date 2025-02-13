@@ -7,7 +7,7 @@ rule stats:
         'results/read_stats.csv'
     resources:
         threads = 1,
-        time = lambda _, input, attempt: max(0.001*input.size_mb + (attempt-1)*0.001*input.size_mb, 1)
+        time = lambda _, input, attempt: max((0.001*input.size_mb + (attempt-1)*0.001*input.size_mb).__ceil__(), 1)
     message:
         "Parsing log files to aggregate read statistics..."
     log:

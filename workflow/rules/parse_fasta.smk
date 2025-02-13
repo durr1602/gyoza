@@ -17,9 +17,9 @@ rule parse_fasta:
         ),
         done = touch('results/done/parse_fasta.done')
     resources:
-        mem_gb = lambda _, input, attempt: max(0.005*input.size_mb + (attempt-1)*0.005*input.size_mb, 1),
+        mem_gb = lambda _, input, attempt: max(0.002*input.size_mb + (attempt-1)*0.002*input.size_mb, 1),
         threads = 1,
-        time = lambda _, input, attempt: max(0.002*input.size_mb + (attempt-1)*0.002*input.size_mb, 1)
+        time = lambda _, input, attempt: max((0.002*input.size_mb + (attempt-1)*0.002*input.size_mb).__ceil__(), 1)
     message:
         "Parsing fasta files and comparing sequenced mutants with expectations..."
     log:

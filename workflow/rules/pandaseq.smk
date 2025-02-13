@@ -6,7 +6,7 @@ rule pandaseq:
         temp('results/2_merge/{sample}_merged.fasta')
     resources:
         threads = 4,
-        time = lambda _, input, attempt: max(0.002*input.size_mb + (attempt-1)*0.002*input.size_mb, 1)
+        time = lambda _, input, attempt: max((0.002*input.size_mb + (attempt-1)*0.002*input.size_mb).__ceil__(), 1)
     message:
         "Merging reads for {input.read1} and {input.read2}"
     log:
