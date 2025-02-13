@@ -1,6 +1,7 @@
 rule process_read_counts:
     input:
-        rules.parse_fasta.output.read_counts
+        readcounts = rules.parse_fasta.output.read_counts,
+        nbgen = config['samples']['generations']
     output:
         selcoeffs = 'results/df/selcoeffs.csv',
         hist_plot = report('results/graphs/hist_plot.svg',

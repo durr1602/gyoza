@@ -1,10 +1,13 @@
 rule generate_mutants:
+    input:
+        layout = config["samples"]["path"],
+        wtseqs = config["samples"]["wt"]
     output:
         'results/df/master_layout.csv.gz'
     resources:
-        mem_gb = lambda _, totalNbCodons, attempt: max(0.005*totalNbCodons + (attempt-1)*0.005*totalNbCodons, 1),
+        mem_gb = lambda _, input, attempt: max(50*input.size_mb + (attempt-1)*50*input.size_mb, 2),
         threads = 1,
-        time = lambda _, totalNbCodons, attempt: max(0.01*totalNbCodons + (attempt-1)*0.01*totalNbCodons, 1)
+        time = lambda _, input, attempt: max(80*input.size_mb + (attempt-1)*80*input.size_mb, 1)
     message:
         f'Generating expected mutants based on the experimental design (codon mode = {config["codon"]["mode"]})'
     log:
