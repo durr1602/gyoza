@@ -3,7 +3,8 @@ rule process_read_counts:
         readcounts = rules.parse_fasta.output.read_counts,
         nbgen = config['samples']['generations']
     output:
-        selcoeffs = 'results/df/selcoeffs.csv',
+        selcoeffs = 'results/df/all_scores.csv',
+        avg_scores = 'results/df/avg_scores.csv',
         hist_plot = report('results/graphs/hist_plot.svg',
             '../report/hist_plot.rst',
             category='2. Read processing',

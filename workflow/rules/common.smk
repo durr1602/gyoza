@@ -86,7 +86,7 @@ if config["samples"]["selection"] != "all":
 ##### Specify final target #####
 
 def get_target():
-    targets = ['results/df/selcoeffs.csv']
+    targets = ['results/df/all_scores.csv']
     if config["qc"]["perform"]:
         targets.append('results/0_qc/multiqc.html')
     return targets
