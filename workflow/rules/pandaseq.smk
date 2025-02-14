@@ -1,7 +1,7 @@
 rule pandaseq:
     input:
-        read1 = rules.cutadapt.output.read1,
-        read2 = rules.cutadapt.output.read2
+        read1 = rules.cutadapt.output.fastq1,
+        read2 = rules.cutadapt.output.fastq2
     output:
         temp('results/2_merge/{sample}_merged.fasta')
     resources:

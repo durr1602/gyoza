@@ -1,6 +1,6 @@
 rule stats:
     input:
-        cutadapt_logs = expand(rules.cutadapt.log, sample=samples),
+        cutadapt_logs = expand(rules.cutadapt.output.qc, sample=samples),
         pandaseq_logs = expand(rules.pandaseq.log, sample=samples),
         vsearch_logs = expand(rules.vsearch.log, sample=samples)
     output:
