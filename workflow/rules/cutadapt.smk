@@ -17,7 +17,7 @@ rule cutadapt:
     log:
         'logs/1_trim/cutadapt-sample={sample}.err'
     envmodules:
-        # Update the following, run module avail to see installed modules and versions
-        'cutadapt/4.9'
+        # If to be used, update the following, run module avail to see installed modules and versions
+        'cutadapt/5.0'
     wrapper:
         "v5.8.0/bio/cutadapt/pe"

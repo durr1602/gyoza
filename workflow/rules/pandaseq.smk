@@ -14,7 +14,7 @@ rule pandaseq:
     conda:
         '../envs/pandaseq.yaml'
     envmodules:
-        # Update the following, run module avail to see installed modules and versions
+        # If to be used, update the following, run module avail to see installed modules and versions
         'pandaseq/2.11'
     shell:
         ## Flags for pandaseq

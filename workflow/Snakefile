@@ -37,5 +37,5 @@ if config["report"]["generate"]:
         STEPs, = glob_wildcards('results/done/{step}.done')
         if (config["qc"]["perform"] ) & (exists("results/0_qc/multiqc.html")):
             STEPs.append('multiqc')
-        if len(report_args) > 0:
+        if len(STEPs) > 0:
             shell(f"snakemake {' '.join(STEPs)} --report results/report.html")

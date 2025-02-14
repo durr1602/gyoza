@@ -1,6 +1,6 @@
 rule parse_fasta:
     input:
-        fasta_files = expand(rules.vsearch.output, sample=samples),
+        fasta_files = expand(rules.vsearch_fastx_uniques.output, sample=samples),
         read_stats = rules.stats.output[0],
         expected_mutants = rules.generate_mutants.output[0]
     output:
