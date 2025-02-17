@@ -1,12 +1,12 @@
 rule pandaseq:
     input:
-        read1 = rules.cutadapt.output.read1,
-        read2 = rules.cutadapt.output.read2
+        read1 = rules.cutadapt.output.fastq1,
+        read2 = rules.cutadapt.output.fastq2
     output:
         temp('results/2_merge/{sample}_merged.fasta')
     resources:
         threads = 4,
-        time = lambda _, attempt: f'00:{attempt*5}:00'
+        time = lambda _, input, attempt: max((0.002*input.size_mb + (attempt-1)*0.002*input.size_mb).__ceil__(), 1)
     message:
         "Merging reads for {input.read1} and {input.read2}"
     log:
@@ -14,7 +14,7 @@ rule pandaseq:
     conda:
         '../envs/pandaseq.yaml'
     envmodules:
-        # Update the following, run module avail to see installed modules and versions
+        # If to be used, update the following, run module avail to see installed modules and versions
         'pandaseq/2.11'
     shell:
         ## Flags for pandaseq
@@ -32,6 +32,6 @@ rule pandaseq:
         -B \
         -t 0.6 \
         -T {threads} \
-        -d bFSrk \
+        -d bfsrk \
         -w {output} &> {log}
         """

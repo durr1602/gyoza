@@ -1,3 +1,3 @@
 **Important note:** make sure you click on the eye icon above to refresh the view and load the correct image.
 
-For every combination of attributes and for each output time point, a heatmap indicates Spearman's rank correlation coefficient for all pairwise replicate comparisons.
+For every combination of attributes and for each output time point, a heatmap indicates the Spearman's rank correlation coefficient for every pairwise replicate comparison. It is important to note that a low correlation coefficient is expected for control conditions, i.e. conditions in which we essentially plot noise around zero against noise. Refer to `this figure <replicates_plot.svg_>`_ to check if the absence of correlation is justified.

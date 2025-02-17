@@ -9,7 +9,6 @@ report: "report/workflow.rst"
 ##### Load rules #####
 
 include: "rules/common.smk"
-include: "rules/qc.smk"
 include: "rules/cutadapt.smk"
 include: "rules/pandaseq.smk"
 include: "rules/vsearch.smk"
@@ -18,12 +17,25 @@ include: "rules/generate_mutants.smk"
 include: "rules/parse_fasta.smk"
 include: "rules/process_read_counts.smk"
 
+if config["qc"]["perform"]:
+    include: "rules/qc.smk"
+
 ##### Target(s) #####
 rule all:
     input:
         get_target()
 
-##### Generate report if workflow runs succesfully #####
-if config['report']['generate']:
+##### Generate report that includes all completed steps #####
+if config["report"]["generate"]:
     onsuccess:
-        shell("snakemake --use-conda --report results/report.html")
+        STEPs, = glob_wildcards('results/done/{step}.done')
+        if (config["qc"]["perform"] ) & (exists("results/0_qc/multiqc.html")):
+            STEPs.append('multiqc')
+        shell(f"snakemake {' '.join(STEPs)} --report results/report.html")
+    
+    onerror:
+        STEPs, = glob_wildcards('results/done/{step}.done')
+        if (config["qc"]["perform"] ) & (exists("results/0_qc/multiqc.html")):
+            STEPs.append('multiqc')
+        if len(STEPs) > 0:
+            shell(f"snakemake {' '.join(STEPs)} --report results/report.html")

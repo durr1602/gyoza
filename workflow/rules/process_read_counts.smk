@@ -1,8 +1,10 @@
 rule process_read_counts:
     input:
-        rules.parse_fasta.output.read_counts
+        readcounts = rules.parse_fasta.output.read_counts,
+        nbgen = config['samples']['generations']
     output:
-        selcoeffs = 'results/df/selcoeffs.csv',
+        selcoeffs = 'results/df/all_scores.csv',
+        avg_scores = 'results/df/avg_scores.csv',
         hist_plot = report('results/graphs/hist_plot.svg',
             '../report/hist_plot.rst',
             category='2. Read processing',
@@ -42,16 +44,17 @@ rule process_read_counts:
             '../report/replicates_plot.rst',
             category="3. Functional impact",
             labels={"figure": "3.3. Correlation between replicates (2/2)"}
-        )
+        ),
+        done = touch('results/done/process_read_counts.done')
     resources:
-        mem_gb = 2, # > default to read csv.gz
+        mem_gb = lambda _, input, attempt: max((0.2*input.size_mb + (attempt-1)*0.2*input.size_mb).__ceil__(), 1),
         threads = 1,
-        time = lambda _, attempt: f'00:{attempt*2}:00'
+        time = lambda _, input, attempt: max((0.5*input.size_mb + (attempt-1)*0.5*input.size_mb).__ceil__(), 1)
     message:
         "Processing read counts... converting to functional impact scores"
     log:
         notebook="logs/notebooks/process_read_counts.ipynb"
     conda:
-        '../envs/jupyter_plotting.yaml'
+        '../envs/jupyter.yaml'
     notebook:
         '../notebooks/process_read_counts.py.ipynb'

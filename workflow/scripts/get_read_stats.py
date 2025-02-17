@@ -16,10 +16,10 @@ def generate_read_stats(cutadapt_logfiles, pandaseq_logfiles, vsearch_logfiles, 
         with open(f, 'r') as file:
             lines = file.readlines()
     
-        total_reads = int(lines[7].split('Total read pairs processed:')[1].strip().replace(',',''))
-        r1_with_adapter = int(lines[8].split('Read 1 with adapter:')[1].split('(')[0].strip().replace(',',''))
-        r2_with_adapter = int(lines[9].split('Read 2 with adapter:')[1].split('(')[0].strip().replace(',',''))
-        trimmed_reads = int(lines[10].split('Pairs written (passing filters):')[1].split('(')[0].strip().replace(',',''))
+        total_reads = int(lines[6].split('Total read pairs processed:')[1].strip().replace(',',''))
+        r1_with_adapter = int(lines[7].split('Read 1 with adapter:')[1].split('(')[0].strip().replace(',',''))
+        r2_with_adapter = int(lines[8].split('Read 2 with adapter:')[1].split('(')[0].strip().replace(',',''))
+        trimmed_reads = int(lines[12].split('Pairs written (passing filters):')[1].split('(')[0].strip().replace(',',''))
         
         # Store all variables (number of reads) related to trimming step
         stats_dict[sample_name] = [total_reads, r1_with_adapter, r2_with_adapter, trimmed_reads]

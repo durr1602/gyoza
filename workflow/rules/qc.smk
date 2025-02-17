@@ -13,7 +13,8 @@ rule fastqc:
     log:
         "logs/0_qc/{sample}_{RF}_fastqc.log",
     resources:
-        threads = 10
+        threads = 10,
+        time = lambda _, input, attempt: max((0.002*input.size_mb + (attempt-1)*0.002*input.size_mb).__ceil__(), 1)
     message: 
         "Performing quality control analysis using FastQC on the following file: {input}"
     wrapper:
@@ -32,7 +33,7 @@ rule multiqc:
             "../report/qc.rst",
             category="0. Quality control",
             labels={"report": "Interactive QC report"}
-        )
+        ),
     log:
         "logs/0_qc/multiqc.log",
     params:

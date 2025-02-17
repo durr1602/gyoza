@@ -46,7 +46,8 @@ Please specify the codon mode, meaning the type of degenerate codons you introdu
 The main config file is located [here](config_file.yaml). Please make sure to:
 * select the samples to be processed (or leave 'all' if you want to process all samples)
 * list your sample attributes
-* replace all parameter values with the ones adapted for your project
+* replace all parameter values with the ones adapted for your project. Note: a first pass might be necessary to establish what would be a good **read count threshold**. Feel free to adjust it and re-run the workflow (if nothing else has changed, only the last steps should run again). This parameter is important because the "avg_scores" dataframe is built only upon "high confidence" variants, i.e. variants with a read count above the set threshold in all T0 replicates.
+* set the "perform qc" parameter to True if you want to analyze your raw FASTQ with FastQC (and generate a MultiQC report)
 * set the "normalize with growth" parameter to True if you want to normalize with growth
 * set the "generate report" parameter to True if you want the HTML report to be automatically generated upon full completion of the workflow
 * edit all directory/file paths if necessary

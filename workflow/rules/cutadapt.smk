@@ -1,32 +1,23 @@
 rule cutadapt:
     input:
-        read1 = lambda wildcards: f"{config["reads"]["path"]}{sample_layout.loc[wildcards.sample, 'R1']}",
-        read2 = lambda wildcards: f"{config["reads"]["path"]}{sample_layout.loc[wildcards.sample, 'R2']}"
+        lambda wildcards: [f"{config['reads']['path']}{sample_layout.loc[wildcards.sample, 'R1']}",
+                           f"{config['reads']['path']}{sample_layout.loc[wildcards.sample, 'R2']}"]
     params:
-        Nfwd = lambda wildcards: sample_layout.loc[wildcards.sample, "N_forward"],
-        Nrev = lambda wildcards: sample_layout.loc[wildcards.sample, "N_reverse"]
+        adapters = lambda wildcards: f"-g {sample_layout.loc[wildcards.sample, 'N_forward']} -G {sample_layout.loc[wildcards.sample, 'N_reverse']}",
+        extra = "-e 0.15 --no-indels --discard-untrimmed"
     output:
-        read1 = temp('results/1_trim/{sample}_trimmed.R1.fastq.gz'),
-        read2 = temp('results/1_trim/{sample}_trimmed.R2.fastq.gz')
+        fastq1 = temp('results/1_trim/{sample}_trimmed.R1.fastq.gz'),
+        fastq2 = temp('results/1_trim/{sample}_trimmed.R2.fastq.gz'),
+        qc = 'logs/1_trim/cutadapt-sample={sample}.stats'
     resources:
         threads = 10,
-        time = lambda _, attempt: f'00:{attempt*12}:00'
+        time = lambda _, input, attempt: max((0.005*input.size_mb + (attempt-1)*0.005*input.size_mb).__ceil__(), 1)
     message:
-        "Trimming constant sequences forward={params.Nfwd} and reverse={params.Nrev} from input files {input.read1} and {input.read2}, respectively"
+        "Trimming constant sequences from input files {input[0]} and {input[1]}"
     log:
-        'logs/1_trim/cutadapt-sample={sample}.stats'
-    conda:
-        '../envs/cutadapt.yaml'
+        'logs/1_trim/cutadapt-sample={sample}.err'
     envmodules:
-        # Update the following, run module avail to see installed modules and versions
-        'cutadapt/4.9'
-    shell:
-        r"""
-        cutadapt -e 0.15 \
-        --no-indels \
-        --discard-untrimmed \
-        --cores={threads} \
-        -g {params.Nfwd} -G {params.Nrev} \
-        -o {output.read1} -p {output.read2} \
-        {input.read1} {input.read2} &> {log}
-        """
+        # If to be used, update the following, run module avail to see installed modules and versions
+        'cutadapt/5.0'
+    wrapper:
+        "v5.8.0/bio/cutadapt/pe"
