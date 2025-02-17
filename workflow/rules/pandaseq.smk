@@ -32,6 +32,6 @@ rule pandaseq:
         -B \
         -t 0.6 \
         -T {threads} \
-        -d bFSrk \
+        -d bfsrk \
         -w {output} &> {log}
         """
