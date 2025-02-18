@@ -107,7 +107,21 @@ properties:
         default: True
     required:
       - generate
-  
+
+  plots:
+    type: object
+    properties:
+      format:
+        description: Format of plots for export, list of extensions, e.g. ['png','pdf']
+        type: array
+        uniqueItems: true
+        default: []
+        items:
+          type: string
+          enum: ['eps','jpg','jpeg','pdf','pgf','png','ps','raw','rgba','svg','svgz','tif','tiff']
+    required:
+      - format
+
 required:
   - samples
   - codon
@@ -116,3 +130,4 @@ required:
   - qc
   - normalize
   - report
+  - plots

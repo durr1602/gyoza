@@ -44,3 +44,8 @@ normalize:
 report:
     # Set to True if you want the HTML report to be automatically generated upon full completion of the workflow
     generate: True
+
+plots:
+    # Indicate in which format(s) you want to export plots: ['png','pdf']
+    # Plots will be exported in .svg regardless of what is specified below
+    format: ['png']
