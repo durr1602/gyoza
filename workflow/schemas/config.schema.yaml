@@ -115,7 +115,7 @@ properties:
         description: Format of plots for export, list of extensions, e.g. ['png','pdf']
         type: array
         uniqueItems: true
-        default: []
+        default: ['png']
         items:
           type: string
           enum: ['eps','jpg','jpeg','pdf','pgf','png','ps','raw','rgba','svg','svgz','tif','tiff']
