@@ -36,32 +36,32 @@ wtseqs = pd.read_csv(config["samples"]["wt"])
 validate(wtseqs, schema="../schemas/wt_seqs.schema.yaml")
 print("WT imported.")
 
-##### Generate template CSV file to write the number of mitotic generations between time points #####
-# Note: At this time, this file is required to exist even if the user opts out of normalization with growth data
+##### Generate template CSV file to write the number of cellular generations between time points #####
+# Note: At this time, this file is required to exist even if the user opts out of this normalization
 # A template is generated with the column for the number of generations set to 1
 # If the user opts out of normalization, this template will be used, dividing all scores by 1 (therefore no normalization)
-# If the user does want to normalize with growth data, a warning will notify the user that the template needs to be filled with growth data
+# If the user opts in, a warning will notify the user that the template needs to be filled
 # Once the column contains other values than 1 for every row, we'll use the data for normalization
 
 if exists(config["samples"]["generations"]):
     nbgen = pd.read_csv(config["samples"]["generations"])
     validate(nbgen, schema="../schemas/nbgen.schema.yaml")
-    if (config["normalize"]["with_growth"]) & ((nbgen.Nb_gen == 1).all(0)):
-        raise Exception(f'>>Please fill in the file {config["samples"]["generations"]} with the number of mitotic generations<<' \
-                         +'\n>>(or deactivate normalization with growth data in the main config file)<<')
-    elif config["normalize"]["with_growth"]:
-        print("Ready to normalize with provided growth data.")
+    if (config["normalize"]["with_gen"]) & ((nbgen.Nb_gen == 1).all(0)):
+        raise Exception(f'>>Please fill in the file {config["samples"]["generations"]} with the number of cellular generations<<' \
+                         +'\n>>(or deactivate this normalization in the main config file)<<')
+    elif config["normalize"]["with_gen"]:
+        print("Ready to normalize with the provided numbers of cellular generations.")
     else:
-        print("No normalization with growth data")
+        print("No normalization with cellular generations")
 else:
     nbgen_temp = layout_csv[layout_csv.Timepoint != 'T0'][config["samples"]["attributes"]+['Replicate','Timepoint']].drop_duplicates()
     nbgen_temp['Nb_gen'] = 1
     nbgen_temp.to_csv(config["samples"]["generations"], index=None)
-    if config["normalize"]["with_growth"]:
-        raise Exception(f'>>Please fill in the file {config["samples"]["generations"]} with the number of mitotic generations<<' \
-                         +'\n>>(or deactivate normalization with growth data in the main config file)<<')
+    if config["normalize"]["with_gen"]:
+        raise Exception(f'>>Please fill in the file {config["samples"]["generations"]} with the number of cellular generations<<' \
+                         +'\n>>(or deactivate this normalization in the main config file)<<')
     else:
-        print("No normalization with growth data")
+        print("No normalization with cellular generations")
 
 ##### Validate codon table #####
 codon_table = pd.read_csv(config["codon"]["table"], header=0)

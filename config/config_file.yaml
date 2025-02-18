@@ -38,8 +38,8 @@ qc:
     perform: True
 
 normalize:
-    # Set to True if you want to normalize impact scores with growth data
-    with_growth: False
+    # Set to True if you want to normalize impact scores with the number of cellular generations
+    with_gen: False
     
 report:
     # Set to True if you want the HTML report to be automatically generated upon full completion of the workflow

@@ -27,15 +27,15 @@ Finally, additional columns can be added by the user to specify what makes this 
 
 Please provide a csv-formatted list of WT DNA sequences. The file should be named `wt_seq.csv` and be located in the `config/project_files` folder. Here is [an example](project_files/wt_seq.csv). The file should contain **exactly** the two following columns:
 - Mutated_seq: all possible values for the Mutated_seq flag from the layout
-- WT_seq: corresponding WT DNA sequence
+- WT_seq: corresponding WT DNA sequence, assuming the first three bases constitute the first mutated codon
 
 ### Codon table
 
 To prevent any typing mistake, the genetic code is imported from a [CoCoPUTs](https://dnahive.fda.gov/dna.cgi?cmd=codon_usage&id=537&mode=cocoputs) table (which also features codon frequencies, although the workflow does not make use of this). [The one provided](project_files/ScerevisiaeTAXID559292_Cocoputs_codon_table.csv) corresponds to *Saccharomyces cerevisiae* TAXID 559292. Please edit the main [config file](config_file.yaml) if you ever need to specify a different genetic code. Any csv-formatted file with at least two columns ("codon" and "aminoacid") should do.
 
-### Normalization with growth data
+### Normalization with the number of cellular generations
 
-Normalization with growth data in the form of numbers of mitotic generations for each condition is **optional**. If you do want to normalize with growth data, please set the corresponding parameter to True (see section below on the main config file). In any case, a csv-formatted file will be **automatically generated** the first time the workflow is run (even if it is a dry run). Again, if normalization is set to True in the config, you will be prompted to edit the file to add the number of mitotic generations for each condition in the column 'Nb_gen'. Once the file is edited, re-run the workflow.
+This normalization is **optional**. Please set the corresponding parameter to True or False in the main config file (see section below). In any case, a csv-formatted file will be **automatically generated** the first time the workflow is run (even if it is a dry run). Again, if normalization is set to True in the config, you will be prompted to edit the file to add the number of cellular generations for each condition in the column 'Nb_gen'. Once the file is edited, re-run the workflow.
 
 ### Codon mode
 
@@ -48,13 +48,13 @@ The main config file is located [here](config_file.yaml). Please make sure to:
 * list your sample attributes
 * replace all parameter values with the ones adapted for your project. Note: a first pass might be necessary to establish what would be a good **read count threshold**. Feel free to adjust it and re-run the workflow (if nothing else has changed, only the last steps should run again). This parameter is important because the "avg_scores" dataframe is built only upon "high confidence" variants, i.e. variants with a read count above the set threshold in all T0 replicates.
 * set the "perform qc" parameter to True if you want to analyze your raw FASTQ with FastQC (and generate a MultiQC report)
-* set the "normalize with growth" parameter to True if you want to normalize with growth
+* set the "normalize with gen" parameter to True if you want to normalize with the number of cellular generations
 * set the "generate report" parameter to True if you want the HTML report to be automatically generated upon full completion of the workflow
 * edit all directory/file paths if necessary
 
 ## Note on validation
 
-Currently, all the following files are validated against a YAML schema to help spot formatting issues (misspelled column headers, missing mandatory properties, improper format, etc.): main config file, sample layout, file with WT DNA sequences, codon table, file with the number of mitotic generations.
+Currently, all the following files are validated against a YAML schema to help spot formatting issues (misspelled column headers, missing mandatory properties, improper format, etc.): main config file, sample layout, file with WT DNA sequences, codon table, file with the number of cellular generations.
 
 ## Technical configuration
 

@@ -91,12 +91,12 @@ properties:
   normalize:
     type: object
     properties:
-      with_growth:
-        description: Set to True to normalize impact scores with growth data
+      with_gen:
+        description: Set to True to normalize impact scores with the number of cellular generations
         type: boolean
         default: False
     required:
-      - with_growth
+      - with_gen
 
   report:
     type: object
