@@ -1,6 +1,7 @@
 [![Conda](https://img.shields.io/badge/conda-≥24.9.1-brightgreen.svg)](https://github.com/conda/conda)
 [![Snakemake](https://img.shields.io/badge/snakemake-≥8.23.2-brightgreen.svg)](https://snakemake.github.io)
 [![GitHub actions status](https://github.com/durr1602/gyoza/workflows/Tests/badge.svg?branch=main)](https://github.com/durr1602/gyoza/actions?query=branch%3Amain+workflow%3ATests)
+[![DOI](https://zenodo.org/badge/858202238.svg?branch=main&kill_cache=1)](https://zenodo.org/badge/latestdoi/858202238)
 
 # gyōza: a Snakemake-based workflow to analyze DMS data
 <p align="left">
