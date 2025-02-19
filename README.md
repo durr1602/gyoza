@@ -1,11 +1,11 @@
-# gyōza: a Snakemake-based workflow to analyze DMS data
-
 [![Conda](https://img.shields.io/badge/conda-≥24.9.1-brightgreen.svg)](https://github.com/conda/conda)
 [![Snakemake](https://img.shields.io/badge/snakemake-≥8.23.2-brightgreen.svg)](https://snakemake.github.io)
 [![GitHub actions status](https://github.com/durr1602/gyoza/workflows/Tests/badge.svg?branch=main)](https://github.com/durr1602/gyoza/actions?query=branch%3Amain+workflow%3ATests)
 
-
-A Snakemake workflow to analyze demultiplexed sequencing data of a DMS experiment, produce diagnostics plots and generate a dataframe of selection coefficients.
+# gyōza: a Snakemake-based workflow to analyze DMS data
+<p align="left">
+  <img src="./gyoza.png" width="200">
+</p>
 
 ## Installation
 
