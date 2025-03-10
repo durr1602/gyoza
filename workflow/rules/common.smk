@@ -6,7 +6,7 @@ import warnings
 
 ##### Import and validate main config ####
 
-configfile: "config/config_file.yaml"
+configfile: "config/config.yaml"
 validate(config, schema="../schemas/config.schema.yaml")
 print("Main config validated.")
 

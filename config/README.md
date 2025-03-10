@@ -31,7 +31,7 @@ Please provide a csv-formatted list of WT DNA sequences. The file should be name
 
 ### Codon table
 
-To prevent any typing mistake, the genetic code is imported from a [CoCoPUTs](https://dnahive.fda.gov/dna.cgi?cmd=codon_usage&id=537&mode=cocoputs) table (which also features codon frequencies, although the workflow does not make use of this). [The one provided](project_files/ScerevisiaeTAXID559292_Cocoputs_codon_table.csv) corresponds to *Saccharomyces cerevisiae* TAXID 559292. Please edit the main [config file](config_file.yaml) if you ever need to specify a different genetic code. Any csv-formatted file with at least two columns ("codon" and "aminoacid") should do.
+To prevent any typing mistake, the genetic code is imported from a [CoCoPUTs](https://dnahive.fda.gov/dna.cgi?cmd=codon_usage&id=537&mode=cocoputs) table (which also features codon frequencies, although the workflow does not make use of this). [The one provided](project_files/ScerevisiaeTAXID559292_Cocoputs_codon_table.csv) corresponds to *Saccharomyces cerevisiae* TAXID 559292. Please edit the main [config file](config.yaml) if you ever need to specify a different genetic code. Any csv-formatted file with at least two columns ("codon" and "aminoacid") should do.
 
 ### Normalization with the number of cellular generations
 
@@ -39,11 +39,11 @@ This normalization is **optional**. Please set the corresponding parameter to Tr
 
 ### Codon mode
 
-Please specify the codon mode, meaning the type of degenerate codons you introduced at each position in the specified loci. Currently supported are: "NNN" (default value) or "NNK". Make sure you adapt the main [config file](config_file.yaml) if necessary.
+Please specify the codon mode, meaning the type of degenerate codons you introduced at each position in the specified loci. Currently supported are: "NNN" (default value) or "NNK". Make sure you adapt the main [config file](config.yaml) if necessary.
 
 ## Main config file
 
-The main config file is located [here](config_file.yaml). Please make sure to:
+The main config file is located [here](config.yaml). Please make sure to:
 * select the samples to be processed (or leave 'all' if you want to process all samples)
 * list your sample attributes
 * replace all parameter values with the ones adapted for your project. Note: a first pass might be necessary to establish what would be a good **read count threshold**. Feel free to adjust it and re-run the workflow (if nothing else has changed, only the last steps should run again). This parameter is important because the "avg_scores" dataframe is built only upon "high confidence" variants, i.e. variants with a read count above the set threshold in all T0 replicates.
