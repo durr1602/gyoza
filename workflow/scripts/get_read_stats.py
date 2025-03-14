@@ -86,7 +86,10 @@ def generate_read_stats(cutadapt_logfiles, pandaseq_logfiles, vsearch_logfiles, 
             raise Exception(f"Error.. {f} is not properly formatted. Make sure you've added the --use-conda flag in the snakemake command line, which specifies the correct package versions to be used")        
         
         # Add singletons total   
-        singletons = lines[-1].split(' clusters discarded')[0].split(',')[-1].strip()
+        if 'clusters discarded' in lines[-1]:
+            singletons = lines[-1].split(' clusters discarded')[0].split(',')[-1].strip()
+        else:
+            singletons = 0
         fullstats.loc[fullstats.index == sample_name, 'Nb_singletons'] = singletons
     
     # Convert column type to int
