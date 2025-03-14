@@ -49,7 +49,7 @@ def generate_read_stats(cutadapt_logfiles, pandaseq_logfiles, vsearch_logfiles, 
             raise Exception(f"Error.. {f} is not properly formatted. Make sure you've added the --use-conda flag in the snakemake command line, which specifies the correct package versions to be used")
         
         # Parse pandaseq stats
-        logfile = pd.read_csv(f, sep='\t', skiprows=25, skipfooter=1, engine='python', names=['id','err_stat','field','value','details'])
+        logfile = pd.read_csv(f, sep='\t', skiprows=21, skipfooter=1, engine='python', names=['id','err_stat','field','value','details'])
         stats = logfile[logfile.field.isin(['LOWQ','NOALGN','OK','READS','SLOW'])].iloc[-5:,:][['field','value']]
         stats['value'] = stats.value.astype(int)
         
