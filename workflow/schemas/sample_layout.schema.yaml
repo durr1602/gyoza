@@ -10,11 +10,11 @@ properties:
     description: Unique identifier for the sample
   R1:
     type: string
-    pattern: '[\\\/\-\_\.A-Za-z0-9]+(?i)(\.fastq){1}(\.gz)?'
+    pattern: '[\\\/\-\_\.A-Za-z0-9]+(\.fastq|\.FASTQ){1}(\.gz|\.GZ)?'
     description: Name of the FASTQ file (no path, can be compressed or not) for forward reads, e.g. 'xxx_R1.fastq.gz'
   R2:
     type: string
-    pattern: '[\\\/\-\_\.A-Za-z0-9]+(?i)(\.fastq){1}(\.gz)?'
+    pattern: '[\\\/\-\_\.A-Za-z0-9]+(\.fastq|\.FASTQ){1}(\.gz|\.GZ)?'
     description: Name of the FASTQ file (no path, can be compressed or not) for reverse reads, e.g. 'xxx_R2.fastq.gz'
   N_forward:
     type: string

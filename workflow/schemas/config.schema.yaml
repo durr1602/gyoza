@@ -11,7 +11,7 @@ properties:
       path:
         type: string
         description: Path to sample layout (should be CSV-formatted and end with .csv)
-        pattern: '[\\\/\-\_\.A-Za-z0-9]+(?i)(\.csv){1}'
+        pattern: '[\\\/\-\_\.A-Za-z0-9]+(\.csv|\.CSV){1}'
       selection:
         description: Selected samples (either 'all' or list of samples)
         oneOf:
@@ -32,11 +32,11 @@ properties:
       generations:
         description: Path to file containing the number of mitotic generations
         type: string
-        pattern: '[\\\/\-\_\.A-Za-z0-9]+(?i)(\.csv){1}'
+        pattern: '[\\\/\-\_\.A-Za-z0-9]+(\.csv|\.CSV){1}'
       wt:
         description: Path to file listing the WT DNA sequences
         type: string
-        pattern: '[\\\/\-\_\.A-Za-z0-9]+(?i)(\.csv){1}'
+        pattern: '[\\\/\-\_\.A-Za-z0-9]+(\.csv|\.CSV){1}'
     required:
       - path
       - selection
@@ -50,7 +50,7 @@ properties:
       table:
         description: Path to codon table
         type: string
-        pattern: '[\\\/\-\_\.A-Za-z0-9]+(?i)(\.csv){1}'
+        pattern: '[\\\/\-\_\.A-Za-z0-9]+(\.csv|\.CSV){1}'
       mode:
         description: Codon mode - 'NNN' or 'NNK'
         type: string
