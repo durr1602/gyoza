@@ -18,12 +18,10 @@ properties:
     description: Name of the FASTQ file (no path, can be compressed or not) for reverse reads, e.g. 'xxx_R2.fastq.gz'
   N_forward:
     type: string
-    pattern: (?i)^[ATGC]+$
-    description: 5''-3'' constant sequence immediately upstream the mutated locus
+    description: 5''-3'' constant sequence immediately upstream the mutated locus (-g flag in cutadapt)
   N_reverse:
     type: string
-    pattern: (?i)^[ATGC]+$
-    description: 5''-3'' constant sequence immediately downstream the mutated locus
+    description: 5''-3'' constant sequence immediately downstream the mutated locus (-G flag in cutadapt)
   Mutateq_seq:
     type: string
     description: Unique identifier for the mutated locus

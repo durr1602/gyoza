@@ -14,8 +14,8 @@ Please provide a csv-formatted layout of your samples. The file should be named 
 - Sample_name: the unique identifier for each of your samples. The sample name does not need to contain information about the timepoint or replicate, since these correspond to other columns
 - R1: base name of the fastq file for forward (R1) reads (can be gzipped), including extension
 - R2: base name of the fastq file for reverse (R2) reads (can be gzipped), including extension
-- N_forward: the 5'-3' DNA sequence corresponding to the fixed region upstream of the mutated sequence
-- N_reverse: the 5'-3' DNA sequence corresponding to the fixed region 5' of the mutated sequence on the reverse strand
+- N_forward: the 5'-3' DNA sequence corresponding to the fixed region upstream of the mutated sequence or anything that can be used as -g flag with cutadapt (including complex patterns such as 'NNATG;optional...ATG', in which case do not forget the single quotes)
+- N_reverse: the 5'-3' DNA sequence corresponding to the fixed region 5' of the mutated sequence on the reverse strand or anything that can be used as -G flag with cutadapt (same requirements as above)
 - Mutated_seq: the unique identifier for the mutated DNA sequence, should be the same for all samples in which the same sequence was mutated
 - Pos_start: starting position in the protein sequence. If you've mutated several regions/fragments in a coding gene, this position should refer to the full-length protein sequence
 - Replicate: e.g. "R1"
