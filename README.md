@@ -20,7 +20,10 @@ conda activate gyoza
 ## Usage
 
 ### Prepare files and edit config
-1. **IMPORTANT**: Read the [config documentation](config/README.md) and **edit the main config**. If you plan on sending the pipeline to SLURM, make sure you also **edit the technical config file**.
+
+> [!IMPORTANT]
+> 
+> 1. Read the [config documentation](config/README.md) and **edit the main config**. If you plan on sending the pipeline to SLURM, make sure you also **edit the technical config file**.
 
 ### Check pipeline
 2. Perform a dry run using: `snakemake -n`

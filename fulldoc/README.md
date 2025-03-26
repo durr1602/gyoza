@@ -22,15 +22,26 @@ conda activate gyoza
 ## Usage
 
 ### Prepare files and edit config
-1. **IMPORTANT**: Read the [config documentation](../config/README.md) and **edit the main config**. If you plan on sending the pipeline to SLURM, make sure you also **edit the technical config file**.
+
+> [!IMPORTANT]
+> 
+> 1. Read the [config documentation](../config/README.md) and **edit the main config**. If you plan on sending the pipeline to SLURM, make sure you also **edit the technical config file**.
 
 ### (optional) Prepare environments
-2. (optional) Create all conda environments using: `snakemake --conda-create-envs-only`. This step is only required before first use and is always included when running the workflow. Unfortunately, at the time of writing, validations will be run even for these command lines. This means that you need to fully prepare the workflow before creating all envs.
+
+> [!TIP]
+>
+> 2. (optional) Create all conda environments using: `snakemake --conda-create-envs-only`.
+>
+> This step is only required before first use and is always included when running the workflow. Unfortunately, at the time of writing, validations will be run even for these command lines. This means that you need to fully prepare the workflow before creating all envs.
 
 ### Check pipeline
-3. Perform a dry run using: `snakemake -n`
 
-This step is strongly recommended. It will make sure the prepared workflow does not contain any error and will display the rules (steps) that need to be run in order to reach the specified target(s) (default targets include the dataframe of functional impact scores, which is produced during the very last step of the workflow). If you're running the workflow for the first time and you toggled in normalization with growth data, you should see a warning prompting you to edit the generated template file (for more details, go back to step 1).
+> [!IMPORTANT]
+> 
+> 3. Perform a dry run using: `snakemake -n`
+>
+> This step is strongly recommended. It will make sure the prepared workflow does not contain any error and will display the rules (steps) that need to be run in order to reach the specified target(s) (default targets include the dataframe of functional impact scores, which is produced during the very last step of the workflow). If you're running the workflow for the first time and you toggled in normalization with growth data, you should see a warning prompting you to edit the generated template file (for more details, go back to step 1).
 
 ### Run pipeline
 4. Running the workflow with `conda`
@@ -59,10 +70,23 @@ Please make sure `tmux` is installed (already installed on some servers). Then, 
 6. To close the session when everything is finished, type `<Ctrl+b>`, then `<:>`, then `kill-session` and finally `<Enter>`.
 
 ### Useful Snakemake command lines
-For both the dry run and the actual run, you can decide to run the workflow only until a certain file is generated or rule is completed, using the `--until` flag in the snakemake command line, for example: `snakemake -n --until stats`. However, if the HTML report is configured to be generated automatically, an error will be raised (if a plot is missing, the report cannot be generated). To prevent this, edit the configuration file by setting the report generation to False. Generating the report manually can still be done but will raise an error if a file is missing (i.e. if the workflow has not run fully): `snakemake --report results/report.html`. Alternatively, you can manually generate an intermediate report by specifying the rules (or output files) that you want to include (separated by a space), using the following syntax: `snakemake multiqc parse_fasta --report results/report.html`
+
+> [!TIP]
+> 
+> For both the dry run and the actual run, you can decide to run the workflow only until a certain file is generated or rule is completed, using the `--until` flag in the snakemake command line
+> For example: `snakemake -n --until stats`
+> However, if the HTML report is configured to be generated automatically, an error will be raised (if a plot is missing, the report cannot be generated). To prevent this, edit the configuration file by setting the report generation to False. Generating the report manually can still be done but will raise an error if a file is missing (i.e. if the workflow has not run fully): `snakemake --report results/report.html`.
+> Alternatively, you can manually generate an intermediate report by specifying the rules (or output files) that you want to include (separated by a space), using the following syntax: `snakemake multiqc parse_fasta --report results/report.html`
+
+> [!TIP]
+> 
+> If one were to generate their own (perfectly formatted) file, for example the list of expected mutants to accomodate a custom experimental design and still get read counts per variant, it is possible to combine the `--until` command with a `--touch`
+> The following: `snakemake --touch results/df/master_layout.csv.gz` instructs the workflow not to overwrite the file provided by the user and use it as if it had been generated by the workflow
 
 ## Apptainer support
-**Note : Apptainer is currently not supported.. despite our best efforts :'(**
+> [!NOTE]
+> 
+> Apptainer is currently not supported.. although it might be in the future!
 
 After cloning the repo on a login node, create a Python virtual environment with the requirements specified in [the provided file](../env.yml), for example using `venv`. Run the workflow using: `snakemake --profile profile --sdm conda apptainer`. The container should be created first, then conda envs will be created for each rule inside the container. This option is meant to be used on a system where you want to isolate the (many) files installed by `conda`. This option is **not** suited for local execution. Refer to step 4b for additional details.
 
@@ -75,11 +99,10 @@ One can manually edit the [Snakefile](../workflow/Snakefile) and/or the rules (.
 snakemake --use-conda --cores 1 --edit-notebook results/graphs/upset_plot.svg
 ```
 
-**Careful**, if you are running `snakemake` on a server, you might need to open a SSH tunnel between your local machine and the server by running the following command from a local terminal (should not be necessary when running locally on your machine):
-```  
-ssh -L 8888:localhost:8888 <USER>@<ADRESS>
-```
-(adapt port if necessary, 8888 or 8889, should match what is featured in the URL generated by snakemake/jupyter)
+> [!WARNING]
+> 
+> If you are running `snakemake` on a server, you might need to open a SSH tunnel between your local machine and the server by running the following command from a local terminal (should not be necessary when running locally on your machine): `ssh -L 8888:localhost:8888 <USER>@<ADRESS>`
+> Adapt port if necessary, 8888 or 8889, should match what is featured in the URL generated by snakemake/jupyter
 
 The command simply opens a terminal on the server, but now you can copy-paste the URL in your local browser.
     
