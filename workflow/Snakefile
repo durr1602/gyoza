@@ -1,12 +1,17 @@
 ##### Ad-hoc conda apptainer #####
 
+
 containerized: "docker://durr1602/gyoza:latest"
+
 
 ##### Set up report #####
 
+
 report: "report/workflow.rst"
 
+
 ##### Load rules #####
+
 
 include: "rules/common.smk"
 include: "rules/cutadapt.smk"
@@ -17,25 +22,30 @@ include: "rules/generate_mutants.smk"
 include: "rules/parse_fasta.smk"
 include: "rules/process_read_counts.smk"
 
+
 if config["qc"]["perform"]:
+
     include: "rules/qc.smk"
+
 
 ##### Target(s) #####
 rule all:
     input:
-        get_target()
+        get_target(),
+
 
 ##### Generate report that includes all completed steps #####
 if config["report"]["generate"]:
+
     onsuccess:
-        STEPs, = glob_wildcards('results/done/{step}.done')
-        if (config["qc"]["perform"] ) & (exists("results/0_qc/multiqc.html")):
-            STEPs.append('multiqc')
+        (STEPs,) = glob_wildcards("results/done/{step}.done")
+        if (config["qc"]["perform"]) & (exists("results/0_qc/multiqc.html")):
+            STEPs.append("multiqc")
         shell(f"snakemake {' '.join(STEPs)} --report results/report.html")
-    
+
     onerror:
-        STEPs, = glob_wildcards('results/done/{step}.done')
-        if (config["qc"]["perform"] ) & (exists("results/0_qc/multiqc.html")):
-            STEPs.append('multiqc')
+        (STEPs,) = glob_wildcards("results/done/{step}.done")
+        if (config["qc"]["perform"]) & (exists("results/0_qc/multiqc.html")):
+            STEPs.append("multiqc")
         if len(STEPs) > 0:
             shell(f"snakemake {' '.join(STEPs)} --report results/report.html")
