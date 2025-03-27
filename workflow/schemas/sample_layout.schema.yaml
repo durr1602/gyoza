@@ -10,20 +10,18 @@ properties:
     description: Unique identifier for the sample
   R1:
     type: string
-    pattern: '[-_.A-Za-z0-9]+(\.fastq){1}(.gz)?'
+    pattern: '[\\\/\-\_\.A-Za-z0-9]+(\.fastq|\.FASTQ){1}(\.gz|\.GZ)?'
     description: Name of the FASTQ file (no path, can be compressed or not) for forward reads, e.g. 'xxx_R1.fastq.gz'
   R2:
     type: string
-    pattern: '[-_.A-Za-z0-9]+(\.fastq){1}(.gz)?'
+    pattern: '[\\\/\-\_\.A-Za-z0-9]+(\.fastq|\.FASTQ){1}(\.gz|\.GZ)?'
     description: Name of the FASTQ file (no path, can be compressed or not) for reverse reads, e.g. 'xxx_R2.fastq.gz'
   N_forward:
     type: string
-    pattern: (?i)^[ATGC]+$
-    description: 5''-3'' constant sequence immediately upstream the mutated locus
+    description: 5''-3'' constant sequence immediately upstream the mutated locus (-g flag in cutadapt)
   N_reverse:
     type: string
-    pattern: (?i)^[ATGC]+$
-    description: 5''-3'' constant sequence immediately downstream the mutated locus
+    description: 5''-3'' constant sequence immediately downstream the mutated locus (-G flag in cutadapt)
   Mutateq_seq:
     type: string
     description: Unique identifier for the mutated locus

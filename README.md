@@ -2,6 +2,7 @@
 [![Snakemake](https://img.shields.io/badge/snakemake-≥8.23.2-brightgreen.svg)](https://snakemake.github.io)
 [![GitHub actions status](https://github.com/durr1602/gyoza/workflows/Tests/badge.svg?branch=main)](https://github.com/durr1602/gyoza/actions?query=branch%3Amain+workflow%3ATests)
 [![DOI](https://zenodo.org/badge/858202238.svg?branch=main&kill_cache=1)](https://zenodo.org/badge/latestdoi/858202238)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 # gyōza: a Snakemake-based workflow to analyze DMS data
 <p align="left">
@@ -19,7 +20,10 @@ conda activate gyoza
 ## Usage
 
 ### Prepare files and edit config
-1. **IMPORTANT**: Read the [config documentation](config/README.md) and **edit the main config**. If you plan on sending the pipeline to SLURM, make sure you also **edit the technical config file**.
+
+> [!IMPORTANT]
+> 
+> 1. Read the [config documentation](config/README.md) and **edit the main config**. If you plan on sending the pipeline to SLURM, make sure you also **edit the technical config file**.
 
 ### Check pipeline
 2. Perform a dry run using: `snakemake -n`

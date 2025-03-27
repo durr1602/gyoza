@@ -1,21 +1,24 @@
 rule pandaseq:
     input:
-        read1 = rules.cutadapt.output.fastq1,
-        read2 = rules.cutadapt.output.fastq2
+        read1=rules.cutadapt.output.fastq1,
+        read2=rules.cutadapt.output.fastq2,
     output:
-        temp('results/2_merge/{sample}_merged.fasta')
+        temp("results/2_merge/{sample}_merged.fasta"),
     resources:
-        threads = 4,
-        time = lambda _, input, attempt: max((0.002*input.size_mb + (attempt-1)*0.002*input.size_mb).__ceil__(), 1)
+        threads=4,
+        time=lambda _, input, attempt: max(
+            (0.002 * input.size_mb + (attempt - 1) * 0.002 * input.size_mb).__ceil__(),
+            1,
+        ),
     message:
         "Merging reads for {input.read1} and {input.read2}"
     log:
-        'logs/2_merge/pandaseq-sample={sample}.stats'
+        "logs/2_merge/pandaseq-sample={sample}.stats",
     conda:
-        '../envs/pandaseq.yaml'
+        "../envs/pandaseq.yaml"
     envmodules:
         # If to be used, update the following, run module avail to see installed modules and versions
-        'pandaseq/2.11'
+        "pandaseq/2.11",
     shell:
         ## Flags for pandaseq
         # -O max overlap, important,related to Aviti sequencing tech
