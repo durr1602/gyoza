@@ -51,10 +51,10 @@ In the current version (this will be improved in the coming months), one can ana
 1. Adapt config entries (set "barcode design" to True, enter the "barcode attributes", e.g. ['barcode'] or ['bc_index','barcode'] and change the "rc_level" parameter to 'barcode')
 2. Generate a custom list of barcodes (instead of the automatically generated list of mutants). The list should be merged with the sample layout and several columns need to be initialized with values of specific dtypes ('WT': False, 'pos': '', 'aa_pos': ''). Save the dataframe as 'master_layout.csv.gz' and place it in the results/df folder.
 3. `snakemake --touch results/df/master_layout.csv.gz` (more details in the [full documentation](../fulldoc/README.md)) to instruct gyōza not to overwrite this file.
-4. `snakemake -use-conda --until parse_fasta` to obtain read counts per barcode
+4. `snakemake --use-conda --until parse_fasta` to obtain read counts per barcode
 5. Merge with a dataframe of association between barcodes and single mutants (NNN or NNK), save as 'results/df/readcounts.csv.gz'
 6. `snakemake --touch results/df/readcounts.csv.gz`, again to instruct gyōza not to overwrite this file.
-7. `snakemake -use-conda` to obtain read counts. Barcode-level information will be preserved in 'results/df/all_scores.csv', while fitness values will be calculated by aggregating on high-confidence variants (which does not preserve neither barcode-level nor codon-level information)
+7. `snakemake --use-conda` to obtain read counts. Barcode-level information will be preserved in 'results/df/all_scores.csv', while fitness values will be calculated by aggregating on high-confidence variants (which does not preserve neither barcode-level nor codon-level information)
 
 ## Main config file
 
