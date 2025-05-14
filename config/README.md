@@ -73,7 +73,7 @@ Currently, all the following files are validated against a YAML schema to help s
 
 ## Technical configuration
 
-The file containing technical config parameters to run the snakemake pipeline on HPC is [here](../workflow/profiles/default/config.v8+.yaml).
+The file containing technical config parameters to run the snakemake pipeline on HPC is [here](../profiles/default/config.v8+.yaml).
 Adapt the file as needed (including indicating your email adress, replace `<...>`).
 Flags added to the snakemake command line will supersede the default values specified in the file.
 

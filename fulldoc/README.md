@@ -49,7 +49,7 @@ conda activate gyoza
 
     a) Locally: `snakemake --use-conda --cores 4` (recommended only for small steps or to run the workflow on the provided example dataset, with the `--cores` flag indicating the max number of CPUs to use in parallel - can be adapted depending on the resources available on your machine, defaults to the number of available CPUs).
     
-    b) **or** send to SLURM (1 job per rule per sample): `snakemake --profile profile` (make sure to edit the parameters specified in the [tech config file](../profile/config.v8+.yaml), jobs wait in the queue until the resources are allocated. For example, if you're allowed 40 CPUs, only 4 jobs at 10 CPUs each will be able to run at once. Once those jobs are completed, the next ones in the queue will automatically start.
+    b) **or** send to SLURM (1 job per rule per sample): `snakemake --profile profile` (make sure to edit the parameters specified in the [tech config file](../profiles/default/config.v8+.yaml), jobs wait in the queue until the resources are allocated. For example, if you're allowed 40 CPUs, only 4 jobs at 10 CPUs each will be able to run at once. Once those jobs are completed, the next ones in the queue will automatically start.
 
 Fore more info on cluster execution: read the doc on [smk-cluster-generic plugin](https://github.com/jdblischak/smk-simple-slurm/tree/main)
 
