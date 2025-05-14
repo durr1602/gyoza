@@ -12,14 +12,6 @@ rule vsearch_fastx_uniques:
         # --relabel new headers with specified string and ticker (1,2,3...)
         # --sizeout conserve abundance annotations
         extra="--minuniquesize 2 --relabel seq --sizeout",
-    resources:
-        threads=1,  # This command of vsearch is not multi-threaded
-        time=lambda _, input, attempt: max(
-            (
-                0.0002 * input.size_mb + (attempt - 1) * 0.0002 * input.size_mb
-            ).__ceil__(),
-            1,
-        ),
     envmodules:
         # If to be used, update the following, run module avail to see installed modules and versions
         "vsearch/2.29.3",

@@ -18,16 +18,6 @@ rule parse_fasta:
             labels={"figure": "1.2. Read counts of unexpected variants"},
         ),
         done=touch("results/done/parse_fasta.done"),
-    resources:
-        mem_gb=lambda _, input, attempt: max(
-            (0.002 * input.size_mb + (attempt - 1) * 0.002 * input.size_mb).__ceil__(),
-            1,
-        ),
-        threads=1,
-        time=lambda _, input, attempt: max(
-            (0.002 * input.size_mb + (attempt - 1) * 0.002 * input.size_mb).__ceil__(),
-            1,
-        ),
     message:
         "Parsing fasta files and comparing sequenced mutants with expectations..."
     log:

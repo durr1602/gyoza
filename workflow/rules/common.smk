@@ -33,6 +33,7 @@ sample_layout = layout_csv.set_index("Sample_name")
 print("Sample layout validated.")
 
 ##### Validate sample attributes #####
+
 if len(config["samples"]["attributes"]) > 0:
     for x in config["samples"]["attributes"]:
         if x not in layout_csv.columns:
@@ -52,6 +53,7 @@ else:
     print("No sample attributes provided.")
 
 ##### Validate CSV file containing WT DNA sequences #####
+
 wtseqs = pd.read_csv(config["samples"]["wt"])
 validate(wtseqs, schema="../schemas/wt_seqs.schema.yaml")
 print("WT imported.")
@@ -90,6 +92,7 @@ else:
         print("No normalization with cellular generations")
 
 ##### Validate codon table #####
+
 codon_table = pd.read_csv(config["codon"]["table"], header=0)
 validate(codon_table, schema="../schemas/codon_table.schema.yaml")
 print("Codon table validated.")
@@ -112,7 +115,6 @@ if config["samples"]["selection"] != "all":
         print("Selection of samples confirmed.")
 
 ##### Specify final target #####
-
 
 def get_target():
     targets = ["results/df/all_scores.csv"]
