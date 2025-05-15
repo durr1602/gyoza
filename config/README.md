@@ -2,7 +2,7 @@
 
 ## Project-specific files
 
-A few files should be provided to properly analyze your data. What follows is the general procedure, however a toy dataset is provided in order to test the workflow. If you simply want to run the workflow with the toy dataset, enter the following: `snakemake --use-conda`.
+A few files should be provided to properly analyze your data. What follows is the general procedure, however a toy dataset is provided in order to test the workflow. If you simply want to run the workflow with the toy dataset, enter the following: `snakemake`.
 
 ### Sequencing data
 
@@ -45,16 +45,16 @@ Please specify the codon mode, meaning the type of degenerate codons you introdu
 
 > [!WARNING]
 > 
-> This functionality is currently under development. Please do not modify the default config entries for a standard use.
+> This functionality is currently under development. Please do not modify the corresponding default config entries for a standard use.
 
 In the current version (this will be improved in the coming months), one can analyze a DMS experiment with a barcoded design by following these steps:
 1. Adapt config entries (set "barcode design" to True, enter the "barcode attributes", e.g. ['barcode'] or ['bc_index','barcode'] and change the "rc_level" parameter to 'barcode')
 2. Generate a custom list of barcodes (instead of the automatically generated list of mutants). The list should be merged with the sample layout and several columns need to be initialized with values of specific dtypes ('WT': False, 'pos': '', 'aa_pos': ''). Save the dataframe as 'master_layout.csv.gz' and place it in the results/df folder.
 3. `snakemake --touch results/df/master_layout.csv.gz` (more details in the [full documentation](../fulldoc/README.md)) to instruct gyōza not to overwrite this file.
-4. `snakemake --use-conda --until parse_fasta` to obtain read counts per barcode
+4. `snakemake --until parse_fasta` to obtain read counts per barcode
 5. Merge with a dataframe of association between barcodes and single mutants (NNN or NNK), save as 'results/df/readcounts.csv.gz'
 6. `snakemake --touch results/df/readcounts.csv.gz`, again to instruct gyōza not to overwrite this file.
-7. `snakemake --use-conda` to obtain read counts. Barcode-level information will be preserved in 'results/df/all_scores.csv', while fitness values will be calculated by aggregating on high-confidence variants (which does not preserve neither barcode-level nor codon-level information)
+7. `snakemake` to obtain read counts. Barcode-level information will be preserved in 'results/df/all_scores.csv', while fitness values will be calculated by aggregating on high-confidence variants (which does not preserve neither barcode-level nor codon-level information)
 
 ## Main config file
 
@@ -71,11 +71,15 @@ The main config file is located [here](config.yaml). Please make sure to:
 
 Currently, all the following files are validated against a YAML schema to help spot formatting issues (misspelled column headers, missing mandatory properties, improper format, etc.): main config file, sample layout, file with WT DNA sequences, codon table, file with the number of cellular generations.
 
-## Technical configuration
+## Profiles for execution
 
-The file containing technical config parameters to run the snakemake pipeline on HPC is [here](../profiles/default/config.v8+.yaml).
-Adapt the file as needed (including indicating your email adress, replace `<...>`).
-Flags added to the snakemake command line will supersede the default values specified in the file.
+> [!IMPORTANT]
+> 
+> By default, the simple command line `snakemake` will run gyōza with [the default profile](../profiles/default/config.v8+.yaml) = local execution
+> 
+> To switch to the SLURM executor, edit [the slurm profile](../profiles/slurm/config.v8+.yaml), including to indicate your email adress
+
+Flags added to the snakemake command line will supersede the values specified in either profile.
 
 > [!WARNING]
 > 
