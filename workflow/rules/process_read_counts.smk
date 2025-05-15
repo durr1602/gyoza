@@ -54,14 +54,6 @@ rule process_read_counts:
             labels={"figure": "3.3. Correlation between replicates (2/2)"},
         ),
         done=touch("results/done/process_read_counts.done"),
-    resources:
-        mem_gb=lambda _, input, attempt: max(
-            (0.2 * input.size_mb + (attempt - 1) * 0.2 * input.size_mb).__ceil__(), 1
-        ),
-        threads=1,
-        time=lambda _, input, attempt: max(
-            (0.5 * input.size_mb + (attempt - 1) * 0.5 * input.size_mb).__ceil__(), 1
-        ),
     message:
         "Processing read counts... converting to functional impact scores"
     log:

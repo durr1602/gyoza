@@ -2,37 +2,61 @@
 
 ## Full installation instructions
 
-1. If you use Windows, the following steps need to be run in WSL2 ([WSL installation instructions](https://learn.microsoft.com/en-us/windows/wsl/install)). If you already have WSL2 or if you use Linux or MacOS X, the following steps need `conda`. If you don't already have it, we recommend installing Miniforge by following the instructions listed in the "Step 1" section of [this tutorial](https://snakemake.readthedocs.io/en/stable/tutorial/setup.html#step-1-installing-miniforge). Continue by running the command lines listed here (clone repo, ...) in the same terminal.
+If you use Windows, the following steps need to be run in WSL2 ([WSL installation instructions](https://learn.microsoft.com/en-us/windows/wsl/install)).
+
+If you already have WSL2 or if you use Linux or MacOS X, the following steps need `conda` (see [Conda documentation](https://conda.io/docs/index.html)).
+
+If you don't already have it, we recommend installing Miniforge by following the instructions listed in the "Step 1" section of [this tutorial](https://snakemake.readthedocs.io/en/stable/tutorial/setup.html#step-1-installing-miniforge).
+
+If you already have it, make sure to update it to a recent version (>=24.7.1, ideally even more recent such as >=24.9.1). Here are two helpful command lines to do this: `conda update -n base -c defaults conda --repodata-fn=repodata.json`, or `mamba update conda`. If you already have it or another instance such as Anaconda, you can uninstall (for example) anaconda by running `rm -rf anaconda3`.
+
+1. Create a Python>=3.9 virtual environment to install dependencies. You may need to adapt `python3.11` depending on your version (try `python --version` or `python3 --version` for example, to check the Python version).
+```
+python3.11 -m venv gyoza_env
+source gyoza_env/bin/activate
+pip install snakedeploy>=0.11.0 snakemake>=9.4.0 snakemake-wrapper-utils>=0.7.2 pygments>=2.19.1 snakemake-executor-plugin-cluster-generic
+```
+
+### Recommended installation of gyōza
+
+2. Deploy gyōza.
+
+The following command line uses [Snakedeploy](https://snakedeploy.readthedocs.io/en/latest/index.html) to create a minimal file tree that will allow you to use gyōza.
+
+It is specific to both the version of gyōza deployed and the DMS project your want to analyze, and should make it easier to create a repository for improved reproducibility. The --tag argument accepts any branch or release version tag
+```
+snakedeploy deploy-workflow https://github.com/durr1602/gyoza my_gyoza_project --tag main
+cd my_gyoza_project
+```
+
+### Alternative option: clone the repository
+
+This option provides the most flexibility, since the entire repository is cloned, meaning one can potentially modify the code of gyōza.
 
 2. Clone this repository:
 ```
 git clone https://github.com/durr1602/gyoza.git
-```
-3. Move to the corresponding directory:
-```
 cd gyoza
 ```
-4. If you correctly followed instructions at step 1, you should be able to use `conda`, first update to a recent version (>=24.7.1, ideally even more recent such as >=24.9.1). You might run into some issues with the suggested command line, so another possibility is the following: `conda update -n base -c defaults conda --repodata-fn=repodata.json`, or as a third option: `mamba update conda`
 
-5. Install the required dependencies for gyōza in a virtual environment using the provided requirements file (the "solving environment" step can take some time, normally not longer than a few minutes). Again, you could run into some issues if you have multiple instances of `conda` on your system (e.g. anaconda and miniforge), in which case you can uninstall (for example) anaconda by running `rm -rf anaconda3`.
-```
-conda env create --name=gyoza --file=env.yml
-conda activate gyoza
-```
 ## Usage
 
 ### Prepare files and edit config
 
 > [!IMPORTANT]
 > 
-> 1. Read the [config documentation](../config/README.md) and **edit the main config**.
-> If you plan on sending the pipeline to SLURM, make sure you also **edit the technical config file**.
+> 1. Read the [config documentation](../config/README.md)
+> 2. **Edit [the main config](../config/config.yaml)**
+>
+> If you choose to execute gyōza locally, you may optionally edit [the default profile](../profiles/slurm/config.v8+.yaml)
+> 
+> If you choose to execute gyōza with SLURM, don't forget to edit [the slurm profile](../profiles/slurm/config.v8+.yaml)
 
 ### (optional) Prepare environments
 
 > [!TIP]
 >
-> 2. (optional) Create all conda environments using: `snakemake --conda-create-envs-only`.
+> 3. (optional) Create all conda environments using: `snakemake --conda-create-envs-only`.
 >
 > This step is only required before first use and is always included when running the workflow. Unfortunately, at the time of writing, validations will be run even for these command lines. This means that you need to fully prepare the workflow before creating all envs.
 
@@ -40,22 +64,21 @@ conda activate gyoza
 
 > [!IMPORTANT]
 > 
-> 3. Perform a dry run using: `snakemake -n`
+> 4. Perform a dry run using: `snakemake -n`
 >
 > This step is strongly recommended. It will make sure the prepared workflow does not contain any error and will display the rules (steps) that need to be run in order to reach the specified target(s) (default targets include the dataframe of functional impact scores, which is produced during the very last step of the workflow). If you're running the workflow for the first time and you toggled in normalization with growth data, you should see a warning prompting you to edit the generated template file (for more details, go back to step 1).
 
 ### Run pipeline
-4. Running the workflow with `conda`
 
-    a) Locally: `snakemake --use-conda --cores 4` (recommended only for small steps or to run the workflow on the provided example dataset, with the `--cores` flag indicating the max number of CPUs to use in parallel - can be adapted depending on the resources available on your machine, defaults to the number of available CPUs).
-    
-    b) **or** send to SLURM (1 job per rule per sample): `snakemake --profile profile` (make sure to edit the parameters specified in the [tech config file](../profile/config.v8+.yaml), jobs wait in the queue until the resources are allocated. For example, if you're allowed 40 CPUs, only 4 jobs at 10 CPUs each will be able to run at once. Once those jobs are completed, the next ones in the queue will automatically start.
-
-Fore more info on cluster execution: read the doc on [smk-cluster-generic plugin](https://github.com/jdblischak/smk-simple-slurm/tree/main)
+> [!IMPORTANT]
+> 
+> 5. Run the workflow either **locally (a)** or **using SLURM (b)**
+> a) Local execution: `snakemake` or `snakemake --profile profiles/default`
+> b) SLURM (1 job per rule per sample): `snakemake --profile profiles/slurm`. Jobs wait in the queue until the resources are allocated. For example, if you're allowed 40 CPUs, only 4 jobs at 10 CPUs each will be able to run at once. Once those jobs are completed, the next ones in the queue will automatically start. Fore more info on cluster execution: read the doc on [smk-cluster-generic plugin](https://github.com/jdblischak/smk-simple-slurm/tree/main)
 
 ### Abort pipeline / exit terminal
 
-If snakemake is launched directly from the command line, the process will be output to the terminal. Exiting with `<Ctrl+C>` is currently interpreted (as specified in the [tech config file](../profile/config.v8+.yaml)) as cancelling all submitted jobs (`scancel`). Exiting during a local execution will **also** abort the workflow. This means that while the workflow is running, the user cannot get the prompt back.
+If snakemake is launched directly from the command line, the process will be output to the terminal. Exiting with `<Ctrl+C>` is currently interpreted (as specified in the [the slurm profile](../profiles/slurm/config.v8+.yaml)) as cancelling all submitted jobs (`scancel`). Exiting during a local execution will **also** abort the workflow. This means that while the workflow is running, the user cannot get the prompt back.
 
 There are 3 possible options to get the prompt back and/or exit the terminal without aborting the workflow:
 1. Open a new tab on your terminal (may require to log into the session again)
@@ -89,13 +112,20 @@ Please make sure `tmux` is installed (already installed on some servers). Then, 
 > The following: `snakemake --touch results/df/master_layout.csv.gz` instructs the workflow not to overwrite the file provided by the user and use it as if it had been generated by the workflow
 
 ## Apptainer support
+
 > [!NOTE]
 > 
 > Apptainer is currently not supported... although it might be in the future!
 
-After cloning the repo on a login node, create a Python virtual environment with the requirements specified in [the provided file](../env.yml), for example using `venv`. Run the workflow using: `snakemake --profile profile --sdm conda apptainer`. The container should be created first, then conda envs will be created for each rule inside the container. This option is meant to be used on a system where you want to isolate the (many) files installed by `conda`. This option is **not** suited for local execution. Refer to step 4b for additional details.
+Run the workflow using: `snakemake --profile profiles/slurm --sdm conda apptainer`. The container should be created first, then conda envs will be created for each rule inside the container. This option is meant to be used on a system where you want to isolate the (many) files installed by `conda`. This option is **not** suited for local execution.
 
 ## Edit pipeline
+
+> [!IMPORTANT]
+> 
+> On can only modify the pipeline after cloning the repo, not upon snakedeployment.
+
+
 One can manually edit the [Snakefile](../workflow/Snakefile) and/or the rules (.smk files in rules folder) to edit the main steps of the pipeline. This should not be required to run the standard pipeline and should be done only when the core workflow itself needs to be modified.
 
 > [!TIP]
