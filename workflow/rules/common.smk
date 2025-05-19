@@ -58,6 +58,12 @@ wtseqs = pd.read_csv(config["samples"]["wt"])
 validate(wtseqs, schema="../schemas/wt_seqs.schema.yaml")
 print("WT imported.")
 
+##### Validate CSV file containing expected DNA sequences #####
+if exists(config["samples"]["expected_mut"]):
+    expmut = pd.read_csv(config["samples"]["expected_mut"])
+    validate(expmut, schema="../schemas/wt_seqs.schema.yaml")
+    print("Expected mutated sequences imported.")
+
 ##### Generate template CSV file to write the number of cellular generations between time points #####
 # Note: At this time, this file is required to exist even if the user opts out of this normalization
 # A template is generated with the column for the number of generations set to 1

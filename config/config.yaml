@@ -16,6 +16,9 @@ samples:
     generations: 'config/project_files/nbgen.csv'
     # Specify path to file containing the wild-type DNA sequences
     wt: 'config/project_files/wt_seq.csv'
+    # Specify path to create file (if needed) containing all expected mutated sequences
+    # For barcoded-design experiments, this corresponds to the dataframe associating barcodes with mutants
+    expected_mut: 'config/project_files/expected_mutants.csv'
     
 codon:
     # Codon table

@@ -14,27 +14,34 @@ report: "report/workflow.rst"
 
 
 include: "rules/common.smk"
+include: "rules/annotate_mutant_layout.smk"
 include: "rules/cutadapt.smk"
 include: "rules/pandaseq.smk"
 include: "rules/vsearch.smk"
 include: "rules/stats.smk"
-include: "rules/generate_mutants.smk"
 include: "rules/parse_fasta.smk"
 include: "rules/process_read_counts.smk"
 
 
 if config["qc"]["perform"]:
-
     include: "rules/qc.smk"
 
 
+if exists(config["samples"]["expected_mut"]) == False:
+    include: "rules/generate_expected_mutants.smk"
+
+
 ##### Target(s) #####
+
+
 rule all:
     input:
         get_target(),
 
 
 ##### Generate report that includes all completed steps #####
+
+
 if config["report"]["generate"]:
 
     onsuccess:

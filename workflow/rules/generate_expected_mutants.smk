@@ -3,7 +3,7 @@ rule generate_mutants:
         layout=config["samples"]["path"],
         wtseqs=config["samples"]["wt"],
     output:
-        "results/df/master_layout.csv.gz",
+        config["samples"]["expected_mut"],
     message:
         f'Generating expected mutants based on the experimental design (codon mode = {config["codon"]["mode"]})'
     log:
@@ -12,3 +12,4 @@ rule generate_mutants:
         "../envs/jupyter.yaml"
     notebook:
         "../notebooks/generate_mutants.py.ipynb"
+        
