@@ -54,9 +54,10 @@ else:
 
 ##### Validate CSV file containing WT DNA sequences #####
 
-wtseqs = pd.read_csv(config["samples"]["wt"])
-validate(wtseqs, schema="../schemas/wt_seqs.schema.yaml")
-print("WT imported.")
+if exists(config["samples"]["wt"]):
+    wtseqs = pd.read_csv(config["samples"]["wt"])
+    validate(wtseqs, schema="../schemas/wt_seqs.schema.yaml")
+    print("WT imported.")
 
 ##### Validate CSV file containing expected DNA sequences #####
 if exists(config["samples"]["expected_mut"]):
