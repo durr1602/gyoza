@@ -27,12 +27,10 @@ codon:
     mode: 'NNN'
 
 barcode:
-    # Analysis of barcodes associated with variants (default: False)
-    design: False
+    # Level to which read count is attributed (default: 'nt_seq', change to 'barcode' for barcoded design)
+    rc_level: 'nt_seq'
     # Specify barcode attributes to label each variant
     attributes: []
-    # Level to which read count is attributed (default: 'nt_seq', can be changed to 'barcode' for example)
-    rc_level: 'nt_seq'
 
 rc_aims:
     # Specify targeted read count per sample in scientific notation
