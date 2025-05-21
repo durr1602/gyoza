@@ -24,10 +24,12 @@ include: "rules/process_read_counts.smk"
 
 
 if config["qc"]["perform"]:
+
     include: "rules/qc.smk"
 
 
 if exists(config["samples"]["expected_mut"]) == False:
+
     include: "rules/generate_expected_mutants.smk"
 
 

@@ -12,4 +12,3 @@ rule generate_mutants:
         "../envs/jupyter.yaml"
     notebook:
         "../notebooks/generate_mutants.py.ipynb"
-        
