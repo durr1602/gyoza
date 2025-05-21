@@ -4,6 +4,8 @@
 
 A few files should be provided to properly analyze your data. What follows is the general procedure, however a toy dataset is provided in order to test the workflow. If you simply want to run the workflow with the toy dataset, enter the following: `snakemake`.
 
+Unless specified otherwise, most file paths and parameters can be modified in the main [config file](config.yaml).
+
 ### Sequencing data
 
 Please provide the raw reads (forward and reverse) of your DMS sequencing data in the `config/reads` folder (or specify a different path in the main config file). The file names should be featured in the layout (see section below).
@@ -25,9 +27,11 @@ Finally, additional columns can be added by the user to specify what makes this 
 
 ### WT DNA sequences
 
-Please provide a csv-formatted list of WT DNA sequences. The file should be named `wt_seq.csv` and be located in the `config/project_files` folder. Here is [an example](project_files/wt_seq.csv). The file should contain **exactly** the two following columns:
+If you want gyōza to automatically generate all expected sequences based on a codon mode, please provide a csv-formatted list of WT DNA sequences. The file should be named `wt_seq.csv` and be located in the `config/project_files` folder. Here is [an example](project_files/wt_seq.csv). The file should contain **exactly** the two following columns:
 - Mutated_seq: all possible values for the Mutated_seq flag from the layout
 - WT_seq: corresponding WT DNA sequence, assuming the first three bases constitute the first mutated codon
+
+Alternatively, you can provide the same dataframe with an additional 'nt_seq' column in which you have generated all expected sequences. In this case, the file should be named `expected_mutants.csv` file.
 
 ### Codon table
 
@@ -39,22 +43,20 @@ This normalization is **optional**. Please set the corresponding parameter to Tr
 
 ### Codon mode
 
-Please specify the codon mode, meaning the type of degenerate codons you introduced at each position in the specified loci. Currently supported are: "NNN" (default value) or "NNK". Make sure you adapt the main [config file](config.yaml) if necessary.
+Please specify the codon mode in the config, meaning the type of degenerate codons you introduced at each position in the specified loci. Currently supported are: "NNN" (default value) or "NNK". This is only used to generate the expected sequences for non-barcoded designs.
 
-### Barcoded design support
+### Barcoded design
 
-> [!WARNING]
+To specify a barcoded design:
+- Set the "rc_level" parameter of the config to "barcode" (specifies the level at which gyōza should attribute read counts)
+- Enter your "barcode attributes", e.g. ['barcode'] or ['bc_index','barcode']
+- Provide a datraframe containing all associations of barcodes (column 'barcode') and nucleotide sequences (column 'nt_seq'). This dataframe should respect exactly the same format as `wt_seq.csv` (see section "WT DNA sequences" above), which means in total you should have at least four columns (Mutated_seq, WT_seq, nt_seq, barcode). Additional columns correspond to the other barcode attributes (for example bc_index if we follow the example stated above). The file should be named `expected_mutants.csv` and be located in the `config/project_files` folder.
+
+> [!IMPORTANT]
 > 
-> This functionality is currently under development. Please do not modify the corresponding default config entries for a standard use.
+> For a barcoded design, it is essential to provide the dataframe of barcode-variants association. Since this file already contains all expected sequences, you don't need to provide the `wt_seq.csv` file as well.
 
-In the current version (this will be improved in the coming months), one can analyze a DMS experiment with a barcoded design by following these steps:
-1. Adapt config entries (set "barcode design" to True, enter the "barcode attributes", e.g. ['barcode'] or ['bc_index','barcode'] and change the "rc_level" parameter to 'barcode')
-2. Generate a custom list of barcodes (instead of the automatically generated list of mutants). The list should be merged with the sample layout and several columns need to be initialized with values of specific dtypes ('WT': False, 'pos': '', 'aa_pos': ''). Save the dataframe as 'master_layout.csv.gz' and place it in the results/df folder.
-3. `snakemake --touch results/df/master_layout.csv.gz` (more details in the [full documentation](../fulldoc/README.md)) to instruct gyōza not to overwrite this file.
-4. `snakemake --until parse_fasta` to obtain read counts per barcode
-5. Merge with a dataframe of association between barcodes and single mutants (NNN or NNK), save as 'results/df/readcounts.csv.gz'
-6. `snakemake --touch results/df/readcounts.csv.gz`, again to instruct gyōza not to overwrite this file.
-7. `snakemake` to obtain read counts. Barcode-level information will be preserved in 'results/df/all_scores.csv', while fitness values will be calculated by aggregating on high-confidence variants (which does not preserve neither barcode-level nor codon-level information)
+Upon completion of the workflow, barcode-level information will be preserved in 'results/df/all_scores.csv', while fitness values will be calculated by aggregating on high-confidence variants (which does not preserve neither barcode-level nor codon-level information).
 
 ## Main config file
 
