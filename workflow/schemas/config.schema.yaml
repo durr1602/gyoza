@@ -62,10 +62,11 @@ properties:
   barcode:
     type: object
     properties:
-      design:
-        description: Set to True to specify barcoded design (default False)
-        type: boolean
-        default: False
+      rc_level:
+        description: Level to which read count is attributed, i.e. read count per nulcleotide sequence = 'nt_seq' (default), per barcode = 'barcode'
+        type: string
+        enum: ['nt_seq','barcode']
+        default: 'nt_seq'
       attributes:
         description: List of barcode attributes = columns in the list of expected mutants to label them
         type: array
@@ -73,15 +74,9 @@ properties:
         default: []
         items:
           type: string
-      rc_level:
-        description: Level to which read count is attributed, i.e. read count per nulcleotide sequence = 'nt_seq' (default), per barcode = 'barcode'
-        type: string
-        enum: ['nt_seq','barcode']
-        default: 'nt_seq'
     required:
-      - design
-      - attributes
       - rc_level
+      - attributes
 
   rc_aims:
     type: object
