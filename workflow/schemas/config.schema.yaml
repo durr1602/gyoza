@@ -52,9 +52,9 @@ properties:
         type: string
         pattern: '[\\\/\-\_\.A-Za-z0-9]+(\.csv|\.CSV){1}'
       mode:
-        description: Codon mode - 'NNN' or 'NNK'
+        description: Codon mode - 'NNN', 'NNK', 'NNN x NNN' or 'NNK x NNK'
         type: string
-        enum: ['NNN','NNK']
+        enum: ['NNN','NNK','NNN x NNN','NNK x NNK']
     required:
       - table
       - mode

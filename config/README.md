@@ -43,7 +43,7 @@ This normalization is **optional**. Please set the corresponding parameter to Tr
 
 ### Codon mode
 
-Please specify the codon mode in the config, meaning the type of degenerate codons you introduced at each position in the specified loci. Currently supported are: "NNN" (default value) or "NNK". This is only used to generate the expected sequences for non-barcoded designs.
+Please specify the codon mode in the config, meaning the type of degenerate codons you introduced at each position in the specified loci. Currently supported are: "NNN" (default value) or "NNK" for single mutants, "NNN x NNN" or "NNK x NNK" for double mutants (including the corresponding single mutants). This is only used to generate the expected sequences for non-barcoded designs.
 
 ### Barcoded design
 
