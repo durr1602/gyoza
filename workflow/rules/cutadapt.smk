@@ -1,8 +1,8 @@
 rule cutadapt:
     input:
         lambda wildcards: [
-            f"{config['reads']['path']}{sample_layout.loc[wildcards.sample, 'R1']}",
-            f"{config['reads']['path']}{sample_layout.loc[wildcards.sample, 'R2']}",
+            f"{READS_PATH}/{sample_layout.loc[wildcards.sample, 'R1']}",
+            f"{READS_PATH}/{sample_layout.loc[wildcards.sample, 'R2']}",
         ],
     params:
         adapters=lambda wildcards: f"-g {sample_layout.loc[wildcards.sample, 'N_forward']} -G {sample_layout.loc[wildcards.sample, 'N_reverse']}",

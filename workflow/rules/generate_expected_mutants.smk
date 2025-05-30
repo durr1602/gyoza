@@ -1,14 +1,13 @@
 rule generate_mutants:
     input:
-        layout=config["samples"]["path"],
-        wtseqs=config["samples"]["wt"],
+        config["samples"]["wt"],
     output:
-        config["samples"]["expected_mut"],
+        f"{EXPMUT_PATH}/{{mutseq}}.csv.gz",
     message:
         f'Generating expected mutants based on the experimental design (codon mode = {config["codon"]["mode"]})'
     log:
-        notebook="logs/notebooks/generate_mutants.ipynb",
+        notebook="logs/0_generate_mutants/{mutseq}.log",
     conda:
         "../envs/jupyter.yaml"
-    notebook:
-        "../notebooks/generate_mutants.py.ipynb"
+    script:
+        "../scripts/generate_mutants.py"

@@ -2,7 +2,10 @@ rule parse_fasta:
     input:
         fasta_files=expand(rules.vsearch_fastx_uniques.output, sample=samples),
         read_stats=rules.stats.output[0],
-        expected_mutants=rules.annotate_mutants.output[0],
+        expected_mutants=lambda wildcards: expand(
+            os.path.join(config["samples"]["final_layout"], "layout_{chunk}.csv.gz"),
+            chunk=get_chunks(wildcards)
+        ),
     output:
         read_counts="results/df/readcounts.csv.gz",
         rc_filter_plot=report(

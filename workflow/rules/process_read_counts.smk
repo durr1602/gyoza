@@ -1,6 +1,6 @@
 rule process_read_counts:
     input:
-        readcounts=rules.parse_fasta.output.read_counts,
+        readcounts=expand(rules.parse_fasta.output, sample=SAMPLES),
         nbgen=config["samples"]["generations"],
     output:
         selcoeffs="results/df/all_scores.csv",

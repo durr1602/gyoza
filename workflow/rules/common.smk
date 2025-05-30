@@ -2,6 +2,7 @@
 
 import pandas as pd
 from snakemake.utils import validate
+from pathlib import Path
 import warnings
 
 ##### Import and validate main config ####
@@ -12,6 +13,11 @@ configfile: "config/config.yaml"
 
 validate(config, schema="../schemas/config.schema.yaml")
 print("Main config validated.")
+
+##### Convert paths #####
+
+READS_PATH = Path(config['reads']['path'])
+EXPMUT_PATH = Path(config["samples"]["expected_mut"])
 
 ##### Import and validate sample layout #####
 
@@ -29,6 +35,7 @@ layout_mandatory_cols = [
 layout_csv = pd.read_csv(config["samples"]["path"])
 validate(layout_csv, schema="../schemas/sample_layout.schema.yaml")
 layout_add_cols = [x for x in layout_csv.columns if x not in layout_mandatory_cols]
+sample_to_mutseq = dict(zip(layout_csv["Sample_name"], layout_csv["Mutated_seq"]))
 sample_layout = layout_csv.set_index("Sample_name")
 print("Sample layout validated.")
 
@@ -57,13 +64,14 @@ else:
 if exists(config["samples"]["wt"]):
     wtseqs = pd.read_csv(config["samples"]["wt"])
     validate(wtseqs, schema="../schemas/wt_seqs.schema.yaml")
+    mutseq_to_wtseq = dict(zip(wtseqs["Mutated_seq"], wtseqs["WT_seq"]))
     print("WT imported.")
 
 ##### Validate CSV file containing expected DNA sequences #####
-if exists(config["samples"]["expected_mut"]):
-    expmut = pd.read_csv(config["samples"]["expected_mut"])
-    validate(expmut, schema="../schemas/wt_seqs.schema.yaml")
-    print("Expected mutated sequences imported.")
+#if exists(config["samples"]["expected_mut"]):
+#    expmut = pd.read_csv(config["samples"]["expected_mut"])
+#    validate(expmut, schema="../schemas/wt_seqs.schema.yaml")
+#    print("Expected mutated sequences imported.")
 
 ##### Generate template CSV file to write the number of cellular generations between time points #####
 # Note: At this time, this file is required to exist even if the user opts out of this normalization
@@ -106,10 +114,10 @@ print("Codon table validated.")
 
 ##### Select samples to process #####
 
-samples = sample_layout.sort_index().index
+SAMPLES = sample_layout.sort_index().index
 
 if config["samples"]["selection"] != "all":
-    selection = [x for x in config["samples"]["selection"] if x in samples]
+    selection = [x for x in config["samples"]["selection"] if x in SAMPLES]
     if len(selection) == 0:
         raise Exception(
             "Error.. None of the samples you specified for processing feature in the sample layout."
@@ -118,11 +126,12 @@ if config["samples"]["selection"] != "all":
         statement = "Warning... at least one sample was misspelled when selecting samples to process in the config file\nWill continue with only the correctly spelled samples."
         warnings.warn(statement)
     else:
-        samples = selection
+        SAMPLES = selection
         print("Selection of samples confirmed.")
 
-##### Specify final target #####
+MUTATED_SEQS = sorted(set(sample_to_mutseq[s] for s in SAMPLES))
 
+##### Specify final target #####
 
 def get_target():
     targets = ["results/df/all_scores.csv"]

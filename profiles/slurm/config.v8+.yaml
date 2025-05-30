@@ -29,8 +29,11 @@ set-resources:
     time: max((0.002 * input.size_mb + (attempt - 1) * 0.002 * input.size_mb).__ceil__(), 1)
   generate_mutants:
     mem_gb: max(50 * input.size_mb + (attempt - 1) * 50 * input.size_mb, 2)
-    threads: 1
+    threads: 10
     time: max((80 * input.size_mb + (attempt - 1) * 80 * input.size_mb).__ceil__(), 1)
+  annotate_mutants:
+    mem_gb: max(50 * input.size_mb + (attempt - 1) * 50 * input.size_mb, 2)
+    threads: 10
   cutadapt:
     threads: 10
     time: max((0.005 * input.size_mb + (attempt - 1) * 0.005 * input.size_mb).__ceil__(), 1)

@@ -2,7 +2,6 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.11
   - jupyter=1.0
   - jupyterlab_code_formatter=3.0.2
   - ipykernel
