@@ -20,4 +20,4 @@ rule write_empty_unexpected:
         "../envs/jupyter.yaml"
     run:
         import pandas as pd
-        pd.DataFrame(columns=["Mutated_seq","WT_seq","nt_seq","readcount"]).to_csv(output[0], index=False)
+        pd.DataFrame(columns=["Sample_name","Mutated_seq","WT_seq","nt_seq","readcount"]).to_csv(output[0], index=False)

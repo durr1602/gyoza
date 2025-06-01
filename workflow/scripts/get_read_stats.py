@@ -3,15 +3,12 @@ import pandas as pd
 
 
 def generate_read_stats(
-    cutadapt_logfile, pandaseq_logfile, vsearch_logfile, outpath
+    cutadapt_logfile, pandaseq_logfile, vsearch_logfile, outpath, sample_name
 ):
 
     stats_dict = {}
 
     # Step 1 - Process cutadapt log
-
-    # Retrieve sample name
-    sample_name = cutadapt_logfile[:-6].split("sample=")[1]
 
     # Parse cutadapt stats
     with open(cutadapt_logfile, "r") as file:
@@ -78,9 +75,6 @@ def generate_read_stats(
 
     # Step 2 - Process pandaseq log
 
-    # Retrieve sample name
-    sample_name = pandaseq_logfile[:-6].split("sample=")[1]
-
     # Check that log is properly formatted
     with open(pandaseq_logfile, "r") as file:
         first_line = file.readline()
@@ -139,9 +133,6 @@ def generate_read_stats(
 
     # Step 3 - Process vsearch log
 
-    # Retrieve sample name
-    sample_name = vsearch_logfile[:-6].split("sample=")[1]
-
     # Parse vsearch stats
     with open(vsearch_logfile, "r") as file:
         lines = file.readlines()
@@ -178,7 +169,7 @@ def generate_read_stats(
     fullstats["Aggregating"] = fullstats["Nb_singletons"]
 
     # Output to csv file
-    fullstats.to_csv(outpath)
+    fullstats.reset_index(names="Sample_name").to_csv(outpath)
     
     return
 
@@ -188,4 +179,5 @@ generate_read_stats(
     str(snakemake.input["pandaseq_log"]),
     str(snakemake.input["vsearch_log"]),
     snakemake.output[0],
+    snakemake.wildcards.sample
 )

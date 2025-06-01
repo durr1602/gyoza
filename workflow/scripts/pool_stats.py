@@ -1,6 +1,5 @@
-#from snakemake.script import snakemake
-from plotting_functions import plot_stacked_barplot, plot_unexp_plot
-#from scripts.plotting_functions import plot_stacked_barplot, plot_unexp_plot
+from snakemake.script import snakemake
+from scripts.plotting_functions import plot_stacked_barplot, plot_unexp_plot
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -13,16 +12,13 @@ def get_pooled_stats(sample_stats, sample_unexpected, csv_outpath, barplot_outpa
     """
     list_df = []
     for f in sample_stats:
-        list_df.append(pd.read_csv(f)[["Total_raw_reads", "Trimming", "Merging", "Aggregating"]])
+        list_df.append(pd.read_csv(f)[["Sample_name", "Total_raw_reads", "Trimming", "Merging", "Aggregating"]])
     
     stats_df = pd.concat(list_df, ignore_index=True)
     
     list_df = []
     for f in sample_unexpected:
-        # Retrieve sample name from file name
-        sample_name = f.split('_unexpected.csv')[0]
-        sample_unexp = pd.read_csv(f)[["readcount"]]
-        sample_unexp["Sample_name"] = sample_name
+        sample_unexp = pd.read_csv(f)[["Sample_name", "readcount"]]
         list_df.append(sample_unexp)
 
     unexp_all_seqs = pd.concat(list_df, ignore_index=True)
@@ -34,10 +30,10 @@ def get_pooled_stats(sample_stats, sample_unexpected, csv_outpath, barplot_outpa
                 .sum()
                 )
 
-    stacked_df = pd.concat([stats_df,
-                            unexp_df.rename(columns={"readcount": "Unexpected"})
-                            ], axis=1
-                            )
+    stacked_df = pd.merge(left=stats_df,
+                          right=unexp_df.rename(columns={"readcount": "Unexpected"}),
+                          on='Sample_name'
+                          )
 
     stacked_df["OK"] = stacked_df["Total_raw_reads"] - stacked_df[
         ["Trimming", "Merging", "Aggregating", "Unexpected"]].sum(axis=1)
@@ -50,7 +46,6 @@ def get_pooled_stats(sample_stats, sample_unexpected, csv_outpath, barplot_outpa
 
     return
 
-"""
 get_pooled_stats(snakemake.input.read_stats,
                  snakemake.input.unexpected,
                  snakemake.output.all_stats,
@@ -58,13 +53,4 @@ get_pooled_stats(snakemake.input.read_stats,
                  snakemake.output.unexp_rc_plot,
                  float(snakemake.config["rc_aims"]["exp_rc_per_sample"]),
                  [x for x in snakemake.config["plots"]["format"] if x != "svg"],
-                 )
-"""
-import os
-get_pooled_stats([f for f in os.listdir("/home/rodur28/git_repos/gyoza/results/stats/")],
-                 [f for f in os.listdir("/home/rodur28/git_repos/gyoza/results/df/unexpected_seqs/")],
-                  "/home/rodur28/git_repos/gyoza/results/test.csv",
-                  "/home/rodur28/git_repos/gyoza/results/test1.svg",
-                  "/home/rodur28/git_repos/gyoza/results/test2.svg",
-                  3e4, ["svg"]
                  )

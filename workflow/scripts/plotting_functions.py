@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 plt.rcParams["svg.fonttype"] = "none"
 
 def plot_stacked_barplot(df, outpath, exp_rc_per_sample, plot_formats):
-    samples = df.index.to_list()
+    samples = df["Sample_name"].to_list()
     width = 0.5
     color_dict = dict(
         zip(
