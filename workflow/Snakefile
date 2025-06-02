@@ -19,7 +19,7 @@ include: "rules/pandaseq.smk"
 include: "rules/vsearch.smk"
 include: "rules/stats.smk"
 include: "rules/pool_stats.smk"
-include: "rules/parse_fasta_v2.smk"
+include: "rules/parse_fasta.smk"
 include: "rules/process_read_counts.smk"
 
 

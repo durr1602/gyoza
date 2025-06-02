@@ -2,14 +2,15 @@ from snakemake.script import snakemake
 from scripts.my_functions import load_codon_dic, annotate_mutants
 import pandas as pd
 
+
 def get_annotated_mutants(mut_path, outpath, indel_outpath, codon_table):
     """
     Annotates mutants (input = 1 dataframe per sample).
     """
-    
+
     # Load codon dictionary
     codon_dic = load_codon_dic(codon_table)
-    
+
     # Load dataframe
     df = pd.read_csv(mut_path)
 
@@ -23,11 +24,21 @@ def get_annotated_mutants(mut_path, outpath, indel_outpath, codon_table):
         annot_df = annotate_mutants(df_valid, codon_dic)
     else:
         # Rescue expected column headers
-        annot_df = pd.DataFrame(columns=[
-            "nt_seq", "WT_seq",
-            "WT", "aa_seq", "Nham_codons", "Nham_nt", "Nham_aa",
-            "mutated_codon", "pos", "alt_codons", "alt_aa"
-        ])
+        annot_df = pd.DataFrame(
+            columns=[
+                "nt_seq",
+                "WT_seq",
+                "WT",
+                "aa_seq",
+                "Nham_codons",
+                "Nham_nt",
+                "Nham_aa",
+                "mutated_codon",
+                "pos",
+                "alt_codons",
+                "alt_aa",
+            ]
+        )
 
     # Ensure dataframe with indels is created even if empty
     if df_indels.empty:
@@ -39,8 +50,10 @@ def get_annotated_mutants(mut_path, outpath, indel_outpath, codon_table):
 
     return
 
-get_annotated_mutants(snakemake.input[0],
-                      snakemake.output.annot_rc,
-                      snakemake.output.indels,
-                      snakemake.config["codon"]["table"],
-                      )
+
+get_annotated_mutants(
+    snakemake.input[0],
+    snakemake.output.annot_rc,
+    snakemake.output.indels,
+    snakemake.config["codon"]["table"],
+)

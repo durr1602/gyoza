@@ -1,31 +1,15 @@
 rule parse_fasta:
     input:
-        fasta_files=expand(rules.vsearch_fastx_uniques.output, sample=samples),
-        read_stats=rules.stats.output[0],
-        expected_mutants=lambda wildcards: expand(
-            os.path.join(config["samples"]["final_layout"], "layout_{chunk}.csv.gz"),
-            chunk=get_chunks(wildcards)
-        ),
+        rules.vsearch_fastx_uniques.output,
     output:
-        read_counts="results/df/readcounts.csv.gz",
-        rc_filter_plot=report(
-            "results/graphs/rc_filter_plot.svg",
-            "../report/rc_filter_plot.rst",
-            category="1. Read filtering",
-            labels={"figure": "1.1. Summary of filtered reads"},
-        ),
-        unexp_rc_plot=report(
-            "results/graphs/unexp_rc_plot.svg",
-            "../report/unexp_rc_plot.rst",
-            category="1. Read filtering",
-            labels={"figure": "1.2. Read counts of unexpected variants"},
-        ),
-        done=touch("results/done/parse_fasta.done"),
+        "results/df/readcounts/{sample}_rc.csv",
+    params:
+        lambda wildcards: mutseq_to_wtseq[sample_to_mutseq[wildcards.sample]],
     message:
-        "Parsing fasta files and comparing sequenced mutants with expectations..."
+        "Parsing fasta files to get read counts..."
     log:
-        notebook="logs/notebooks/parse_fasta.ipynb",
+        "logs/4_readcounts/parse-fasta-sample={sample}.log",
     conda:
         "../envs/jupyter.yaml"
-    notebook:
-        "../notebooks/parse_fasta.py.ipynb"
+    script:
+        "../scripts/parse_fasta.py"

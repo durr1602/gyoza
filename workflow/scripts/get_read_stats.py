@@ -24,18 +24,10 @@ def generate_read_stats(
         lines[6].split("Total read pairs processed:")[1].strip().replace(",", "")
     )
     r1_with_adapter = int(
-        lines[7]
-        .split("Read 1 with adapter:")[1]
-        .split("(")[0]
-        .strip()
-        .replace(",", "")
+        lines[7].split("Read 1 with adapter:")[1].split("(")[0].strip().replace(",", "")
     )
     r2_with_adapter = int(
-        lines[8]
-        .split("Read 2 with adapter:")[1]
-        .split("(")[0]
-        .strip()
-        .replace(",", "")
+        lines[8].split("Read 2 with adapter:")[1].split("(")[0].strip().replace(",", "")
     )
     trimmed_reads = int(
         lines[12]
@@ -71,7 +63,9 @@ def generate_read_stats(
     )
 
     # Calculate number of reads discarded at the trimming stage
-    fullstats["Trimming"] = fullstats["Total_raw_reads"] - fullstats["Total_trimmed_reads"]
+    fullstats["Trimming"] = (
+        fullstats["Total_raw_reads"] - fullstats["Total_trimmed_reads"]
+    )
 
     # Step 2 - Process pandaseq log
 
@@ -92,9 +86,9 @@ def generate_read_stats(
         engine="python",
         names=["id", "err_stat", "field", "value", "details"],
     )
-    stats = logfile[
-        logfile.field.isin(["LOWQ", "NOALGN", "OK", "READS", "SLOW"])
-    ].iloc[-5:, :][["field", "value"]]
+    stats = logfile[logfile.field.isin(["LOWQ", "NOALGN", "OK", "READS", "SLOW"])].iloc[
+        -5:, :
+    ][["field", "value"]]
     stats["value"] = stats.value.astype(int)
 
     # Validation step - check that the number of processed reads corresponds from trim output to merge input
@@ -129,7 +123,9 @@ def generate_read_stats(
     )
 
     # Calculate number of reads discarded at the merging step
-    fullstats["Merging"] = fullstats["Total_trimmed_reads"] - fullstats["Total_merged_reads"]
+    fullstats["Merging"] = (
+        fullstats["Total_trimmed_reads"] - fullstats["Total_merged_reads"]
+    )
 
     # Step 3 - Process vsearch log
 
@@ -145,9 +141,7 @@ def generate_read_stats(
 
     # Add singletons total
     if "clusters discarded" in lines[-1]:
-        singletons = (
-            lines[-1].split(" clusters discarded")[0].split(",")[-1].strip()
-        )
+        singletons = lines[-1].split(" clusters discarded")[0].split(",")[-1].strip()
     else:
         singletons = 0
     fullstats.loc[fullstats.index == sample_name, "Nb_singletons"] = singletons
@@ -170,7 +164,7 @@ def generate_read_stats(
 
     # Output to csv file
     fullstats.reset_index(names="Sample_name").to_csv(outpath)
-    
+
     return
 
 
@@ -179,5 +173,5 @@ generate_read_stats(
     str(snakemake.input["pandaseq_log"]),
     str(snakemake.input["vsearch_log"]),
     snakemake.output[0],
-    snakemake.wildcards.sample
+    snakemake.wildcards.sample,
 )

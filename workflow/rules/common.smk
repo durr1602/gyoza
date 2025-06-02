@@ -16,7 +16,7 @@ print("Main config validated.")
 
 ##### Convert paths #####
 
-READS_PATH = Path(config['reads']['path'])
+READS_PATH = Path(config["reads"]["path"])
 EXPMUT_PATH = Path(config["samples"]["expected_mut"])
 
 ##### Import and validate sample layout #####
@@ -68,7 +68,7 @@ if exists(config["samples"]["wt"]):
     print("WT imported.")
 
 ##### Validate CSV file containing expected DNA sequences #####
-#if exists(config["samples"]["expected_mut"]):
+# if exists(config["samples"]["expected_mut"]):
 #    expmut = pd.read_csv(config["samples"]["expected_mut"])
 #    validate(expmut, schema="../schemas/wt_seqs.schema.yaml")
 #    print("Expected mutated sequences imported.")
@@ -132,6 +132,7 @@ if config["samples"]["selection"] != "all":
 MUTATED_SEQS = sorted(set(sample_to_mutseq[s] for s in SAMPLES))
 
 ##### Specify final target #####
+
 
 def get_target():
     targets = ["results/df/all_scores.csv"]

@@ -1,7 +1,9 @@
 rule pool_stats:
     input:
         read_stats=expand(rules.stats.output, sample=SAMPLES),
-        unexpected=expand("results/df/unexpected_seqs/{sample}_unexpected.csv", sample=SAMPLES),
+        unexpected=expand(
+            "results/df/unexpected_seqs/{sample}_unexpected.csv", sample=SAMPLES
+        ),
     output:
         all_stats="results/all_stats.csv",
         rc_filter_plot=report(

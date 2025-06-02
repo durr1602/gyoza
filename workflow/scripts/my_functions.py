@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import itertools
 
+
 def load_codon_dic(table):
     """
     Small function to load the codon table and return a dictionary
@@ -10,6 +11,7 @@ def load_codon_dic(table):
     codon_table["codon"] = codon_table["codon"].str.upper()
     codon_dic = dict(zip(codon_table["codon"], codon_table["aminoacid"]))
     return codon_dic
+
 
 def get_alt_codons(seq, codon_dic, mode="NNN"):
     """
@@ -37,6 +39,7 @@ def get_alt_codons(seq, codon_dic, mode="NNN"):
 
     return pos_l, var_l
 
+
 def get_nt_seq(seq, mut_dic):
     """
     Reconstitutes a nucleotide sequence based on a dictionary of mutations,
@@ -53,6 +56,7 @@ def get_nt_seq(seq, mut_dic):
 
     return "".join(list_codons)
 
+
 def get_single_double(df, codon_dic, codon_mode):
     """
     Processes a minimal dataframe containing the wild-type nucleotide sequence to mutate.
@@ -65,19 +69,23 @@ def get_single_double(df, codon_dic, codon_mode):
         single_codon_mode = codon_mode
     else:
         single_codon_mode = codon_mode.split(" x ")[0]
-    
+
     singles_compact = df.copy()
     singles_compact["pos"], singles_compact["alt_codons"] = zip(
-    *singles_compact.WT_seq.apply(lambda x: get_alt_codons(x, codon_dic, single_codon_mode))
+        *singles_compact.WT_seq.apply(
+            lambda x: get_alt_codons(x, codon_dic, single_codon_mode)
+        )
     )
 
     singles_compact = singles_compact.explode(["pos", "alt_codons"])
     singles_df = singles_compact.explode("alt_codons")
-    singles_df["mutations"] = singles_df.apply(lambda row: {row[f"pos"]: row[f"alt_codons"]}, axis=1)
+    singles_df["mutations"] = singles_df.apply(
+        lambda row: {row[f"pos"]: row[f"alt_codons"]}, axis=1
+    )
 
     if codon_mode in ["NNN x NNN", "NNK x NNK"]:
         pairwise_df = df.copy()
-    
+
         # Get pairwise combinations of codons that will be mutated
         pairwise_df["combination"] = pairwise_df.WT_seq.apply(
             lambda x: [
@@ -96,16 +104,11 @@ def get_single_double(df, codon_dic, codon_mode):
 
         # Build a lookup dictionary for alternative codons at each position
         # We use the previously built dataframe
-        alt_lookup = (
-            singles_df
-            .groupby("pos")["alt_codons"]
-            .unique()
-            .to_dict()
-        )
+        alt_lookup = singles_df.groupby("pos")["alt_codons"].unique().to_dict()
 
         # Leverage dictionary to map alternative codons at each position
         doubles_compact_df["alt_codons"] = doubles_compact_df["pos"].map(alt_lookup)
-    
+
         # Dataframe is pivoted only to be able to use pd.explode(), then later on melted to go back to long format
         doubles_piv = doubles_compact_df.pivot_table(
             index=["Mutated_seq", "WT_seq", "combination"],
@@ -116,27 +119,34 @@ def get_single_double(df, codon_dic, codon_mode):
         doubles_piv.columns = [x[0] for x in doubles_piv.columns[:-4]] + [
             f"{x[0]}{x[1]}" for x in doubles_piv.columns[-4:]
         ]
-    
+
         # Reshape
         doubles_exp1 = doubles_piv.explode("alt_codons1")
         doubles_exp2 = doubles_exp1.explode("alt_codons2")
         doubles_df = doubles_exp2.reset_index(drop=True)
-    
+
         # Create dictionary of mutations, here we go with numpy to be as efficient as possible, even with very large datasets
         keys = np.stack([doubles_df["pos1"].values, doubles_df["pos2"].values], axis=1)
         vals = np.stack(
             [doubles_df["alt_codons1"].values, doubles_df["alt_codons2"].values], axis=1
         )
         doubles_df["mutations"] = [dict(zip(k, v)) for k, v in zip(keys, vals)]
-        doubles_df.drop(["pos1", "pos2", "alt_codons1", "alt_codons2", "combination"], axis=1, inplace=True)
-    
+        doubles_df.drop(
+            ["pos1", "pos2", "alt_codons1", "alt_codons2", "combination"],
+            axis=1,
+            inplace=True,
+        )
+
     else:
         doubles_df = pd.DataFrame()
 
     # Concatenate dataframes for single mutants (and double mutants if there are any)
-    mutants_df = pd.concat([singles_df.drop(["pos", "alt_codons"], axis=1), doubles_df], ignore_index=True)
+    mutants_df = pd.concat(
+        [singles_df.drop(["pos", "alt_codons"], axis=1), doubles_df], ignore_index=True
+    )
 
     return mutants_df
+
 
 def get_mutations(seq, wt, codon_dic):
     """
@@ -156,12 +166,12 @@ def get_mutations(seq, wt, codon_dic):
         raise ValueError(
             f"Error.. the length of the DNA sequence is not a multiple of 3."
         )
-    
+
     VALID_BASES = {"A", "C", "G", "T"}
 
     if not set(seq).issubset(VALID_BASES):
         raise ValueError(
-        f"Error.. one of the provided nucleotide sequences contains an unrecognized character."
+            f"Error.. one of the provided nucleotide sequences contains an unrecognized character."
         )
 
     is_wt = seq == wt
@@ -206,7 +216,7 @@ def get_mutations(seq, wt, codon_dic):
         list_alt_pos = ["not-applicable"]
         list_alt_cod = ["not-applicable"]
         list_alt_aa = ["not-applicable"]
-    
+
     aa_seq = "".join(list_aa)
 
     return (
@@ -220,6 +230,7 @@ def get_mutations(seq, wt, codon_dic):
         list_alt_cod,
         list_alt_aa,
     )
+
 
 def annotate_mutants(df, codon_dic):
     """
@@ -236,8 +247,7 @@ def annotate_mutants(df, codon_dic):
     df["WT_seq"] = df["WT_seq"].str.upper()
 
     collected_mutations = [
-        get_mutations(seq, wt, codon_dic)
-        for seq, wt in zip(df["nt_seq"], df["WT_seq"])
+        get_mutations(seq, wt, codon_dic) for seq, wt in zip(df["nt_seq"], df["WT_seq"])
     ]
 
     mutations_dict = dict(zip(new_cols, zip(*collected_mutations)))
@@ -245,4 +255,3 @@ def annotate_mutants(df, codon_dic):
     df = df.explode(per_mut_cols).reset_index(drop=True)
 
     return df
-
