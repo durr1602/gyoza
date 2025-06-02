@@ -2,8 +2,8 @@ rule annotate_random:
     input:
         rules.parse_fasta.output
     output:
-        annot_rc = "results/df/annotated_readcounts/{sample}_annot_rc.csv",
-        indels = "results/df/indels/{sample}_indels.csv",
+        annot_rc="results/df/unfiltered/{sample}_unfiltered-rc.csv",
+        indels="results/df/indels/{sample}_indels.csv",
     message:
         f"Annotating mutants observed in sequencing data"
     log:
@@ -13,11 +13,16 @@ rule annotate_random:
     script:
         "../scripts/annotate_mutants.py"
 
-rule write_empty_unexpected:
+rule filter_random_mutants:
+    input:
+        rules.annotate_random.output['annot_rc']
     output:
-        "results/df/unexpected_seqs/{sample}_unexpected.csv"
+        filtered="results/df/annotated_readcounts/{sample}_annot_rc.csv",
+        discarded="results/df/unexpected_seqs/{sample}_unexpected.csv"
     conda:
         "../envs/jupyter.yaml"
     run:
         import pandas as pd
-        pd.DataFrame(columns=["Sample_name","Mutated_seq","WT_seq","nt_seq","readcount"]).to_csv(output[0], index=False)
+        unfiltered_df = pd.read_csv(input[0])
+        unfiltered_df[unfiltered_df.Nham_aa <= config["random"]["Nham_aa_max"]].to_csv(output['filtered'], index=False)
+        unfiltered_df[unfiltered_df.Nham_aa > config["random"]["Nham_aa_max"]].to_csv(output['discarded'], index=False)

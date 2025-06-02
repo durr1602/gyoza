@@ -21,7 +21,7 @@ samples:
     # ...and be named <Mutated_seq>.csv.gz (replace with each unique value of Mutated_seq)
     expected_mut: 'config/project_files/expected_mut/'
 
-design: 'codon'
+design: 'random'
     # Specify the design of your experiment: codon | provided | random
     # codon: Automatically generate all expected mutants based on the codon mode
     # provided: You provide the list of expected mutants or the dataframe of barcode-variant associations
@@ -38,6 +38,10 @@ barcode:
     rc_level: 'nt_seq'
     # Specify barcode attributes to label each variant
     attributes: []
+
+random:
+    # Acceptable number of amino acid changes relative to wild-type
+    Nham_aa_max: 1
 
 rc_aims:
     # Specify targeted read count per sample in scientific notation
