@@ -46,7 +46,7 @@ else:
 
 rule all:
     input:
-        "results/all_stats.csv"
+        expand("results/df/all_scores_{group_key}.csv", group_key=GROUP_KEYS)
         #get_target(),
 
 

@@ -232,6 +232,19 @@ def get_mutations(seq, wt, codon_dic):
     )
 
 
+def get_mutation_type(Nham_aa, alt_aa):
+    """
+    Quick function to determine if the mutation is silent or non-synonymous
+    and if it's missense or nonsense
+    """
+    if Nham_aa == 0:
+        return "silent"
+    elif alt_aa == "*":
+        return "nonsense"
+    else:
+        return "missense"
+
+
 def annotate_mutants(df, codon_dic):
     """
     Processes subdataframes with at least two columns (nt_seq and WT_seq)
@@ -255,3 +268,15 @@ def annotate_mutants(df, codon_dic):
     df = df.explode(per_mut_cols).reset_index(drop=True)
 
     return df
+
+
+def get_confidence_score(g, threshold):
+    """
+    Labels variants with a confidence score based on read count at T0
+    """
+    if (g >= threshold).all():  # Above threshold in all replicates
+        return 1  # best confidence score
+    elif (g >= threshold).any():  # Above threshold in at least 1 replicate
+        return 2  # medium confidence score
+    else:
+        return 3  # low confidence score

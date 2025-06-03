@@ -3,6 +3,7 @@
 import pandas as pd
 from snakemake.utils import validate
 from pathlib import Path
+from collections import defaultdict
 import warnings
 
 ##### Import and validate main config ####
@@ -55,6 +56,11 @@ if len(config["samples"]["attributes"]) > 0:
                 for x in layout_add_cols
                 if x not in config["samples"]["attributes"]
             ]
+    TR_layout = layout_csv[["Sample_name"] + config["samples"]["attributes"]]
+    grouped_samples = defaultdict(list)
+    for _, row in TR_layout.iterrows():
+        key = tuple(row[col] for col in config["samples"]["attributes"])
+        grouped_samples[key].append(row["Sample_name"])
     print("Sample attributes imported.")
 else:
     print("No sample attributes provided.")
@@ -130,6 +136,29 @@ if config["samples"]["selection"] != "all":
         print("Selection of samples confirmed.")
 
 MUTATED_SEQS = sorted(set(sample_to_mutseq[s] for s in SAMPLES))
+
+grouped_samples = {
+    key: [s for s in samples if s in SAMPLES]
+    for key, samples in grouped_samples.items()
+    if any(s in SAMPLES for s in samples)
+}
+
+##### Convert sample grouping wilcard <-> string #####
+
+
+# Serialize tuple to string
+def serialize_key(key):
+    return "__".join(str(k) for k in key)
+
+
+# Deserialize back to tuple
+def deserialize_key(key_str):
+    return tuple(key_str.split("__"))
+
+
+# Map from string keys to sample lists
+grouped_samples_str = {serialize_key(k): v for k, v in grouped_samples.items()}
+GROUP_KEYS = list(grouped_samples_str.keys())
 
 ##### Specify final target #####
 
