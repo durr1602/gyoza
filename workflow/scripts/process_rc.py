@@ -169,6 +169,9 @@ def get_selcoeffs(
     longfreq["Timepoint"] = longfreq.TR_freq.apply(lambda x: x.split("_")[0])
     longfreq["Replicate"] = longfreq.TR_freq.apply(lambda x: x.split("_")[1])
     timepoints = sorted(longfreq.Timepoint.unique())
+    # Save metadata in df for simplicity
+    longfreq["Sample attributes"] = sample_group
+    longfreq["Mean_exp_freq"] = mean_exp_freq
     longfreq.to_csv(freq_outpath, index=False)
 
     # Annotate with mutation type
@@ -284,11 +287,11 @@ def get_selcoeffs(
     )
 
     # Plot correlation between time points
-    dataset1_r1 = median_df.index[0]
+    dataset1_r1 = median_df.index[0]  # select first replicate only
     graphdf = median_df.loc[dataset1_r1].reset_index()[
         selcoeff_cols + ["confidence_score"]
     ]
-    plot_timepoint_corr(graphdf, timepointsplot_outpath, plot_formats)
+    plot_timepoint_corr(graphdf, timepointsplot_outpath, sample_group, plot_formats)
 
     median_long = median_df.melt(
         id_vars=mutation_attributes_aa,
@@ -297,8 +300,14 @@ def get_selcoeffs(
         value_name="s",
         ignore_index=False,
     ).reset_index()
+    # Rename column to keep only output time point (all are compared relative to T0)
+    median_long["Compared timepoints"] = median_long["Compared timepoints"].apply(
+        lambda x: x.split("_")[1]
+    )
+    # Save metadata in df for simplicity
+    median_long["Sample attributes"] = sample_group
 
-    # Output dataframe to plot more graphs (aggregating over all sample groups)
+    # Output dataframe to plot more graphs (aggregating over sample groups)
     median_long.to_csv(aa_df_outpath, index=False)
 
     # Calculate median across replicates for high confidence variants

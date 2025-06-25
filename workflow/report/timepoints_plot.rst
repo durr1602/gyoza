@@ -1,5 +1,5 @@
 **Important note:** make sure you click on the eye icon above to refresh the view and load the correct image.
 
-Here, we show an example of correlation between output time points for a single combination of "Samples attributes" and a single replicate.
+Here, we show an example of correlation between output time points for a single replicate.
 Diagonal plots show the distribution of values according to the confidence score (which informs on the read count in the input).
 If you ran the workflow on the toy dataset, or if your dataset does not contain more than 1 output time point, the figure should consist of a single diagonal (density) plot.

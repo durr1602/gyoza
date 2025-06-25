@@ -1,3 +1,3 @@
 **Important note:** make sure you click on the eye icon above to refresh the view and load the correct image.
 
-For every sample, we show the density of read counts attributed to unexpected variants, i.e. varians that do not feature in the list of expected variants.
+For every sample, we show the density of read counts attributed to unexpected variants, i.e. varians that do not feature in the list of expected variants (depending on the experimental design mode, either sequences observed in the sequencing dataset but not present in the list of expected mutants, or in the case of random mutagenesis sequences that were discarded because they had too many mutations, cf threshold specified in the config).

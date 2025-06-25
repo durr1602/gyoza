@@ -9,7 +9,7 @@ rule annotate_random:
     log:
         "logs/6_annotate/annotate_random-sample={sample}.log",
     conda:
-        "../envs/jupyter.yaml"
+        "../envs/main.yaml"
     script:
         "../scripts/annotate_mutants.py"
 
@@ -21,7 +21,7 @@ rule filter_random_mutants:
         filtered="results/df/annotated_readcounts/{sample}_annot_rc.csv",
         discarded="results/df/unexpected_seqs/{sample}_unexpected.csv",
     conda:
-        "../envs/jupyter.yaml"
+        "../envs/main.yaml"
     run:
         import pandas as pd
 

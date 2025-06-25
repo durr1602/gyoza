@@ -14,6 +14,6 @@ rule compare_to_sequencing:
     log:
         "logs/5_compare/compare_to_seq-sample={sample}.log",
     conda:
-        "../envs/jupyter.yaml"
+        "../envs/main.yaml"
     script:
         "../scripts/compare_to_sequencing.py"

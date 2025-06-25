@@ -9,6 +9,6 @@ rule annotate_mutants:
     log:
         "logs/6_annotate/annotate_mutants-sample={sample}.log",
     conda:
-        "../envs/jupyter.yaml"
+        "../envs/main.yaml"
     script:
         "../scripts/annotate_mutants.py"

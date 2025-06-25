@@ -10,6 +10,6 @@ rule parse_fasta:
     log:
         "logs/4_readcounts/parse-fasta-sample={sample}.log",
     conda:
-        "../envs/jupyter.yaml"
+        "../envs/main.yaml"
     script:
         "../scripts/parse_fasta.py"

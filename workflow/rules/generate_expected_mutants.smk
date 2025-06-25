@@ -8,6 +8,6 @@ rule generate_mutants:
     log:
         notebook="logs/0_generate_mutants/{mutseq}.log",
     conda:
-        "../envs/jupyter.yaml"
+        "../envs/main.yaml"
     script:
         "../scripts/generate_mutants.py"

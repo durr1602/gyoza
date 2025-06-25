@@ -10,6 +10,6 @@ rule stats:
     log:
         "logs/7_stats/stats-sample={sample}.log",
     conda:
-        "../envs/jupyter.yaml"
+        "../envs/main.yaml"
     script:
         "../scripts/get_read_stats.py"

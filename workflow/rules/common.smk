@@ -35,8 +35,21 @@ layout_mandatory_cols = [
 ]
 layout_csv = pd.read_csv(config["samples"]["path"])
 validate(layout_csv, schema="../schemas/sample_layout.schema.yaml")
-layout_add_cols = [x for x in layout_csv.columns if x not in layout_mandatory_cols]
+
+# Convert Report column to strict boolean
+truthy = {"true", "1", "yes", "y", "on"}
+layout_csv["Report"] = (
+    layout_csv["Report"].fillna(False).astype(str).str.strip().str.lower().isin(truthy)
+)
+
+# Retrieve non-mandatory columns
+layout_add_cols = [
+    x for x in layout_csv.columns if x not in layout_mandatory_cols + ["Report"]
+]
+
+# Get sample / Mutated_seq mapping
 sample_to_mutseq = dict(zip(layout_csv["Sample_name"], layout_csv["Mutated_seq"]))
+
 sample_layout = layout_csv.set_index("Sample_name")
 print("Sample layout validated.")
 
@@ -160,11 +173,38 @@ def deserialize_key(key_str):
 grouped_samples_str = {serialize_key(k): v for k, v in grouped_samples.items()}
 GROUP_KEYS = list(grouped_samples_str.keys())
 
+
+# Derive which groups should be reported
+grouped_samples_for_report = [
+    tuple(row[attr] for attr in config["samples"]["attributes"])
+    for _, row in layout_csv[layout_csv["Report"]].iterrows()
+]
+
+# Ensure unique entries
+seen = set()
+grouped_samples_for_report = [
+    x for x in grouped_samples_for_report if not (x in seen or seen.add(x))
+]
+
+# Serialize groups of samples to be included in the reported
+REPORTED_GROUPS = [serialize_key(group) for group in grouped_samples_for_report]
+
+# Final mapping for reporting purposes
+# I don't think I actually need this
+# REPORTED_GROUPED_SAMPLES = {
+#    key: [s for s in grouped_samples[key] if s in SAMPLES]
+#    for key, key_str in zip(grouped_samples_for_report, REPORTED_GROUPS)
+#    if key in grouped_samples
+# }
+
 ##### Specify final target #####
 
 
 def get_target():
-    targets = ["results/df/all_scores.csv"]
+    targets = expand("results/df/all_scores_{group_key}.csv", group_key=GROUP_KEYS)
+    targets.append("results/all_stats.csv")
     if config["qc"]["perform"]:
         targets.append("results/0_qc/multiqc.html")
+    if config["report"]["generate"]:
+        targets.append("results/report.html")
     return targets

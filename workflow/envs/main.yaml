@@ -2,11 +2,9 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - jupyter=1.0
-  - jupyterlab_code_formatter=3.0.2
-  - ipykernel
   - pandas>=2.2.2
   - numpy>=2.1.0
+  - scipy>=1.15.2
   - matplotlib==3.9.2
   - seaborn>=0.13.2
   - upsetplot>=0.9

@@ -280,3 +280,15 @@ def get_confidence_score(g, threshold):
         return 2  # medium confidence score
     else:
         return 3  # low confidence score
+
+
+def concatenate_df(df_files):
+    """
+    Takes list of paths to dataframes as input.
+    Returns single concatenated dataframe.
+    """
+    list_df = []
+    for f in df_files:
+        list_df.append(pd.read_csv(f))
+    df = pd.concat(list_df, ignore_index=True)
+    return df

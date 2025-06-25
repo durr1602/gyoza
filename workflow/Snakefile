@@ -24,8 +24,10 @@ include: "rules/process_read_counts.smk"
 
 
 if config["qc"]["perform"]:
-
     include: "rules/qc.smk"
+
+if config["report"]["generate"]:
+    include: "rules/report.smk"
 
 design = config["design"]
 if design == "random":
@@ -46,24 +48,4 @@ else:
 
 rule all:
     input:
-        expand("results/df/all_scores_{group_key}.csv", group_key=GROUP_KEYS)
-        #get_target(),
-
-
-##### Generate report that includes all completed steps #####
-
-
-if config["report"]["generate"]:
-
-    onsuccess:
-        (STEPs,) = glob_wildcards("results/done/{step}.done")
-        if (config["qc"]["perform"]) & (exists("results/0_qc/multiqc.html")):
-            STEPs.append("multiqc")
-        shell(f"snakemake {' '.join(STEPs)} --report results/report.html")
-
-    onerror:
-        (STEPs,) = glob_wildcards("results/done/{step}.done")
-        if (config["qc"]["perform"]) & (exists("results/0_qc/multiqc.html")):
-            STEPs.append("multiqc")
-        if len(STEPs) > 0:
-            shell(f"snakemake {' '.join(STEPs)} --report results/report.html")
+        get_target(),
