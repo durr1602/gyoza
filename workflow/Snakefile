@@ -4,12 +4,6 @@
 containerized: "docker://durr1602/gyoza:latest"
 
 
-##### Set up report #####
-
-
-report: "report/workflow.rst"
-
-
 ##### Load rules #####
 
 

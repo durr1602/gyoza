@@ -36,7 +36,7 @@ rule process_read_counts:
     log:
         "logs/8_scores/process_read_counts_{group_key}.log",
     conda:
-        "../envs/jupyter.yaml"
+        "../envs/main.yaml"
     script:
         "../scripts/process_rc.py"
 
@@ -88,6 +88,6 @@ rule plot_scores:
     log:
         "logs/8_scores/plot_scores.log",
     conda:
-        "../envs/jupyter.yaml"
+        "../envs/main.yaml"
     script:
         "../scripts/plot_scores.py"

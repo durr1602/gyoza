@@ -22,6 +22,7 @@ Please provide a csv-formatted layout of your samples. The file should be named 
 - Pos_start: starting position in the protein sequence. If you've mutated several regions/fragments in a coding gene, this position should refer to the full-length protein sequence
 - Replicate: e.g. "R1"
 - Timepoint: "T0", "T1", etc. Intermediate timepoints are optional.
+- Report: "yes" (or a different truthy value) to include the sample in the HTML report.
 
 Finally, additional columns can be added by the user to specify what makes this sample unique. These are referred to as "sample attributes" and could correspond to the genetic background, the fragment/region of the gene if it applies, the drug used for selection, etc. In summary, a "sample" is any unique combination of sample attributes + Replicate + Timepoint and should be associated to 2 fastq files, for the forward and reverse reads, respectively. Sample attributes = attributes related to Mutated_seq + optional attributes.
 
@@ -32,6 +33,13 @@ If you want gyōza to automatically generate all expected sequences based on a c
 - WT_seq: corresponding WT DNA sequence, assuming the first three bases constitute the first mutated codon
 
 Alternatively, you can provide the same dataframe with an additional 'nt_seq' column in which you have generated all expected sequences. In this case, the file should be named `expected_mutants.csv` file.
+
+### Experimental design mode
+
+This is a fairly recent feature of gyōza and will be even more simplified in future versions, but is currently **essential**. Choose between 3 possible modes:
+- codon: Automatically generate all expected mutants based on the codon mode
+- provided: You provide the list of expected mutants or the dataframe of barcode-variant associations (see below)
+- random: Random mutagenesis - mutants observed in the sequencing data are directly annotated and filtered based on an acceptable number of amino acid changes
 
 ### Codon table
 
@@ -57,6 +65,12 @@ To specify a barcoded design:
 > For a barcoded design, it is essential to provide the dataframe of barcode-variants association. Since this file already contains all expected sequences, you don't need to provide the `wt_seq.csv` file as well.
 
 Upon completion of the workflow, barcode-level information will be preserved in 'results/df/all_scores.csv', while fitness values will be calculated by aggregating on high-confidence variants (which does not preserve neither barcode-level nor codon-level information).
+
+### Random mutagenesis
+
+To specify a random mutagenesis experimental design:
+- Make sure the design entry = 'random'
+- Enter an acceptable number of amino acid changes (e.g. 2 = only mutants with up to 2 amino acid changes will be kept)
 
 ## Main config file
 

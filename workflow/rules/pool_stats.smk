@@ -23,6 +23,6 @@ rule pool_stats:
     log:
         "logs/7_stats/pool_stats.log",
     conda:
-        "../envs/jupyter.yaml"
+        "../envs/main.yaml"
     script:
         "../scripts/pool_stats.py"

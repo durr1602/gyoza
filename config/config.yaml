@@ -25,7 +25,7 @@ design: 'random'
     # Specify the design of your experiment: codon | provided | random
     # codon: Automatically generate all expected mutants based on the codon mode
     # provided: You provide the list of expected mutants or the dataframe of barcode-variant associations
-    # random: Random mutagenesis - mutants obserbed in the sequencing data are directly annotated
+    # random: Random mutagenesis - mutants observed in the sequencing data are directly annotated
 
 codon:
     # Codon table
