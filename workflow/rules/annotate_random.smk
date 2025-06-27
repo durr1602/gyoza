@@ -20,15 +20,11 @@ rule filter_random_mutants:
     output:
         filtered="results/df/annotated_readcounts/{sample}_annot_rc.csv",
         discarded="results/df/unexpected_seqs/{sample}_unexpected.csv",
+    message:
+        f"Filtering out mutants based on number of amino acid changes"
+    log:
+        "logs/6_annotate/filter_random-sample={sample}.log",
     conda:
         "../envs/main.yaml"
-    run:
-        import pandas as pd
-
-        unfiltered_df = pd.read_csv(input[0])
-        unfiltered_df[unfiltered_df.Nham_aa <= config["random"]["Nham_aa_max"]].to_csv(
-            output["filtered"], index=False
-        )
-        unfiltered_df[unfiltered_df.Nham_aa > config["random"]["Nham_aa_max"]].to_csv(
-            output["discarded"], index=False
-        )
+    script:
+        "../scripts/filter_random.py"
