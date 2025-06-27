@@ -158,21 +158,17 @@ grouped_samples = {
 
 ##### Convert sample grouping wilcard <-> string #####
 
-
 # Serialize tuple to string
 def serialize_key(key):
     return "__".join(str(k) for k in key)
-
 
 # Deserialize back to tuple
 def deserialize_key(key_str):
     return tuple(key_str.split("__"))
 
-
 # Map from string keys to sample lists
 grouped_samples_str = {serialize_key(k): v for k, v in grouped_samples.items()}
 GROUP_KEYS = list(grouped_samples_str.keys())
-
 
 # Derive which groups should be reported
 grouped_samples_for_report = [
@@ -189,22 +185,37 @@ grouped_samples_for_report = [
 # Serialize groups of samples to be included in the reported
 REPORTED_GROUPS = [serialize_key(group) for group in grouped_samples_for_report]
 
-# Final mapping for reporting purposes
-# I don't think I actually need this
-# REPORTED_GROUPED_SAMPLES = {
-#    key: [s for s in grouped_samples[key] if s in SAMPLES]
-#    for key, key_str in zip(grouped_samples_for_report, REPORTED_GROUPS)
-#    if key in grouped_samples
-# }
+##### Prepare HTML report #####
+# Note: I've tried multiple approaches. Report cannot be reliably integrated
+# in a dedicated rule (for DAG inclusion) because of the nested snakemake statements
+# which unpredictably lead to filesystem errors.
+# I went back to my initial approach (onsuccess hook) which felt hacky,
+# but apparently is common practice (until something better comes)
+
+EXPECTED_GRAPHS = (
+    [
+        Path("results/graphs/rc_filter_plot.svg"),
+        Path("results/graphs/unexp_rc_plot.svg"),
+        Path("results/graphs/rc_var_plot.svg"),
+        Path("results/graphs/scoeff_violin_plot.svg"),
+        Path("results/graphs/replicates_heatmap_plot.svg"),
+        Path("results/graphs/replicates_plot.svg"),
+        Path("results/graphs/s_through_time_plot.svg"),
+    ]
+    + [Path(f"results/graphs/hist_plot_{k}.svg") for k in REPORTED_GROUPS]
+    + [Path(f"results/graphs/upset_plot_{k}.svg") for k in REPORTED_GROUPS]
+    + [Path(f"results/graphs/timepoints_plot_{k}.svg") for k in REPORTED_GROUPS]
+)
+
+def collect_graphs():
+    graph_dir = Path("results/graphs")
+    return [str(f) for f in EXPECTED_GRAPHS if (graph_dir / f.name).exists()]
 
 ##### Specify final target #####
-
 
 def get_target():
     targets = expand("results/df/all_scores_{group_key}.csv", group_key=GROUP_KEYS)
     targets.append("results/all_stats.csv")
     if config["qc"]["perform"]:
         targets.append("results/0_qc/multiqc.html")
-    if config["report"]["generate"]:
-        targets.append("results/report.html")
     return targets

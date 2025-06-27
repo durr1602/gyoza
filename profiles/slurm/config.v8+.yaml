@@ -21,39 +21,36 @@ default-resources:
   - time="00:30:00"
 
 # Dynamic allocation of rule-specific resources
+# Resources for rule generate_mutants is handled dynamically in the smk file based on config entry
 # The following was optimized from internal benchmarking
 # Resources allocated should prevent overallocation but might not be enough at first attempt
 set-resources:
   fastqc:
-    threads: 10
-    time: max((0.002 * input.size_mb + (attempt - 1) * 0.002 * input.size_mb).__ceil__(), 1)
-  generate_mutants:
-    mem_gb: max(50 * input.size_mb + (attempt - 1) * 50 * input.size_mb, 2)
-    threads: 10
-    time: max((80 * input.size_mb + (attempt - 1) * 80 * input.size_mb).__ceil__(), 1)
+    time: max(int(0.002 * input.size_mb * attempt + 0.99), 1)
+  compare_to_sequencing:
+    mem_gb: max(int(0.15 * input.size_mb * attempt + 0.99), 2)
+    time: max(int(0.15 * input.size_mb * attempt + 0.99), 2)
   annotate_mutants:
-    mem_gb: max(50 * input.size_mb + (attempt - 1) * 50 * input.size_mb, 2)
-    threads: 10
+    time: max(int((0.002 * input.size_mb + (attempt - 1) * 0.002 * input.size_mb) + 0.99), 1)
   cutadapt:
-    threads: 10
-    time: max((0.005 * input.size_mb + (attempt - 1) * 0.005 * input.size_mb).__ceil__(), 1)
+    time: max(int((0.005 * input.size_mb + (attempt - 1) * 0.005 * input.size_mb) + 0.99), 1)
   pandaseq:
     threads: 4
-    time: max((0.002 * input.size_mb + (attempt - 1) * 0.002 * input.size_mb).__ceil__(), 1)
+    time: max(int((0.002 * input.size_mb + (attempt - 1) * 0.002 * input.size_mb) + 0.99), 1)
   vsearch_fastx_uniques:
     threads: 1  # This command of vsearch is not multi-threaded
-    time: max((0.0002 * input.size_mb + (attempt - 1) * 0.0002 * input.size_mb).__ceil__(), 1)
+    time: max(int((0.0002 * input.size_mb + (attempt - 1) * 0.0002 * input.size_mb) + 0.99), 1)
   stats:
     threads: 1
-    time: max((0.001 * input.size_mb + (attempt - 1) * 0.001 * input.size_mb).__ceil__(), 1)
+    time: max(int((0.001 * input.size_mb + (attempt - 1) * 0.001 * input.size_mb) + 0.99), 1)
   parse_fasta:
-    mem_gb: max((0.002 * input.size_mb + (attempt - 1) * 0.002 * input.size_mb).__ceil__(), 1)
     threads: 1
-    time: max((0.002 * input.size_mb + (attempt - 1) * 0.002 * input.size_mb).__ceil__(), 1)
+    mem_gb: max(int((0.002 * input.size_mb + (attempt - 1) * 0.002 * input.size_mb) + 0.99), 1)
+    time: max(int((0.002 * input.size_mb + (attempt - 1) * 0.002 * input.size_mb) + 0.99), 1)
   process_read_counts:
-    mem_gb: max((0.2 * input.size_mb + (attempt - 1) * 0.2 * input.size_mb).__ceil__(), 1)
     threads: 1
-    time: max((0.5 * input.size_mb + (attempt - 1) * 0.5 * input.size_mb).__ceil__(), 1)
+    mem_gb: max(int((0.2 * input.size_mb + (attempt - 1) * 0.2 * input.size_mb) + 0.99), 1)
+    time: max(int((0.5 * input.size_mb + (attempt - 1) * 0.5 * input.size_mb) + 0.99), 1)
 
 jobs: 500
 max-jobs-per-second: 10

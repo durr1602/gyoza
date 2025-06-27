@@ -4,6 +4,12 @@
 containerized: "docker://durr1602/gyoza:latest"
 
 
+##### Load main report caption #####
+
+
+report: "report/workflow.rst"
+
+
 ##### Load rules #####
 
 
@@ -20,8 +26,6 @@ include: "rules/process_read_counts.smk"
 if config["qc"]["perform"]:
     include: "rules/qc.smk"
 
-if config["report"]["generate"]:
-    include: "rules/report.smk"
 
 design = config["design"]
 if design == "random":
@@ -43,3 +47,21 @@ else:
 rule all:
     input:
         get_target(),
+
+
+##### Generate dynamic report upon completion of the workflow #####
+
+if config["report"]["generate"]:
+    onsuccess:
+        graphs = collect_graphs()
+    
+        # Add QC report if present
+        qc_path = Path("results/0_qc/multiqc.html")
+        if config["qc"]["perform"] and qc_path.exists():
+            graphs.append(str(qc_path))
+    
+        if graphs:
+            input_files = " ".join(str(f) for f in graphs)
+            shell(f"snakemake {input_files} --report results/report.html")
+        else:
+            print(">> No graphs found. Skipping report generation.")

@@ -51,7 +51,7 @@ This normalization is **optional**. Please set the corresponding parameter to Tr
 
 ### Codon mode
 
-Please specify the codon mode in the config, meaning the type of degenerate codons you introduced at each position in the specified loci. Currently supported are: "NNN" (default value) or "NNK" for single mutants, "NNN x NNN" or "NNK x NNK" for double mutants (including the corresponding single mutants). This is only used to generate the expected sequences for non-barcoded designs.
+Only needed when the design is set to 'codon'. Please edit the corresponding config entry to specify the type of degenerate codons you introduced at each position in the specified loci. Currently supported are: "NNN" (default value) or "NNK" for single mutants, "NNN x NNN" or "NNK x NNK" for double mutants (including the corresponding single mutants). This is only used to generate the expected sequences for non-barcoded designs. In general, it is preferred to select the 'random' mode and filter out mutants with more than 1 or 2 amino acid changes. This will skip the generation of expected mutants, looking only at the sequencing dataset, resulting in a much faster and less greedy workflow (in terms of computational resources). This functionality will stay for now because in some cases it allows for faster troubleshoot (for example if a library as no coverage at specific positions).
 
 ### Barcoded design
 

@@ -1,6 +1,3 @@
-report: "report/workflow.rst"
-
-
 EXPECTED_GRAPHS = (
     [
         Path("results/graphs/rc_filter_plot.svg"),
