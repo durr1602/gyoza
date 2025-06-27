@@ -20,7 +20,7 @@ checkpoint discover_graphs:
     Ensures report gets generated even upon intermediate workflow run.
     """
     output:
-        "results/graphs/.check"
+        "results/graphs/.check",
     run:
         Path("results/graphs").mkdir(parents=True, exist_ok=True)
         Path(output[0]).touch()
@@ -52,7 +52,9 @@ rule generate_report:
 
         if completed:
             shell(f"snakemake {' '.join(str(f) for f in completed)} --report {output}")
-            Path(str(output[0])).touch()  # unfortunately essential if we want a DAG-included dynamic report
+            Path(
+                str(output[0])
+            ).touch()  # unfortunately essential if we want a DAG-included dynamic report
 
         else:
             print(">> No expected graph found. Skipping report generation.")

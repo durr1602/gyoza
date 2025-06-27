@@ -158,13 +158,16 @@ grouped_samples = {
 
 ##### Convert sample grouping wilcard <-> string #####
 
+
 # Serialize tuple to string
 def serialize_key(key):
     return "__".join(str(k) for k in key)
 
+
 # Deserialize back to tuple
 def deserialize_key(key_str):
     return tuple(key_str.split("__"))
+
 
 # Map from string keys to sample lists
 grouped_samples_str = {serialize_key(k): v for k, v in grouped_samples.items()}
@@ -207,11 +210,14 @@ EXPECTED_GRAPHS = (
     + [Path(f"results/graphs/timepoints_plot_{k}.svg") for k in REPORTED_GROUPS]
 )
 
+
 def collect_graphs():
     graph_dir = Path("results/graphs")
     return [str(f) for f in EXPECTED_GRAPHS if (graph_dir / f.name).exists()]
 
+
 ##### Specify final target #####
+
 
 def get_target():
     targets = expand("results/df/all_scores_{group_key}.csv", group_key=GROUP_KEYS)
