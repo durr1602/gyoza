@@ -7,6 +7,7 @@ type: object
 properties:
   Replicate:
     type: string
+    minLength: 1
     description: Replicate (e.g. cultured in two separate tubes with the same set of conditions)
   Timepoint:
     type: string
