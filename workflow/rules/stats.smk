@@ -1,15 +1,15 @@
 rule stats:
     input:
-        cutadapt_logs=expand(rules.cutadapt.output.qc, sample=samples),
-        pandaseq_logs=expand(rules.pandaseq.log, sample=samples),
-        vsearch_logs=expand(rules.vsearch_fastx_uniques.log, sample=samples),
+        cutadapt_log=rules.cutadapt.output.qc,
+        pandaseq_log=rules.pandaseq.log,
+        vsearch_log=rules.vsearch_fastx_uniques.log,
     output:
-        "results/read_stats.csv",
+        "results/stats/stats-sample={sample}.csv",
     message:
         "Parsing log files to aggregate read statistics..."
     log:
-        "logs/4_stats/stats.log",
+        "logs/7_stats/stats-sample={sample}.log",
     conda:
-        "../envs/jupyter.yaml"
+        "../envs/main.yaml"
     script:
         "../scripts/get_read_stats.py"

@@ -2,7 +2,7 @@ rule vsearch_fastx_uniques:
     input:
         fastx_uniques=rules.pandaseq.output,
     output:
-        fastaout="results/3_aggregate/{sample}_aggregated.fasta",
+        fastaout=temp("results/3_aggregate/{sample}_aggregated.fasta"),
     message:
         "Counting reads for every unique sequence..."
     log:

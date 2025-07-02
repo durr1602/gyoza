@@ -24,6 +24,7 @@ properties:
     description: 5''-3'' constant sequence immediately downstream the mutated locus (-G flag in cutadapt)
   Mutateq_seq:
     type: string
+    pattern: '^[A-Za-z0-9._-]+$'
     description: Unique identifier for the mutated locus
   Pos_start:
     type: integer

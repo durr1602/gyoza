@@ -4,7 +4,7 @@
 containerized: "docker://durr1602/gyoza:latest"
 
 
-##### Set up report #####
+##### Load main report caption #####
 
 
 report: "report/workflow.rst"
@@ -18,34 +18,50 @@ include: "rules/cutadapt.smk"
 include: "rules/pandaseq.smk"
 include: "rules/vsearch.smk"
 include: "rules/stats.smk"
-include: "rules/generate_mutants.smk"
+include: "rules/pool_stats.smk"
 include: "rules/parse_fasta.smk"
 include: "rules/process_read_counts.smk"
 
 
 if config["qc"]["perform"]:
-
     include: "rules/qc.smk"
 
 
+design = config["design"]
+if design == "random":
+    include: "rules/annotate_random.smk"
+elif design == "provided":
+    include: "rules/compare.smk"
+    include: "rules/annotate_mutants.smk"
+elif design == "codon":
+    include: "rules/generate_expected_mutants.smk"
+    include: "rules/compare.smk"
+    include: "rules/annotate_mutants.smk"
+else:
+    raise ValueError(f"Unknown experiment design: {design}")
+
+
 ##### Target(s) #####
+
+
 rule all:
     input:
         get_target(),
 
 
-##### Generate report that includes all completed steps #####
+##### Generate dynamic report upon completion of the workflow #####
+
 if config["report"]["generate"]:
-
     onsuccess:
-        (STEPs,) = glob_wildcards("results/done/{step}.done")
-        if (config["qc"]["perform"]) & (exists("results/0_qc/multiqc.html")):
-            STEPs.append("multiqc")
-        shell(f"snakemake {' '.join(STEPs)} --report results/report.html")
-
-    onerror:
-        (STEPs,) = glob_wildcards("results/done/{step}.done")
-        if (config["qc"]["perform"]) & (exists("results/0_qc/multiqc.html")):
-            STEPs.append("multiqc")
-        if len(STEPs) > 0:
-            shell(f"snakemake {' '.join(STEPs)} --report results/report.html")
+        graphs = collect_graphs()
+    
+        # Add QC report if present
+        qc_path = Path("results/0_qc/multiqc.html")
+        if config["qc"]["perform"] and qc_path.exists():
+            graphs.append(str(qc_path))
+    
+        if graphs:
+            input_files = " ".join(str(f) for f in graphs)
+            shell(f"snakemake {input_files} --report results/report.html")
+        else:
+            print(">> No graphs found. Skipping report generation.")

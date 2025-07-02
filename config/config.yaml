@@ -16,20 +16,32 @@ samples:
     generations: 'config/project_files/nbgen.csv'
     # Specify path to file containing the wild-type DNA sequences
     wt: 'config/project_files/wt_seq.csv'
-    
+    # Specify path (no file name) to directory where expected mutated sequences will be saved
+    # For barcoded-design experiments, the compressed dataframes associating barcodes with mutants should be placed in this directory...
+    # ...and be named <Mutated_seq>.csv.gz (replace with each unique value of Mutated_seq)
+    expected_mut: 'config/project_files/expected_mut/'
+
+design: 'random'
+    # Specify the design of your experiment: codon | provided | random
+    # codon: Automatically generate all expected mutants based on the codon mode
+    # provided: You provide the list of expected mutants or the dataframe of barcode-variant associations
+    # random: Random mutagenesis - mutants observed in the sequencing data are directly annotated
+
 codon:
     # Codon table
     table: 'config/project_files/ScerevisiaeTAXID559292_Cocoputs_codon_table.csv'
-    # Codon mode, currently supports "NNN" or "NNK"
+    # Codon mode, currently supports 'NNN', 'NNK', 'NNN x NNN' or 'NNK x NNK'
     mode: 'NNN'
 
 barcode:
-    # Analysis of barcodes associated with variants (default: False)
-    design: False
+    # Level to which read count is attributed (default: 'nt_seq', change to 'barcode' for barcoded design)
+    rc_level: 'nt_seq'
     # Specify barcode attributes to label each variant
     attributes: []
-    # Level to which read count is attributed (default: 'nt_seq', can be changed to 'barcode' for example)
-    rc_level: 'nt_seq'
+
+random:
+    # Acceptable number of amino acid changes relative to wild-type
+    Nham_aa_max: 1
 
 rc_aims:
     # Specify targeted read count per sample in scientific notation
@@ -50,10 +62,10 @@ normalize:
     with_gen: False
     
 report:
-    # Set to True if you want the HTML report to be automatically generated upon full completion of the workflow
+    # Set to True if you want the HTML report to be automatically generated upon completion of the workflow
     generate: True
 
 plots:
-    # Indicate in which format(s) you want to export plots: ['png','pdf']
+    # Indicate in which format(s) you want to export plots, e.g. ['png','pdf'] (most formats supported)
     # Plots will be exported in .svg regardless of what is specified below
     format: ['png']

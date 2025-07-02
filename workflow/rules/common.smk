@@ -2,6 +2,8 @@
 
 import pandas as pd
 from snakemake.utils import validate
+from pathlib import Path
+from collections import defaultdict
 import warnings
 
 ##### Import and validate main config ####
@@ -12,6 +14,11 @@ configfile: "config/config.yaml"
 
 validate(config, schema="../schemas/config.schema.yaml")
 print("Main config validated.")
+
+##### Convert paths #####
+
+READS_PATH = Path(config["reads"]["path"])
+EXPMUT_PATH = Path(config["samples"]["expected_mut"])
 
 ##### Import and validate sample layout #####
 
@@ -28,7 +35,21 @@ layout_mandatory_cols = [
 ]
 layout_csv = pd.read_csv(config["samples"]["path"])
 validate(layout_csv, schema="../schemas/sample_layout.schema.yaml")
-layout_add_cols = [x for x in layout_csv.columns if x not in layout_mandatory_cols]
+
+# Convert Report column to strict boolean
+truthy = {"true", "1", "yes", "y", "on"}
+layout_csv["Report"] = (
+    layout_csv["Report"].fillna(False).astype(str).str.strip().str.lower().isin(truthy)
+)
+
+# Retrieve non-mandatory columns
+layout_add_cols = [
+    x for x in layout_csv.columns if x not in layout_mandatory_cols + ["Report"]
+]
+
+# Get sample / Mutated_seq mapping
+sample_to_mutseq = dict(zip(layout_csv["Sample_name"], layout_csv["Mutated_seq"]))
+
 sample_layout = layout_csv.set_index("Sample_name")
 print("Sample layout validated.")
 
@@ -48,15 +69,28 @@ if len(config["samples"]["attributes"]) > 0:
                 for x in layout_add_cols
                 if x not in config["samples"]["attributes"]
             ]
+    TR_layout = layout_csv[["Sample_name"] + config["samples"]["attributes"]]
+    grouped_samples = defaultdict(list)
+    for _, row in TR_layout.iterrows():
+        key = tuple(row[col] for col in config["samples"]["attributes"])
+        grouped_samples[key].append(row["Sample_name"])
     print("Sample attributes imported.")
 else:
     print("No sample attributes provided.")
 
 ##### Validate CSV file containing WT DNA sequences #####
 
-wtseqs = pd.read_csv(config["samples"]["wt"])
-validate(wtseqs, schema="../schemas/wt_seqs.schema.yaml")
-print("WT imported.")
+if exists(config["samples"]["wt"]):
+    wtseqs = pd.read_csv(config["samples"]["wt"])
+    validate(wtseqs, schema="../schemas/wt_seqs.schema.yaml")
+    mutseq_to_wtseq = dict(zip(wtseqs["Mutated_seq"], wtseqs["WT_seq"]))
+    print("WT imported.")
+
+##### Validate CSV file containing expected DNA sequences #####
+# if exists(config["samples"]["expected_mut"]):
+#    expmut = pd.read_csv(config["samples"]["expected_mut"])
+#    validate(expmut, schema="../schemas/wt_seqs.schema.yaml")
+#    print("Expected mutated sequences imported.")
 
 ##### Generate template CSV file to write the number of cellular generations between time points #####
 # Note: At this time, this file is required to exist even if the user opts out of this normalization
@@ -99,10 +133,10 @@ print("Codon table validated.")
 
 ##### Select samples to process #####
 
-samples = sample_layout.sort_index().index
+SAMPLES = sample_layout.sort_index().index
 
 if config["samples"]["selection"] != "all":
-    selection = [x for x in config["samples"]["selection"] if x in samples]
+    selection = [x for x in config["samples"]["selection"] if x in SAMPLES]
     if len(selection) == 0:
         raise Exception(
             "Error.. None of the samples you specified for processing feature in the sample layout."
@@ -111,13 +145,83 @@ if config["samples"]["selection"] != "all":
         statement = "Warning... at least one sample was misspelled when selecting samples to process in the config file\nWill continue with only the correctly spelled samples."
         warnings.warn(statement)
     else:
-        samples = selection
+        SAMPLES = selection
         print("Selection of samples confirmed.")
+
+MUTATED_SEQS = sorted(set(sample_to_mutseq[s] for s in SAMPLES))
+
+grouped_samples = {
+    key: [s for s in samples if s in SAMPLES]
+    for key, samples in grouped_samples.items()
+    if any(s in SAMPLES for s in samples)
+}
+
+##### Convert sample grouping wilcard <-> string #####
+
+
+# Serialize tuple to string
+def serialize_key(key):
+    return "__".join(str(k) for k in key)
+
+
+# Deserialize back to tuple
+def deserialize_key(key_str):
+    return tuple(key_str.split("__"))
+
+
+# Map from string keys to sample lists
+grouped_samples_str = {serialize_key(k): v for k, v in grouped_samples.items()}
+GROUP_KEYS = list(grouped_samples_str.keys())
+
+# Derive which groups should be reported
+grouped_samples_for_report = [
+    tuple(row[attr] for attr in config["samples"]["attributes"])
+    for _, row in layout_csv[layout_csv["Report"]].iterrows()
+]
+
+# Ensure unique entries
+seen = set()
+grouped_samples_for_report = [
+    x for x in grouped_samples_for_report if not (x in seen or seen.add(x))
+]
+
+# Serialize groups of samples to be included in the reported
+REPORTED_GROUPS = [serialize_key(group) for group in grouped_samples_for_report]
+
+##### Prepare HTML report #####
+# Note: I've tried multiple approaches. Report cannot be reliably integrated
+# in a dedicated rule (for DAG inclusion) because of the nested snakemake statements
+# which unpredictably lead to filesystem errors.
+# I went back to my initial approach (onsuccess hook) which felt hacky,
+# but apparently is common practice (until something better comes)
+
+EXPECTED_GRAPHS = (
+    [
+        Path("results/graphs/rc_filter_plot.svg"),
+        Path("results/graphs/unexp_rc_plot.svg"),
+        Path("results/graphs/rc_var_plot.svg"),
+        Path("results/graphs/scoeff_violin_plot.svg"),
+        Path("results/graphs/replicates_heatmap_plot.svg"),
+        Path("results/graphs/replicates_plot.svg"),
+        Path("results/graphs/s_through_time_plot.svg"),
+    ]
+    + [Path(f"results/graphs/hist_plot_{k}.svg") for k in REPORTED_GROUPS]
+    + [Path(f"results/graphs/upset_plot_{k}.svg") for k in REPORTED_GROUPS]
+    + [Path(f"results/graphs/timepoints_plot_{k}.svg") for k in REPORTED_GROUPS]
+)
+
+
+def collect_graphs():
+    graph_dir = Path("results/graphs")
+    return [str(f) for f in EXPECTED_GRAPHS if (graph_dir / f.name).exists()]
+
 
 ##### Specify final target #####
 
+
 def get_target():
-    targets = ["results/df/all_scores.csv"]
+    targets = expand("results/df/all_scores_{group_key}.csv", group_key=GROUP_KEYS)
+    targets.append("results/all_stats.csv")
     if config["qc"]["perform"]:
         targets.append("results/0_qc/multiqc.html")
     return targets
