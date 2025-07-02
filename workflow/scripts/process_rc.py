@@ -1,6 +1,13 @@
+import sys, os
+
+# Inject correct path
+workflow_dir = os.path.dirname(os.path.dirname(__file__))
+scripts_dir = os.path.join(workflow_dir, "scripts")
+sys.path.insert(0, scripts_dir)
+
 from snakemake.script import snakemake
-from scripts.my_functions import get_confidence_score, get_mutation_type
-from scripts.plotting_functions import (
+from my_functions import get_confidence_score, get_mutation_type
+from plotting_functions import (
     plot_rc_per_seq,
     plot_upset_TR,
     plot_timepoint_corr,

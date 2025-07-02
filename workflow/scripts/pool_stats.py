@@ -1,5 +1,12 @@
+import sys, os
+
+# Inject correct path
+workflow_dir = os.path.dirname(os.path.dirname(__file__))
+scripts_dir = os.path.join(workflow_dir, "scripts")
+sys.path.insert(0, scripts_dir)
+
 from snakemake.script import snakemake
-from scripts.plotting_functions import plot_stacked_barplot, plot_unexp_plot
+from plotting_functions import plot_stacked_barplot, plot_unexp_plot
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
