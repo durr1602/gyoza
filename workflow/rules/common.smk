@@ -33,7 +33,9 @@ layout_mandatory_cols = [
     "Replicate",
     "Timepoint",
 ]
-layout_csv = pd.read_csv(config["samples"]["path"])
+layout_csv = pd.read_csv(config["samples"]["path"], dtype={"Replicate": str})
+# Sanitize Replicate column
+layout_csv["Replicate"] = layout_csv["Replicate"].fillna("").astype(str).str.strip()
 validate(layout_csv, schema="../schemas/sample_layout.schema.yaml")
 
 # Convert Report column to strict boolean
@@ -100,7 +102,7 @@ if exists(config["samples"]["wt"]):
 # Once the column contains other values than 1 for every row, we'll use the data for normalization
 
 if exists(config["samples"]["generations"]):
-    nbgen = pd.read_csv(config["samples"]["generations"])
+    nbgen = pd.read_csv(config["samples"]["generations"], dtype={"Replicate": str})
     validate(nbgen, schema="../schemas/nbgen.schema.yaml")
     if (config["normalize"]["with_gen"]) & ((nbgen.Nb_gen == 1).all(0)):
         raise Exception(
