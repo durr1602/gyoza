@@ -2,6 +2,9 @@ import pandas as pd
 import numpy as np
 from scipy import stats
 import seaborn as sns
+import matplotlib
+
+matplotlib.use("Agg")  # Non-GUI backend for generating plots without display
 import matplotlib.pyplot as plt
 
 plt.rcParams["svg.fonttype"] = "none"

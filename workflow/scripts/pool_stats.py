@@ -1,10 +1,6 @@
 from snakemake.script import snakemake
 from scripts.plotting_functions import plot_stacked_barplot, plot_unexp_plot
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-
-plt.rcParams["svg.fonttype"] = "none"
 
 
 def get_pooled_stats(

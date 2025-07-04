@@ -212,16 +212,19 @@ def collect_graphs():
     agg_graphs = [
         "rc_filter_plot.svg",
         "unexp_rc_plot.svg",
-        "rc_var_plot.svg",
-        "scoeff_violin_plot.svg",
-        "replicates_heatmap_plot.svg",
-        "replicates_plot.svg",
-        "s_through_time_plot.svg",
-    ]
+    ]    
 
     group_specific_graphs = []
 
     if config["process_read_counts"]:
+        agg_graphs += [
+            "rc_var_plot.svg",
+            "scoeff_violin_plot.svg",
+            "replicates_heatmap_plot.svg",
+            "replicates_plot.svg",
+            "s_through_time_plot.svg",
+        ]
+        
         group_specific_graphs += (
             [f"hist_plot_{k}.svg" for k in REPORTED_GROUPS]
             + [f"upset_plot_{k}.svg" for k in REPORTED_GROUPS]
