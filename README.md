@@ -27,7 +27,7 @@
 ### Check pipeline
 2. Perform a dry run using: `snakemake -n`
 
-This step is strongly recommended. It will make sure the prepared workflow does not contain any error and will display the rules (steps) that need to be run in order to reach the specified target(s) (default targets include the dataframe of functional impact scores, which is produced during the very last step of the workflow). If you're running the workflow for the first time and you toggled in normalization with growth data, you should see a warning prompting you to edit the generated template file (for more details, go back to step 1).
+This step is strongly recommended. It will make sure the prepared workflow does not contain any error and will display the rules (steps) that need to be run in order to run the workflow (built dynamically based on the config). If you're running the workflow for the first time and you toggled in normalization with growth data, you should see a warning prompting you to edit the generated template file (for more details, go back to step 1).
 
 ### Run pipeline
 3. Run the workflow either locally: `snakemake` or send to SLURM: `snakemake --profile profiles/slurm`.

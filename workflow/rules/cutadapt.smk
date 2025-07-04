@@ -19,4 +19,4 @@ rule cutadapt:
         # If to be used, update the following, run module avail to see installed modules and versions
         "cutadapt/5.0",
     wrapper:
-        "v5.8.0/bio/cutadapt/pe"
+        "v7.1.0/bio/cutadapt/pe"

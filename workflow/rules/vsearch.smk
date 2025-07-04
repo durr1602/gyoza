@@ -1,6 +1,6 @@
 rule vsearch_fastx_uniques:
     input:
-        fastx_uniques=rules.pandaseq.output,
+        fastx_uniques="results/2_merge/{sample}_merged.fasta",
     output:
         fastaout=temp("results/3_aggregate/{sample}_aggregated.fasta"),
     message:

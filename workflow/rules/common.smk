@@ -1,5 +1,6 @@
 ##### Import libraries #####
 
+import sys
 import pandas as pd
 from snakemake.utils import validate
 from pathlib import Path
@@ -187,6 +188,13 @@ grouped_samples_for_report = [
     x for x in grouped_samples_for_report if not (x in seen or seen.add(x))
 ]
 
+# Filter out groups that don’t include any selected samples
+grouped_samples_for_report = [
+    group
+    for group in grouped_samples_for_report
+    if any(s in SAMPLES for s in grouped_samples.get(group, []))
+]
+
 # Serialize groups of samples to be included in the reported
 REPORTED_GROUPS = [serialize_key(group) for group in grouped_samples_for_report]
 
@@ -197,33 +205,49 @@ REPORTED_GROUPS = [serialize_key(group) for group in grouped_samples_for_report]
 # I went back to my initial approach (onsuccess hook) which felt hacky,
 # but apparently is common practice (until something better comes)
 
-EXPECTED_GRAPHS = (
-    [
-        Path("results/graphs/rc_filter_plot.svg"),
-        Path("results/graphs/unexp_rc_plot.svg"),
-        Path("results/graphs/rc_var_plot.svg"),
-        Path("results/graphs/scoeff_violin_plot.svg"),
-        Path("results/graphs/replicates_heatmap_plot.svg"),
-        Path("results/graphs/replicates_plot.svg"),
-        Path("results/graphs/s_through_time_plot.svg"),
-    ]
-    + [Path(f"results/graphs/hist_plot_{k}.svg") for k in REPORTED_GROUPS]
-    + [Path(f"results/graphs/upset_plot_{k}.svg") for k in REPORTED_GROUPS]
-    + [Path(f"results/graphs/timepoints_plot_{k}.svg") for k in REPORTED_GROUPS]
-)
-
 
 def collect_graphs():
     graph_dir = Path("results/graphs")
-    return [str(f) for f in EXPECTED_GRAPHS if (graph_dir / f.name).exists()]
+
+    agg_graphs = [
+        "rc_filter_plot.svg",
+        "unexp_rc_plot.svg",
+        "rc_var_plot.svg",
+        "scoeff_violin_plot.svg",
+        "replicates_heatmap_plot.svg",
+        "replicates_plot.svg",
+        "s_through_time_plot.svg",
+    ]
+
+    group_specific_graphs = []
+
+    if config["process_read_counts"]:
+        group_specific_graphs += (
+            [f"hist_plot_{k}.svg" for k in REPORTED_GROUPS]
+            + [f"upset_plot_{k}.svg" for k in REPORTED_GROUPS]
+            + [f"timepoints_plot_{k}.svg" for k in REPORTED_GROUPS]
+        )
+
+    return [
+        str(graph_dir / f)
+        for f in agg_graphs + group_specific_graphs
+        if (graph_dir / f).exists()
+    ]
 
 
 ##### Specify final target #####
 
 
 def get_target():
-    targets = expand("results/df/all_scores_{group_key}.csv", group_key=GROUP_KEYS)
-    targets.append("results/all_stats.csv")
+    targets = ["results/all_stats.csv"]
+
+    if config["process_read_counts"]:
+        targets += expand(
+            "results/df/all_scores_{group_key}.csv", group_key=REPORTED_GROUPS
+        )
+        targets.append("results/graphs/rc_var_plot.svg")
+
     if config["qc"]["perform"]:
         targets.append("results/0_qc/multiqc.html")
+
     return targets

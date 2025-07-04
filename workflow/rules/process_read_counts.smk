@@ -1,9 +1,12 @@
+readcounts_by_group = {
+    k: [f"results/df/annotated_readcounts/{s}_annot_rc.csv" for s in v]
+    for k, v in grouped_samples_str.items()
+}
+
+
 rule process_read_counts:
     input:
-        readcounts=lambda wildcards: expand(
-            "results/df/annotated_readcounts/{sample}_annot_rc.csv",
-            sample=grouped_samples_str[wildcards.group_key],
-        ),
+        readcounts=lambda wildcards: readcounts_by_group.get(wildcards.group_key, []),
         nbgen=config["samples"]["generations"],
     output:
         selcoeffs="results/df/all_scores_{group_key}.csv",
@@ -51,36 +54,31 @@ rule plot_scores:
         rc_var_plot=report(
             "results/graphs/rc_var_plot.svg",
             "../report/rc_var_plot.rst",
-            category="2. Read processing",
-            subcategory="Aggregated",
+            category="2. Read processing (all groups)",
             labels={"figure": "2.3. Distribution of allele frequencies"},
         ),
         scoeff_violin_plot=report(
             "results/graphs/scoeff_violin_plot.svg",
             "../report/scoeff_violin_plot.rst",
-            category="3. Functional impact",
-            subcategory="Aggregated",
+            category="3. Functional impact (all groups)",
             labels={"figure": "3.1. Distribution of functional impact scores"},
         ),
         replicates_heatmap_plot=report(
             "results/graphs/replicates_heatmap_plot.svg",
             "../report/replicates_heatmap_plot.rst",
-            category="3. Functional impact",
-            subcategory="Aggregated",
+            category="3. Functional impact (all groups)",
             labels={"figure": "3.2. Correlation between replicates (1/2)"},
         ),
         replicates_plot=report(
             "results/graphs/replicates_plot.svg",
             "../report/replicates_plot.rst",
-            category="3. Functional impact",
-            subcategory="Aggregated",
+            category="3. Functional impact (all groups)",
             labels={"figure": "3.3. Correlation between replicates (2/2)"},
         ),
         s_through_time_plot=report(
             "results/graphs/s_through_time_plot.svg",
             "../report/s_through_time_plot.rst",
-            category="3. Functional impact",
-            subcategory="Aggregated",
+            category="3. Functional impact (all groups)",
             labels={"figure": "3.4. Functional impact over time"},
         ),
     message:

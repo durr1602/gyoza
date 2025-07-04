@@ -1,13 +1,6 @@
-import sys, os
-
-# Inject correct path
-workflow_dir = os.path.dirname(os.path.dirname(__file__))
-scripts_dir = os.path.join(workflow_dir, "scripts")
-sys.path.insert(0, scripts_dir)
-
 from snakemake.script import snakemake
-from my_functions import concatenate_df
-from plotting_functions import (
+from scripts.my_functions import concatenate_df
+from scripts.plotting_functions import (
     plot_allele_freq,
     plot_scoeff_violin,
     plot_impact_over_time,
@@ -43,6 +36,7 @@ def get_s_plots(
     plot_formats,
 ):
     df = concatenate_df(df_files)
+    df["Replicate"] = df["Replicate"].astype(str)
     plot_scoeff_violin(df, scoeff_plot_outpath, plot_formats)
     plot_impact_over_time(df, s_time_plot_outpath, plot_formats)
 

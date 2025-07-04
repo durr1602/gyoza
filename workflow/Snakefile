@@ -14,15 +14,20 @@ report: "report/workflow.rst"
 
 
 include: "rules/common.smk"
-include: "rules/cutadapt.smk"
-include: "rules/pandaseq.smk"
+
 include: "rules/vsearch.smk"
 include: "rules/stats.smk"
 include: "rules/pool_stats.smk"
 include: "rules/parse_fasta.smk"
-include: "rules/process_read_counts.smk"
 
 
+RF_VALS = ["R1"]
+if config["reads"]["paired"]:
+    RF_VALS.append("R2")
+    include: "rules/cutadapt.smk"
+    include: "rules/pandaseq.smk"
+else:
+    include: "rules/cutadapt-se.smk"
 if config["qc"]["perform"]:
     include: "rules/qc.smk"
 
@@ -41,12 +46,29 @@ else:
     raise ValueError(f"Unknown experiment design: {design}")
 
 
+if config["process_read_counts"]:
+    include: "rules/process_read_counts.smk"
+
+
 ##### Target(s) #####
 
 
 rule all:
     input:
         get_target(),
+
+
+##### Copy scripts package into Snakemake folder #####
+# This is a workaround to be able to import modules from the scripts folder
+# Even when running a snakedeployed workflow
+onstart:
+    import shutil, os
+    src = os.path.abspath("scripts")
+    dst = os.path.join(".snakemake", "scripts", "scripts")
+    if os.path.isdir(src):
+        shutil.rmtree(dst, ignore_errors=True)
+        shutil.copytree(src, dst)
+        open(os.path.join(dst, "__init__.py"), "a").close()
 
 
 ##### Generate dynamic report upon completion of the workflow #####
@@ -61,7 +83,23 @@ if config["report"]["generate"]:
             graphs.append(str(qc_path))
     
         if graphs:
-            input_files = " ".join(str(f) for f in graphs)
-            shell(f"snakemake {input_files} --report results/report.html")
+            # Inject config (if specified on the command line)
+            config_arg = None
+            args = sys.argv
+            if "--configfile" in args:
+                idx = args.index("--configfile")
+                if idx + 1 < len(args):
+                    config_arg = args[idx + 1]
+
+            configfile_str = f"--configfile {config_arg}" if config_arg else ""
+
+            report_cmd = (
+                "snakemake "
+                + " ".join(str(f) for f in graphs)
+                + (" " + configfile_str if configfile_str else "")
+                + " --report results/report.html"
+            )
+
+            shell(report_cmd)
         else:
             print(">> No graphs found. Skipping report generation.")

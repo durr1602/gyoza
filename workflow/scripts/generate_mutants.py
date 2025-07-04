@@ -1,12 +1,5 @@
-import sys, os
-
-# Inject correct path
-workflow_dir = os.path.dirname(os.path.dirname(__file__))
-scripts_dir = os.path.join(workflow_dir, "scripts")
-sys.path.insert(0, scripts_dir)
-
 from snakemake.script import snakemake
-from my_functions import load_codon_dic, get_single_double, get_nt_seq
+from scripts.my_functions import load_codon_dic, get_single_double, get_nt_seq
 import pandas as pd
 import itertools
 

@@ -1,13 +1,6 @@
-import sys, os
-
-# Inject correct path
-workflow_dir = os.path.dirname(os.path.dirname(__file__))
-scripts_dir = os.path.join(workflow_dir, "scripts")
-sys.path.insert(0, scripts_dir)
-
 from snakemake.script import snakemake
-from my_functions import get_confidence_score, get_mutation_type
-from plotting_functions import (
+from scripts.my_functions import get_confidence_score, get_mutation_type
+from scripts.plotting_functions import (
     plot_rc_per_seq,
     plot_upset_TR,
     plot_timepoint_corr,
@@ -29,6 +22,7 @@ def get_selcoeffs(
     aa_df_outpath,
     sample_group,
     layout_path,
+    sample_attributes,
     barcode_attributes,
     rc_level,
     rc_threshold,
@@ -61,7 +55,15 @@ def get_selcoeffs(
         "mutation_type",
     ]
 
-    layout = pd.read_csv(layout_path).set_index("Sample_name")
+    # Get back tuple from str wildcard
+    sample_group_tuple = tuple(sample_group.split("__"))
+
+    layout = pd.read_csv(
+        layout_path,
+        dtype={
+            "Replicate": str,
+        },
+    ).set_index("Sample_name")
 
     df_list = []
 
@@ -204,8 +206,14 @@ def get_selcoeffs(
         )
 
     # Normalize with number of cellular generations
-    nbgen_df = pd.read_csv(nbgen_path)
-    nbgen_wide = nbgen_df.pivot(index="Replicate", columns="Timepoint", values="Nb_gen")
+    nbgen_df = pd.read_csv(nbgen_path, dtype={"Replicate": str})
+    # Select correct group
+    nbgen_group = nbgen_df[
+        nbgen_df[sample_attributes].apply(tuple, axis=1) == sample_group_tuple
+    ]
+    nbgen_wide = nbgen_group.pivot(
+        index="Replicate", columns="Timepoint", values="Nb_gen"
+    )
     nbgen_wide.columns = [f"{x}_gen" for x in nbgen_wide.columns]
     for i, x in enumerate(timepoints):
         if i in [0, 1]:
@@ -277,9 +285,17 @@ def get_selcoeffs(
     # Export
     allpos_df.to_csv(outpath)
 
+    # Filter out groups for which selection coefficients are all missing (e.g. in case of missing replicates)
+    def filter_non_empty_s(group):
+        return group[selcoeff_cols].notna().any().any()
+
+    filtered = allpos_df.groupby(
+        ["Replicate", "mutated_codon", "aa_pos", "alt_aa"]
+    ).filter(filter_non_empty_s)
+
     # Calculate median functional impact score (over synonymous mutants)
     median_df = (
-        allpos_df.groupby(["Replicate", "mutated_codon", "aa_pos", "alt_aa"])[
+        filtered.groupby(["Replicate", "mutated_codon", "aa_pos", "alt_aa"])[
             selcoeff_cols + ["confidence_score", "Nham_aa", "mutation_type"]
         ]
         .agg(
@@ -318,7 +334,9 @@ def get_selcoeffs(
     median_long.to_csv(aa_df_outpath, index=False)
 
     # Calculate median across replicates for high confidence variants
-    gby_score = median_df.groupby(["Replicate", "confidence_score"]).size()
+    # Mask for to handle missing selection coefficients
+    has_score = median_df[selcoeff_cols].notna().any(axis=1)
+    gby_score = median_df[has_score].groupby(["Replicate", "confidence_score"]).size()
     totseq = median_df.groupby("Replicate").size()
     perc_by_score = (gby_score / totseq).to_frame("proportion").reset_index()
     if (
@@ -336,8 +354,12 @@ def get_selcoeffs(
         .agg(
             [
                 "median",
-                lambda x: np.percentile(x, 2.5),
-                lambda x: np.percentile(x, 97.5),
+                lambda x: (
+                    np.percentile(x.dropna(), 2.5) if len(x.dropna()) > 0 else np.nan
+                ),
+                lambda x: (
+                    np.percentile(x.dropna(), 97.5) if len(x.dropna()) > 0 else np.nan
+                ),
             ]
         )
     )
@@ -383,6 +405,7 @@ get_selcoeffs(
     snakemake.output.aa_df,
     snakemake.wildcards.group_key,
     snakemake.config["samples"]["path"],
+    snakemake.config["samples"]["attributes"],
     snakemake.config["barcode"]["attributes"],
     snakemake.config["barcode"]["rc_level"],
     snakemake.config["filter"]["rc_threshold"],
