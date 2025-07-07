@@ -198,6 +198,16 @@ grouped_samples_for_report = [
 # Serialize groups of samples to be included in the reported
 REPORTED_GROUPS = [serialize_key(group) for group in grouped_samples_for_report]
 
+# Derive individual samples to be reported
+REPORTED_SAMPLES = sorted(
+    {
+        sample
+        for group in grouped_samples_for_report
+        for sample in grouped_samples.get(group, [])
+        if sample in SAMPLES
+    }
+)
+
 ##### Prepare HTML report #####
 # Note: I've tried multiple approaches. Report cannot be reliably integrated
 # in a dedicated rule (for DAG inclusion) because of the nested snakemake statements
@@ -212,7 +222,7 @@ def collect_graphs():
     agg_graphs = [
         "rc_filter_plot.svg",
         "unexp_rc_plot.svg",
-    ]    
+    ]
 
     group_specific_graphs = []
 
@@ -224,7 +234,7 @@ def collect_graphs():
             "replicates_plot.svg",
             "s_through_time_plot.svg",
         ]
-        
+
         group_specific_graphs += (
             [f"hist_plot_{k}.svg" for k in REPORTED_GROUPS]
             + [f"upset_plot_{k}.svg" for k in REPORTED_GROUPS]

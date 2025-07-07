@@ -18,6 +18,8 @@ rule pool_stats:
             category="1. Read filtering",
             labels={"figure": "1.2. Read counts of unexpected variants"},
         ),
+    params:
+        reported_samples=REPORTED_SAMPLES,
     message:
         "Pooling statistics from all samples..."
     log:
