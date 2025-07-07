@@ -1,8 +1,8 @@
 rule stats:
     input:
-        cutadapt_log=rules.cutadapt.output.qc,
-        pandaseq_log=rules.pandaseq.log,
-        vsearch_log=rules.vsearch_fastx_uniques.log,
+        cutadapt_log="logs/1_trim/cutadapt-sample={sample}.stats",
+        pandaseq_log="logs/2_merge/pandaseq-sample={sample}.stats",
+        vsearch_log="logs/3_aggregate/vsearch-sample={sample}.stats",
     output:
         "results/stats/stats-sample={sample}.csv",
     message:

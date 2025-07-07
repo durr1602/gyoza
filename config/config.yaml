@@ -1,6 +1,8 @@
 # Main configuration file for gyōza
 
 reads:
+    # Specify if reads are paired-end (True) or single-end (False)
+    paired: True
     # Specify path to directory containing sequencing data
     path: 'config/reads/'
 
@@ -56,6 +58,9 @@ filter:
 qc:
     # Set to True if you want to run FASTQC on all raw FASTQ files and generate a MultiQC report
     perform: True
+
+process_read_counts: True
+    # Set to True if you want to convert read counts into functional impact scores
 
 normalize:
     # Set to True if you want to normalize impact scores with the number of cellular generations

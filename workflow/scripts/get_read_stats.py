@@ -1,9 +1,10 @@
+import os
 from snakemake.script import snakemake
 import pandas as pd
 
 
 def generate_read_stats(
-    cutadapt_logfile, pandaseq_logfile, vsearch_logfile, outpath, sample_name
+    cutadapt_logfile, pandaseq_logfile, vsearch_logfile, outpath, sample_name, is_paired
 ):
 
     stats_dict = {}
@@ -15,47 +16,70 @@ def generate_read_stats(
         lines = file.readlines()
 
     # Check that log is properly formatted
-    if "This is cutadapt 5.0" not in lines[0]:
+    if "This is cutadapt 5.1" not in lines[0]:
         raise Exception(
-            f"Error.. {cutadapt_logfile} is not properly formatted. Make sure you've added the --use-conda flag in the snakemake command line, which specifies the correct package versions to be used"
+            f"Error.. {cutadapt_logfile} is not properly formatted. Double-check cutadapt's wrapper version."
         )
 
-    total_reads = int(
-        lines[6].split("Total read pairs processed:")[1].strip().replace(",", "")
-    )
-    r1_with_adapter = int(
-        lines[7].split("Read 1 with adapter:")[1].split("(")[0].strip().replace(",", "")
-    )
-    r2_with_adapter = int(
-        lines[8].split("Read 2 with adapter:")[1].split("(")[0].strip().replace(",", "")
-    )
-    trimmed_reads = int(
-        lines[12]
-        .split("Pairs written (passing filters):")[1]
-        .split("(")[0]
-        .strip()
-        .replace(",", "")
-    )
+    stats_dict = {
+        "Total_raw_reads": None,
+        "R1_reads_with_adapter": None,
+        "R2_reads_with_adapter": None,
+        "Total_trimmed_reads": None,
+    }
 
-    # Store all variables (number of reads) related to trimming step
-    stats_dict[sample_name] = [
-        total_reads,
-        r1_with_adapter,
-        r2_with_adapter,
-        trimmed_reads,
-    ]
+    for line in lines:
+        # Total reads
+        if is_paired and "Total read pairs processed:" in line:
+            stats_dict["Total_raw_reads"] = int(
+                line.split(":")[1].strip().replace(",", "")
+            )
+        elif not is_paired and "Total reads processed:" in line:
+            stats_dict["Total_raw_reads"] = int(
+                line.split(":")[1].strip().replace(",", "")
+            )
+        # Reads with adapter
+        if is_paired and "Read 1 with adapter:" in line:
+            stats_dict["R1_reads_with_adapter"] = int(
+                line.split(":")[1].split("(")[0].strip().replace(",", "")
+            )
+        elif not is_paired and "Reads with adapters:" in line:
+            stats_dict["R1_reads_with_adapter"] = int(
+                line.split(":")[1].split("(")[0].strip().replace(",", "")
+            )
+        if "Read 2 with adapter:" in line:
+            stats_dict["R2_reads_with_adapter"] = int(
+                line.split(":")[1].split("(")[0].strip().replace(",", "")
+            )
+        # Trimmed reads
+        if is_paired and "Pairs written (passing filters):" in line:
+            stats_dict["Total_trimmed_reads"] = int(
+                line.split(":")[1].split("(")[0].strip().replace(",", "")
+            )
+        elif not is_paired and "Reads written (passing filters):" in line:
+            stats_dict["Total_trimmed_reads"] = int(
+                line.split(":")[1].split("(")[0].strip().replace(",", "")
+            )
+
+    if not is_paired:
+        # No R2 reads
+        stats_dict["R2_reads_with_adapter"] = 0
+
+    # Check that all values were succesfully retrieved from log
+    missing = [k for k, v in stats_dict.items() if v is None]
+    if missing:
+        raise Exception(f"Error.. Could not find {missing} in {cutadapt_logfile}.")
 
     # Create dataframe to store all stats
-    fullstats = pd.DataFrame.from_dict(
-        stats_dict,
-        orient="index",
-        columns=[
+    fullstats = pd.DataFrame(
+        {sample_name: stats_dict},
+        index=[
             "Total_raw_reads",
             "R1_reads_with_adapter",
             "R2_reads_with_adapter",
             "Total_trimmed_reads",
         ],
-    )
+    ).T  # transpose
 
     # Calculate percentage of trimmed reads
     fullstats["Trimmed_%"] = (
@@ -69,53 +93,59 @@ def generate_read_stats(
 
     # Step 2 - Process pandaseq log
 
-    # Check that log is properly formatted
-    with open(pandaseq_logfile, "r") as file:
-        first_line = file.readline()
-    if "INFO	VER	pandaseq 2.11" not in first_line:
-        raise Exception(
-            f"Error.. {pandaseq_logfile} is not properly formatted. Make sure you've added the --use-conda flag in the snakemake command line, which specifies the correct package versions to be used"
+    # Check that log is not empty
+    if os.path.getsize(pandaseq_logfile) > 0:
+        with open(pandaseq_logfile, "r") as file:
+            first_line = file.readline()
+
+        # Check log header
+        if "INFO	VER	pandaseq 2.11" not in first_line:
+            raise Exception(
+                f"Error.. {pandaseq_logfile} is not properly formatted. Make sure you've added the --use-conda flag in the snakemake command line, which specifies the correct package versions to be used"
+            )
+
+        # Parse pandaseq stats
+        logfile = pd.read_csv(
+            pandaseq_logfile,
+            sep="\t",
+            skiprows=21,
+            skipfooter=1,
+            engine="python",
+            names=["id", "err_stat", "field", "value", "details"],
+        )
+        stats = logfile[
+            logfile.field.isin(["LOWQ", "NOALGN", "OK", "READS", "SLOW"])
+        ].iloc[-5:, :][["field", "value"]]
+        stats["value"] = stats.value.astype(int)
+
+        # Validation step - check that the number of processed reads corresponds from trim output to merge input
+        if (
+            fullstats.loc[fullstats.index == sample_name, "Total_trimmed_reads"].item()
+            != stats.loc[stats.field == "READS", "value"].item()
+        ):
+            print(
+                "---ERROR---\nNumber of written reads in trim output does not correspond to number of processed reads in merge input"
+            )
+
+        # Add stats to dataframe
+        fullstats.loc[
+            fullstats.index == sample_name,
+            ["Not_merged_LOWQ", "Not_merged_NOALGN", "Total_merged_reads"],
+        ] = (
+            stats.set_index("field").T[["LOWQ", "NOALGN", "OK"]].values
         )
 
-    # Parse pandaseq stats
-    logfile = pd.read_csv(
-        pandaseq_logfile,
-        sep="\t",
-        skiprows=21,
-        skipfooter=1,
-        engine="python",
-        names=["id", "err_stat", "field", "value", "details"],
-    )
-    stats = logfile[logfile.field.isin(["LOWQ", "NOALGN", "OK", "READS", "SLOW"])].iloc[
-        -5:, :
-    ][["field", "value"]]
-    stats["value"] = stats.value.astype(int)
-
-    # Validation step - check that the number of processed reads corresponds from trim output to merge input
-    if (
-        fullstats.loc[fullstats.index == sample_name, "Total_trimmed_reads"].item()
-        != stats.loc[stats.field == "READS", "value"].item()
-    ):
-        print(
-            "---ERROR---\nNumber of written reads in trim output does not correspond to number of processed reads in merge input"
+        # Cast type to remove ','
+        fullstats = fullstats.astype(
+            {
+                "Not_merged_LOWQ": "int",
+                "Not_merged_NOALGN": "int",
+                "Total_merged_reads": "int",
+            }
         )
 
-    # Add stats to dataframe
-    fullstats.loc[
-        fullstats.index == sample_name,
-        ["Not_merged_LOWQ", "Not_merged_NOALGN", "Total_merged_reads"],
-    ] = (
-        stats.set_index("field").T[["LOWQ", "NOALGN", "OK"]].values
-    )
-
-    # Cast type to remove ','
-    fullstats = fullstats.astype(
-        {
-            "Not_merged_LOWQ": "int",
-            "Not_merged_NOALGN": "int",
-            "Total_merged_reads": "int",
-        }
-    )
+    else:  # Empty log likely touched when trimming single-end reads = no need for merging with pandaseq
+        fullstats["Total_merged_reads"] = fullstats["Total_trimmed_reads"]
 
     # Calculate percentage of properly merged reads relative to number of trimmed reads
     fullstats["Merged_%"] = (
@@ -174,4 +204,5 @@ generate_read_stats(
     str(snakemake.input["vsearch_log"]),
     snakemake.output[0],
     snakemake.wildcards.sample,
+    snakemake.config["reads"]["paired"],
 )

@@ -34,14 +34,13 @@ properties:
     description: Replicate (e.g. cultured in two separate tubes with the same set of conditions)
   Timepoint:
     type: string
+    minLength: 1
     description: Time point (mandatory are T0 and at least one other time point, e.g. T1)
 
 required:
   - Sample_name
   - R1
-  - R2
   - N_forward
-  - N_reverse
   - Mutated_seq
   - Pos_start
   - Replicate

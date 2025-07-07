@@ -2,6 +2,9 @@ import pandas as pd
 import numpy as np
 from scipy import stats
 import seaborn as sns
+import matplotlib
+
+matplotlib.use("Agg")  # Non-GUI backend for generating plots without display
 import matplotlib.pyplot as plt
 
 plt.rcParams["svg.fonttype"] = "none"
@@ -172,17 +175,23 @@ def plot_timepoint_corr(df, outpath, sample_group, plot_formats):
     Plots pairwise comparisons of selection coefficients
     to look at correlation between time points.
     """
-    g = sns.pairplot(
-        df,
-        hue="confidence_score",
-        hue_order=CSCORES,
-        palette=dict(zip(CSCORES, CSCORE_COLORS)),
-        plot_kws={"s": 8, "alpha": 0.2},
-        height=1.5,
-        corner=True,
-    )
-    g.tight_layout()
-    plt.subplots_adjust(top=0.9)
+    # Check number of columns
+    if len([x for x in df.columns if x != "confidence_score"]) <= 1:
+        f, ax = plt.subplots(figsize=(4, 4))
+        ax.text(0.5, 0.5, "Not enough time points to plot", ha="center", va="center")
+        ax.set_axis_off()  # hide axes
+    else:
+        g = sns.pairplot(
+            df,
+            hue="confidence_score",
+            hue_order=CSCORES,
+            palette=dict(zip(CSCORES, CSCORE_COLORS)),
+            plot_kws={"s": 8, "alpha": 0.2},
+            height=1.5,
+            corner=True,
+        )
+        g.tight_layout()
+        plt.subplots_adjust(top=0.9)
     plt.suptitle(f"Samples attributes: {sample_group}")
 
     plt.savefig(outpath, format="svg", dpi=300)

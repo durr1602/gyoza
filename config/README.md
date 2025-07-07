@@ -8,21 +8,21 @@ Unless specified otherwise, most file paths and parameters can be modified in th
 
 ### Sequencing data
 
-Please provide the raw reads (forward and reverse) of your DMS sequencing data in the `config/reads` folder (or specify a different path in the main config file). The file names should be featured in the layout (see section below).
+Please provide the raw reads (forward and, optionally, reverse) of your DMS sequencing data in the `config/reads` folder (or specify a different path in the main config file). The file names should be featured in the layout (see section below). Don't forget to specify in the config if you have provided paired-end reads or not.
 
 ### Layout
 
 Please provide a csv-formatted layout of your samples. The file should be named `layout.csv` and be located in the `config/project_files` folder. Here is [an example](project_files/layout.csv). The file should contain the following columns:
-- Sample_name: the unique identifier for each of your samples. The sample name does not need to contain information about the timepoint or replicate, since these correspond to other columns
+- Sample_name: the unique identifier for each of your samples.
 - R1: base name of the fastq file for forward (R1) reads (can be gzipped), including extension
-- R2: base name of the fastq file for reverse (R2) reads (can be gzipped), including extension
-- N_forward: the 5'-3' DNA sequence corresponding to the fixed region upstream of the mutated sequence or anything that can be used as -g flag with cutadapt (including complex patterns such as 'NNATG;optional...ATG', in which case do not forget the single quotes)
-- N_reverse: the 5'-3' DNA sequence corresponding to the fixed region 5' of the mutated sequence on the reverse strand or anything that can be used as -G flag with cutadapt (same requirements as above)
+- R2: base name of the fastq file for reverse (R2) reads (can be gzipped), including extension. Leave empty if you provide single-end sequencing data.
+- N_forward: the 5'-3' DNA sequence corresponding to the fixed region upstream of the mutated sequence or anything that can be used as -g flag with cutadapt (including complex patterns such as 'NNATG;optional...ATG', in which case do not forget the single quotes). For single-end sequencing data, please specify both constant sequences upstream and downstream (on the same strand) separated by '...', e.g. AAAAGCTG...GCGCTAAAT (no need for single quotes)
+- N_reverse: the 5'-3' DNA sequence corresponding to the fixed region 5' of the mutated sequence on the reverse strand or anything that can be used as -G flag with cutadapt (same requirements as above). Leave empty if you provide single-end sequencing data.
 - Mutated_seq: the unique identifier for the mutated DNA sequence, should be the same for all samples in which the same sequence was mutated
 - Pos_start: starting position in the protein sequence. If you've mutated several regions/fragments in a coding gene, this position should refer to the full-length protein sequence
 - Replicate: e.g. "R1"
 - Timepoint: "T0", "T1", etc. Intermediate timepoints are optional.
-- Report: "yes" (or a different truthy value) to include the sample in the HTML report.
+- Report: "yes" (or a different truthy value) to include the sample in the HTML report. Leave empty or enter non-truthy value to exclude from report. Samples sharing sets of conditions with sample marked for reporting will be automatically included, regardless of what you enter.
 
 Finally, additional columns can be added by the user to specify what makes this sample unique. These are referred to as "sample attributes" and could correspond to the genetic background, the fragment/region of the gene if it applies, the drug used for selection, etc. In summary, a "sample" is any unique combination of sample attributes + Replicate + Timepoint and should be associated to 2 fastq files, for the forward and reverse reads, respectively. Sample attributes = attributes related to Mutated_seq + optional attributes.
 
@@ -36,7 +36,7 @@ Alternatively, you can provide the same dataframe with an additional 'nt_seq' co
 
 ### Experimental design mode
 
-This is a fairly recent feature of gyōza and will be even more simplified in future versions, but is currently **essential**. Choose between 3 possible modes:
+This is a fairly recent feature of gyōza. Choose between 3 possible modes:
 - codon: Automatically generate all expected mutants based on the codon mode
 - provided: You provide the list of expected mutants or the dataframe of barcode-variant associations (see below)
 - random: Random mutagenesis - mutants observed in the sequencing data are directly annotated and filtered based on an acceptable number of amino acid changes
@@ -79,8 +79,9 @@ The main config file is located [here](config.yaml). Please make sure to:
 * list your sample attributes
 * replace all parameter values with the ones adapted for your project. Note: a first pass might be necessary to establish what would be a good **read count threshold**. Feel free to adjust it and re-run the workflow (if nothing else has changed, only the last steps should run again). This parameter is important because the "avg_scores" dataframe is built only upon "high confidence" variants, i.e. variants with a read count above the set threshold in all T0 replicates.
 * set the "perform qc" parameter to True if you want to analyze your raw FASTQ with FastQC (and generate a MultiQC report)
-* set the "normalize with gen" parameter to True if you want to normalize with the number of cellular generations
-* set the "generate report" parameter to True if you want the HTML report to be automatically generated upon full completion of the workflow
+* set the "process_read_counts" to True if you want to convert read counts to functional impact scores (False if you simply want read counts)
+* set the "normalize with gen" parameter to True if you want to normalize with the number of cellular generations (only valid if you opted in for processing read counts)
+* set the "generate report" parameter to True if you want the HTML report to be automatically generated upon completion of the workflow
 * edit all directory/file paths if necessary
 
 ## Note on validation

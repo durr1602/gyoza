@@ -66,7 +66,7 @@ cd gyoza
 > 
 > 4. Perform a dry run using: `snakemake -n`
 >
-> This step is strongly recommended. It will make sure the prepared workflow does not contain any error and will display the rules (steps) that need to be run in order to reach the specified target(s) (default targets include the dataframe of functional impact scores, which is produced during the very last step of the workflow). If you're running the workflow for the first time and you toggled in normalization with growth data, you should see a warning prompting you to edit the generated template file (for more details, go back to step 1).
+> This step is strongly recommended. It will make sure the prepared workflow does not contain any error and will display the rules (steps) that need to be run in order to run the workflow (built dynamically based on the config). If you're running the workflow for the first time and you toggled in normalization with growth data, you should see a warning prompting you to edit the generated template file (for more details, go back to step 1).
 
 ### Run pipeline
 
@@ -82,13 +82,13 @@ If snakemake is launched directly from the command line, the process will be out
 
 There are 3 possible options to get the prompt back and/or exit the terminal without aborting the workflow:
 1. Open a new tab on your terminal (may require to log into the session again)
-2. Use `nohup` (e.g. `nohup snakemake --use-conda`). Closing the tab will not abort the workflow.
+2. Use `nohup` (e.g. `nohup snakemake`). Closing the tab will not abort the workflow.
 3. Use the terminal multiplexer [`tmux`](https://github.com/tmux/tmux/wiki/Getting-Started). This way you can get the prompt back right away, exit without aborting and even reconnect to the session from a different machine.
 
 Please make sure `tmux` is installed (already installed on some servers). Then, follow the steps:
 1. Type `tmux new -s snakes` to launch a new tmux session
 2. Activate the conda env with `mamba activate gyoza` or `conda activate gyoza`
-3. Navigate to the Snakefile directory and launch the pipeline with `snakemake --profile profile`
+3. Navigate to the Snakefile directory and launch the pipeline with `snakemake --profile profiles/slurm`
 4. To close (detach) the session, type `<Ctrl+b>`, then `<d>`. You should see the message: `[detached (from session snakes)]`
 5. To reconnect (attach) to the session, for example from a different machine: `tmux attach -t snakes`. You can also see existing sessions with `tmux ls`.
 6. To close the session when everything is finished, type `<Ctrl+b>`, then `<:>`, then `kill-session` and finally `<Enter>`.
@@ -103,9 +103,9 @@ Please make sure `tmux` is installed (already installed on some servers). Then, 
 
 >[!TIP]
 >
-> Similarly, you can omit rules from the workflow. This can be really useful to obtain read counts from any library (typically T0 if you simply want to assess diversity before screening)
+> Similarly, you can omit rules from the workflow.
 >
-> For example: `snakemake --omit process_read_counts`
+> For example: `snakemake --omit rule_to_omit`
 
 >[!NOTE]
 >

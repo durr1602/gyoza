@@ -1,13 +1,171 @@
 from snakemake.script import snakemake
+
+"""
 from scripts.my_functions import get_confidence_score, get_mutation_type
 from scripts.plotting_functions import (
     plot_rc_per_seq,
     plot_upset_TR,
     plot_timepoint_corr,
 )
+"""
 import pandas as pd
 import numpy as np
+import seaborn as sns
+import matplotlib
+
+matplotlib.use("Agg")  # Non-GUI backend for generating plots without display
+import matplotlib.pyplot as plt
+
+plt.rcParams["svg.fonttype"] = "none"
+from upsetplot import from_indicators
+from upsetplot import UpSet
 import warnings
+
+CSCORES = [1, 2, 3]
+CSCORE_COLORS = ["green", "orange", "red"]
+
+
+def get_confidence_score(g, threshold):
+    """
+    Labels variants with a confidence score based on read count at T0
+    """
+    if (g >= threshold).all():  # Above threshold in all replicates
+        return 1  # best confidence score
+    elif (g >= threshold).any():  # Above threshold in at least 1 replicate
+        return 2  # medium confidence score
+    else:
+        return 3  # low confidence score
+
+
+def get_mutation_type(Nham_aa, alt_aa):
+    """
+    Quick function to determine if the mutation is silent or non-synonymous
+    and if it's missense or nonsense
+    """
+    if Nham_aa == 0:
+        return "silent"
+    elif alt_aa == "*":
+        return "nonsense"
+    else:
+        return "missense"
+
+
+def plot_rc_per_seq(
+    df1, df2, outpath, sample_group, exp_rc_per_var, mean_exp_freq, plot_formats
+):
+    """
+    Expects a dataframe of raw read counts and
+    equivalent converted into read frequencies
+    (normalized with sample depth).
+    """
+    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(10, 4))
+
+    sns.histplot(df1, element="step", bins=50, common_norm=False, log_scale=10, ax=ax1)
+    ax1.axvline(x=exp_rc_per_var, linestyle="--", color=".8")
+    ax1.set(xlabel="Raw read count")
+
+    sns.histplot(df2, element="step", bins=50, log_scale=10, common_norm=False, ax=ax2)
+    ax2.axvline(x=10**mean_exp_freq, linestyle="--", color=".8")
+    ax2.set(xlabel="Frequency")
+
+    plt.subplots_adjust(top=0.9)
+    plt.suptitle(f"Samples attributes: {sample_group}")
+    plt.savefig(outpath, format="svg", dpi=300)
+    [
+        plt.savefig(f"{outpath.split('.svg')[0]}.{x}", format=x, dpi=300)
+        for x in plot_formats
+    ]
+    return
+
+
+def plot_upset_TR(df, conditions, outpath, sample_group, plot_formats):
+    """
+    Plots overlap across time points and replicates
+    in the form of an upsetplot, counting the number of unique sequences.
+    Conditions argument correspond to columns in the dataframe..
+    ..should be boolean and indicate whether or not the sequence is in the
+    combination of time point/replicate
+    """
+    fig = plt.figure(figsize=(6, 6))
+    upset_obj = UpSet(
+        from_indicators(conditions, data=df),
+        # show_percentages=True,
+        show_counts=True,
+        min_subset_size="1%",
+        sort_by="cardinality",
+        element_size=None,
+        intersection_plot_elements=0,  # height of intersection barplot in matrix elements
+        totals_plot_elements=2,  # width of totals barplot in matrix elements
+    )
+
+    upset_obj.add_stacked_bars(
+        by="confidence_score", colors=dict(zip(CSCORES, CSCORE_COLORS)), elements=3
+    )
+
+    upset_obj.add_catplot(
+        value="mean_input",
+        kind="violin",
+        cut=0,
+        density_norm="count",
+        log_scale=10,
+        linewidth=0.5,
+        elements=3,  # height in number of matrix elements
+    )
+
+    d = upset_obj.plot(
+        fig=fig
+    )  # Assigns all plots to a dictionary containing axes subplots - same keys as gridspec returned by upset_obj.make_grid()
+    ax0 = d[
+        "extra0"  # Key corresponding to 1st stacked barplot - confidence score ('intersections' = intersection barplot)
+    ]
+    ax1 = d["extra1"]  # Key corresponding to 1st catplot - read count for input samples
+
+    ax0.set_ylabel("# Variants")
+    ax0.legend(title="Confidence score")
+
+    ax1.set_ylabel("Mean\nT0 freq.")
+
+    plt.subplots_adjust(top=0.95)
+    plt.suptitle(f"Samples attributes: {sample_group}")
+
+    plt.savefig(outpath, format="svg", dpi=300)
+    [
+        plt.savefig(f"{outpath.split('.svg')[0]}.{x}", format=x, dpi=300)
+        for x in plot_formats
+    ]
+    return
+
+
+def plot_timepoint_corr(df, outpath, sample_group, plot_formats):
+    """
+    Plots pairwise comparisons of selection coefficients
+    to look at correlation between time points.
+    """
+    # Check number of columns
+    if len([x for x in df.columns if x != "confidence_score"]) <= 1:
+        f, ax = plt.subplots(figsize=(4, 4))
+        ax.text(0.5, 0.5, "Not enough time points to plot", ha="center", va="center")
+        ax.set_axis_off()  # hide axes
+    else:
+        g = sns.pairplot(
+            df,
+            hue="confidence_score",
+            hue_order=CSCORES,
+            palette=dict(zip(CSCORES, CSCORE_COLORS)),
+            plot_kws={"s": 8, "alpha": 0.2},
+            height=1.5,
+            corner=True,
+        )
+        g.tight_layout()
+        plt.subplots_adjust(top=0.9)
+    plt.suptitle(f"Samples attributes: {sample_group}")
+
+    plt.savefig(outpath, format="svg", dpi=300)
+    [
+        plt.savefig(f"{outpath.split('.svg')[0]}.{x}", format=x, dpi=300)
+        for x in plot_formats
+    ]
+    return
 
 
 def get_selcoeffs(
@@ -22,6 +180,7 @@ def get_selcoeffs(
     aa_df_outpath,
     sample_group,
     layout_path,
+    sample_attributes,
     barcode_attributes,
     rc_level,
     rc_threshold,
@@ -54,7 +213,15 @@ def get_selcoeffs(
         "mutation_type",
     ]
 
-    layout = pd.read_csv(layout_path).set_index("Sample_name")
+    # Get back tuple from str wildcard
+    sample_group_tuple = tuple(sample_group.split("__"))
+
+    layout = pd.read_csv(
+        layout_path,
+        dtype={
+            "Replicate": str,
+        },
+    ).set_index("Sample_name")
 
     df_list = []
 
@@ -197,8 +364,14 @@ def get_selcoeffs(
         )
 
     # Normalize with number of cellular generations
-    nbgen_df = pd.read_csv(nbgen_path)
-    nbgen_wide = nbgen_df.pivot(index="Replicate", columns="Timepoint", values="Nb_gen")
+    nbgen_df = pd.read_csv(nbgen_path, dtype={"Replicate": str})
+    # Select correct group
+    nbgen_group = nbgen_df[
+        nbgen_df[sample_attributes].apply(tuple, axis=1) == sample_group_tuple
+    ]
+    nbgen_wide = nbgen_group.pivot(
+        index="Replicate", columns="Timepoint", values="Nb_gen"
+    )
     nbgen_wide.columns = [f"{x}_gen" for x in nbgen_wide.columns]
     for i, x in enumerate(timepoints):
         if i in [0, 1]:
@@ -270,9 +443,17 @@ def get_selcoeffs(
     # Export
     allpos_df.to_csv(outpath)
 
+    # Filter out groups for which selection coefficients are all missing (e.g. in case of missing replicates)
+    def filter_non_empty_s(group):
+        return group[selcoeff_cols].notna().any().any()
+
+    filtered = allpos_df.groupby(
+        ["Replicate", "mutated_codon", "aa_pos", "alt_aa"]
+    ).filter(filter_non_empty_s)
+
     # Calculate median functional impact score (over synonymous mutants)
     median_df = (
-        allpos_df.groupby(["Replicate", "mutated_codon", "aa_pos", "alt_aa"])[
+        filtered.groupby(["Replicate", "mutated_codon", "aa_pos", "alt_aa"])[
             selcoeff_cols + ["confidence_score", "Nham_aa", "mutation_type"]
         ]
         .agg(
@@ -311,7 +492,9 @@ def get_selcoeffs(
     median_long.to_csv(aa_df_outpath, index=False)
 
     # Calculate median across replicates for high confidence variants
-    gby_score = median_df.groupby(["Replicate", "confidence_score"]).size()
+    # Mask for to handle missing selection coefficients
+    has_score = median_df[selcoeff_cols].notna().any(axis=1)
+    gby_score = median_df[has_score].groupby(["Replicate", "confidence_score"]).size()
     totseq = median_df.groupby("Replicate").size()
     perc_by_score = (gby_score / totseq).to_frame("proportion").reset_index()
     if (
@@ -329,8 +512,12 @@ def get_selcoeffs(
         .agg(
             [
                 "median",
-                lambda x: np.percentile(x, 2.5),
-                lambda x: np.percentile(x, 97.5),
+                lambda x: (
+                    np.percentile(x.dropna(), 2.5) if len(x.dropna()) > 0 else np.nan
+                ),
+                lambda x: (
+                    np.percentile(x.dropna(), 97.5) if len(x.dropna()) > 0 else np.nan
+                ),
             ]
         )
     )
@@ -376,6 +563,7 @@ get_selcoeffs(
     snakemake.output.aa_df,
     snakemake.wildcards.group_key,
     snakemake.config["samples"]["path"],
+    snakemake.config["samples"]["attributes"],
     snakemake.config["barcode"]["attributes"],
     snakemake.config["barcode"]["rc_level"],
     snakemake.config["filter"]["rc_threshold"],
