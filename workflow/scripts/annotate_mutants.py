@@ -1,3 +1,7 @@
+import sys
+print("=== sys.path ===")
+for p in sys.path:
+    print(p)
 from snakemake.script import snakemake
 from scripts.my_functions import load_codon_dic, annotate_mutants
 import pandas as pd
