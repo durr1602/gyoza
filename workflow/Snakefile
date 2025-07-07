@@ -74,7 +74,7 @@ if config["report"]["generate"]:
 
             configfile_str = f"--configfile {config_arg}" if config_arg else ""
 
-            report_cmd = f"snakemake {" ".join(str(f) for f in graphs)} --report results/report.html {configfile_str}"
+            report_cmd = f"snakemake {' '.join(str(f) for f in graphs)} --report results/report.html {configfile_str}"
             shell(report_cmd)
         else:
             print(">> No graphs found. Skipping report generation.")
