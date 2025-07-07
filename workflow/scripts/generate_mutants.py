@@ -40,6 +40,8 @@ def get_alt_codons(seq, codon_dic, mode="NNN"):
         pos_l.append(i // 3)  # 0-based position (aa)
         var_l.append(list_var)  # list of possible codons other than WT
 
+    return pos_l, var_l
+
 
 def get_single_double(df, codon_dic, codon_mode):
     """
