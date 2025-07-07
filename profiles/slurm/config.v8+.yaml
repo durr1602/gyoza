@@ -26,7 +26,7 @@ default-resources:
 # Resources allocated should prevent overallocation but might not be enough at first attempt
 set-resources:
   fastqc:
-    time: max(int(0.002 * input.size_mb * attempt + 0.99), 1)
+    time: max(int(0.005 * input.size_mb * attempt + 0.99), 1)
   compare_to_sequencing:
     mem_gb: max(int(0.15 * input.size_mb * attempt + 0.99), 2)
     time: max(int(0.15 * input.size_mb * attempt + 0.99), 2)
