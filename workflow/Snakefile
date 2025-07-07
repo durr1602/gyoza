@@ -1,9 +1,3 @@
-##### Ad-hoc conda apptainer #####
-
-
-containerized: "docker://durr1602/gyoza:latest"
-
-
 ##### Load main report caption #####
 
 
@@ -80,13 +74,7 @@ if config["report"]["generate"]:
 
             configfile_str = f"--configfile {config_arg}" if config_arg else ""
 
-            report_cmd = (
-                "snakemake "
-                + " ".join(str(f) for f in graphs)
-                + (" " + configfile_str if configfile_str else "")
-                + " --report results/report.html"
-            )
-
+            report_cmd = f"snakemake {" ".join(str(f) for f in graphs)}{configfile_str} {" --report results/report.html"}"
             shell(report_cmd)
         else:
             print(">> No graphs found. Skipping report generation.")
