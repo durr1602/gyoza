@@ -87,8 +87,8 @@ There are 3 possible options to get the prompt back and/or exit the terminal wit
 
 Please make sure `tmux` is installed (already installed on some servers). Then, follow the steps:
 1. Type `tmux new -s snakes` to launch a new tmux session
-2. Activate the conda env with `mamba activate gyoza` or `conda activate gyoza`
-3. Navigate to the Snakefile directory and launch the pipeline with `snakemake --profile profiles/slurm`
+2. Make sure the gyoza_env is activated (or activate it)
+3. Make sure you are in the proper directory and launch the pipeline with `snakemake --profile profiles/slurm`
 4. To close (detach) the session, type `<Ctrl+b>`, then `<d>`. You should see the message: `[detached (from session snakes)]`
 5. To reconnect (attach) to the session, for example from a different machine: `tmux attach -t snakes`. You can also see existing sessions with `tmux ls`.
 6. To close the session when everything is finished, type `<Ctrl+b>`, then `<:>`, then `kill-session` and finally `<Enter>`.
