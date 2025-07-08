@@ -234,21 +234,13 @@ def get_selcoeffs(
             },
         )
         groupdf = groupdf.merge(
-            layout[["Pos_start", "Timepoint", "Replicate"]],
+            layout[["Timepoint", "Replicate"]],
             left_on="Sample_name",
             right_index=True,
         )
         df_list.append(groupdf)
 
     df = pd.concat(df_list, ignore_index=True)
-
-    # Add position offset
-    position_offset = df.Pos_start.unique().item()
-    df["aa_pos"] = df.pos.apply(
-        lambda x: (
-            int(x) + position_offset if x != "not-applicable" else "not-applicable"
-        )
-    )
 
     # Add rows corresponding to variants not present in all replicates/time points
     df["TR"] = df["Timepoint"] + "_" + df["Replicate"]
@@ -429,7 +421,11 @@ def get_selcoeffs(
     WTdf = WTdf.explode(["pos", "alt_codons", "alt_aa"])
 
     # And finally add the position offset (position in the full protein sequence)
-    WTdf["aa_pos"] = WTdf["pos"] + position_offset
+    WTdf = WTdf.merge(
+        s_wide[["pos", "aa_pos"]],
+        on=["pos"],
+        how="left"
+    )
 
     # Get non-WT
     # In this step we need to cast the dtype of pos and aa_pos
