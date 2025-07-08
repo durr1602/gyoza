@@ -31,26 +31,26 @@ set-resources:
     mem_gb: max(int(0.15 * input.size_mb * attempt + 0.99), 2)
     time: max(int(0.15 * input.size_mb * attempt + 0.99), 2)
   annotate_mutants:
-    time: max(int((0.002 * input.size_mb + (attempt - 1) * 0.002 * input.size_mb) + 0.99), 1)
+    time: max(int(0.002 * input.size_mb * attempt + 0.99), 1)
   cutadapt:
-    time: max(int((0.005 * input.size_mb + (attempt - 1) * 0.005 * input.size_mb) + 0.99), 1)
+    time: max(int(0.005 * input.size_mb * attempt + 0.99), 1)
   pandaseq:
     threads: 4
-    time: max(int((0.002 * input.size_mb + (attempt - 1) * 0.002 * input.size_mb) + 0.99), 1)
+    time: max(int(0.002 * input.size_mb * attempt + 0.99), 1)
   vsearch_fastx_uniques:
     threads: 1  # This command of vsearch is not multi-threaded
-    time: max(int((0.0002 * input.size_mb + (attempt - 1) * 0.0002 * input.size_mb) + 0.99), 1)
+    time: max(int(0.0004 * input.size_mb * attempt + 0.99), 1)
   stats:
     threads: 1
-    time: max(int((0.001 * input.size_mb + (attempt - 1) * 0.001 * input.size_mb) + 0.99), 1)
+    time: max(int(0.001 * input.size_mb * attempt + 0.99), 1)
   parse_fasta:
     threads: 1
-    mem_gb: max(int((0.002 * input.size_mb + (attempt - 1) * 0.002 * input.size_mb) + 0.99), 1)
-    time: max(int((0.002 * input.size_mb + (attempt - 1) * 0.002 * input.size_mb) + 0.99), 1)
+    mem_gb: max(int(0.002 * input.size_mb * attempt + 0.99), 1)
+    time: max(int(0.002 * input.size_mb * attempt + 0.99), 1)
   process_read_counts:
     threads: 1
-    mem_gb: max(int((0.2 * input.size_mb + (attempt - 1) * 0.2 * input.size_mb) + 0.99), 1)
-    time: max(int((0.5 * input.size_mb + (attempt - 1) * 0.5 * input.size_mb) + 0.99), 1)
+    mem_gb: max(int(0.2 * input.size_mb * attempt + 0.99), 1)
+    time: max(int(0.5 * input.size_mb * attempt + 0.99), 1)
 
 jobs: 500
 max-jobs-per-second: 10
