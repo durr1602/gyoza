@@ -419,17 +419,18 @@ def get_selcoeffs(
 
     # Then we use explode to turn horizontal lists into rows with matching values for all 3 columns
     WTdf = WTdf.explode(["pos", "alt_codons", "alt_aa"])
+    WTdf["pos"] = WTdf["pos"].astype(int)
 
     # And finally add the position offset (position in the full protein sequence)
-    WTdf = WTdf.merge(
-        s_wide[["pos", "aa_pos"]],
-        on=["pos"],
-        how="left"
-    )
+    # We rescue it from the full dataframe by mapping pos -> aa_pos
+    mapping = s_wide[s_wide[["pos", "aa_pos"]].ne("not-applicable").any(axis=1)].copy()
+    mapping[["pos", "aa_pos"]] = mapping[["pos", "aa_pos"]].astype(int)
+    pos_to_aa_pos = mapping.drop_duplicates("pos").set_index("pos")["aa_pos"].to_dict()
+    WTdf["aa_pos"] = WTdf["pos"].map(pos_to_aa_pos)
 
     # Get non-WT
     # In this step we need to cast the dtype of pos and aa_pos
-    # which we could not do before because the WT rows feature string values ("non-applicable")
+    # which we could not do before because the WT rows feature string values ("not-applicable")
     nonWT = s_wide[s_wide.Nham_nt > 0]
     nonWT[["pos", "aa_pos"]] = nonWT[["pos", "aa_pos"]].astype(int)
 
