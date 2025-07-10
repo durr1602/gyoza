@@ -1,15 +1,3 @@
-def extract_param_from_header(wildcards, input):
-    with open(input[0], "r") as f:
-        # Extract wild-type protein sequence from first line of input file
-        first_line = f.readline().strip()
-        if first_line.startswith("# WT_aa:"):
-            return first_line.split(":", 1)[1]
-        else:
-            raise ValueError(
-                f"Error.. Wild-type amino acid sequence not found in first line of {input[0]}"
-            )
-
-
 rule plot_heatmaps:
     input:
         "results/df/avg_scores_{group_key}.csv",
