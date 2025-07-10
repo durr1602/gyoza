@@ -123,7 +123,9 @@ def annotate_mutants(df, codon_dic):
     return df
 
 
-def get_annotated_mutants(mut_path, outpath, indel_outpath, position_offset, codon_table):
+def get_annotated_mutants(
+    mut_path, outpath, indel_outpath, position_offset, codon_table
+):
     """
     Annotates mutants (input = 1 dataframe per sample).
     """
@@ -172,7 +174,7 @@ def get_annotated_mutants(mut_path, outpath, indel_outpath, position_offset, cod
         df_indels = pd.DataFrame(columns=df.columns)
 
     # Save outputs
-    annot_df.to_csv(outpath, index=False)
+    annot_df.sort_values(by="WT", ascending=False).to_csv(outpath, index=False)
     df_indels.to_csv(indel_outpath, index=False)
 
     return
