@@ -13,6 +13,7 @@ include: "rules/vsearch.smk"
 include: "rules/stats.smk"
 include: "rules/pool_stats.smk"
 include: "rules/parse_fasta.smk"
+include: "rules/plot_read_counts.smk"
 
 
 RF_VALS = ["R1"]
@@ -42,7 +43,7 @@ else:
 
 if config["process_read_counts"]:
     include: "rules/process_read_counts.smk"
-
+    include: "rules/plot_final_heatmaps.smk"
 
 ##### Target(s) #####
 
@@ -74,7 +75,13 @@ if config["report"]["generate"]:
 
             configfile_str = f"--configfile {config_arg}" if config_arg else ""
 
-            report_cmd = f"snakemake {' '.join(str(f) for f in graphs)} --report results/report.html {configfile_str}"
+            # Switch to .zip if too many graphs collected
+            ext = "html" if len(graphs) <= 30 else "zip"
+
+            # CSS Style sheet
+            css = "report-stylesheet"
+
+            report_cmd = f"snakemake {' '.join(str(f) for f in graphs)} --report results/report.{ext} --{css} workflow/report/{css}.css {configfile_str}"
             shell(report_cmd)
         else:
             print(">> No graphs found. Skipping report generation.")

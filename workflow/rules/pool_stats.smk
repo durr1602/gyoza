@@ -10,13 +10,15 @@ rule pool_stats:
             "results/graphs/rc_filter_plot.svg",
             "../report/rc_filter_plot.rst",
             category="1. Read filtering",
-            labels={"figure": "1.1. Summary of filtered reads"},
+            subcategory="1.1. Aggregated",
+            labels={"figure": "1.1.a. Summary of filtered reads"},
         ),
         unexp_rc_plot=report(
             "results/graphs/unexp_rc_plot.svg",
             "../report/unexp_rc_plot.rst",
             category="1. Read filtering",
-            labels={"figure": "1.2. Read counts of unexpected variants"},
+            subcategory="1.1. Aggregated",
+            labels={"figure": "1.1.b. Read counts of unexpected variants"},
         ),
     params:
         reported_samples=REPORTED_SAMPLES,

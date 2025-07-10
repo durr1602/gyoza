@@ -173,6 +173,7 @@ def get_selcoeffs(
     nbgen_path,
     outpath,
     avg_outpath,
+    wt_outpath,
     histplot_outpath,
     upsetplot_outpath,
     timepointsplot_outpath,
@@ -399,52 +400,17 @@ def get_selcoeffs(
     for i, s in enumerate(selcoeff_cols):
         s_wide[s] = s_wide[lfc_cols[i]] - s_wide[med_cols[i]]
 
-    ### Repeat WT at every position
-    # Select WT nucleotide sequence(s)
-    WTdf = s_wide[s_wide.Nham_nt == 0]
-
-    # Get length of protein sequence
-    WTdf["len_aa"] = WTdf.aa_seq.apply(lambda x: len(x))
-
-    # Create list of positions for every sequence
-    WTdf["pos"] = WTdf.len_aa.apply(lambda x: np.arange(x))
-
-    # Same with WT codons (list of codons at every matching position)
-    WTdf["alt_codons"] = WTdf.nt_seq.apply(
-        lambda x: [x[i : i + 3] for i in range(0, len(x), 3)]
-    )
-
-    # Same with WT amino acid
-    WTdf["alt_aa"] = WTdf.aa_seq.apply(lambda x: [y for y in x])
-
-    # Then we use explode to turn horizontal lists into rows with matching values for all 3 columns
-    WTdf = WTdf.explode(["pos", "alt_codons", "alt_aa"])
-    WTdf["pos"] = WTdf["pos"].astype(int)
-
-    # And finally add the position offset (position in the full protein sequence)
-    # We rescue it from the full dataframe by mapping pos -> aa_pos
-    mapping = s_wide[s_wide[["pos", "aa_pos"]].ne("not-applicable").any(axis=1)].copy()
-    mapping[["pos", "aa_pos"]] = mapping[["pos", "aa_pos"]].astype(int)
-    pos_to_aa_pos = mapping.drop_duplicates("pos").set_index("pos")["aa_pos"].to_dict()
-    WTdf["aa_pos"] = WTdf["pos"].map(pos_to_aa_pos)
-
-    # Get non-WT
-    # In this step we need to cast the dtype of pos and aa_pos
-    # which we could not do before because the WT rows feature string values ("not-applicable")
-    nonWT = s_wide[s_wide.Nham_nt > 0]
-    nonWT[["pos", "aa_pos"]] = nonWT[["pos", "aa_pos"]].astype(int)
-
-    # Concatenate to get full dataframe of unaggregated scores
-    allpos_df = pd.concat([WTdf, nonWT], ignore_index=True)
+    # Retrieve wild-type protein sequence
+    wtaa = s_wide.loc[s_wide.Nham_nt == 0, "aa_seq"].values[0]
 
     # Export
-    allpos_df.to_csv(outpath)
+    s_wide.to_csv(outpath)
 
     # Filter out groups for which selection coefficients are all missing (e.g. in case of missing replicates)
     def filter_non_empty_s(group):
         return group[selcoeff_cols].notna().any().any()
 
-    filtered = allpos_df.groupby(
+    filtered = s_wide.groupby(
         ["Replicate", "mutated_codon", "aa_pos", "alt_aa"]
     ).filter(filter_non_empty_s)
 
@@ -469,6 +435,23 @@ def get_selcoeffs(
     graphdf = median_df.loc[dataset1_r1].reset_index()[
         selcoeff_cols + ["confidence_score"]
     ]
+
+    # Warn if many low confidence variants
+    # Note: we do this here since there's the same number of variants for each replicate
+    has_score = graphdf[selcoeff_cols].notna().any(axis=1)
+    perc_counts = graphdf[has_score].groupby("confidence_score").size()
+    perc_by_score = (
+        perc_counts.div(perc_counts.sum()).to_frame("proportion").reset_index()
+    )
+    if (
+        perc_by_score.loc[(perc_by_score.confidence_score == 1, "proportion")] < 0.75
+    ).any():
+        warnings.warn(
+            f"Warning.. Group {sample_group} shows less than 75% of variants labeled with high confidence.\n"
+            "Because only these variants are used to calculate a median score across replicates,"
+            "you may want to double check the config file and adjust the rc_threshold parameter."
+        )
+
     plot_timepoint_corr(graphdf, timepointsplot_outpath, sample_group, plot_formats)
 
     median_long = median_df.melt(
@@ -489,20 +472,6 @@ def get_selcoeffs(
     median_long.to_csv(aa_df_outpath, index=False)
 
     # Calculate median across replicates for high confidence variants
-    # Mask for to handle missing selection coefficients
-    has_score = median_df[selcoeff_cols].notna().any(axis=1)
-    gby_score = median_df[has_score].groupby(["Replicate", "confidence_score"]).size()
-    totseq = median_df.groupby("Replicate").size()
-    perc_by_score = (gby_score / totseq).to_frame("proportion").reset_index()
-    if (
-        perc_by_score.loc[(perc_by_score.confidence_score == 1, "proportion")] < 0.75
-    ).any():
-        warnings.warn(
-            f"Warning.. Group {sample_group} shows less than 75% of variants labeled with high confidence.\n"
-            "Because only these variants are used to calculate a median score across replicates,"
-            "you may want to double check the config file and adjust the rc_threshold parameter."
-        )
-
     avg_df = (
         median_df[median_df.confidence_score == 1]
         .groupby(mutation_attributes_aa)[selcoeff_cols]
@@ -543,7 +512,18 @@ def get_selcoeffs(
             avg_df[x] = avg_df[x] - avg_df[f"fitness_{tp}"]
 
     # Export dataframe with fitness and error values
-    avg_df.reset_index().to_csv(avg_outpath, index=False)
+    final_all = avg_df.reset_index()
+
+    # Export WT separately
+    final_WT = final_all[final_all.mutated_codon == 0]
+    final_WT.to_csv(wt_outpath, index=False)
+
+    # Export final dataframe
+    with open(avg_outpath, "w") as f:
+        f.write(
+            f"# WT_aa:{wtaa}\n"
+        )  # Save wild-type protein sequence in header comment line
+        final_all[final_all.mutated_codon > 0].to_csv(f, index=False)
 
     return
 
@@ -553,6 +533,7 @@ get_selcoeffs(
     snakemake.input.nbgen,
     snakemake.output.selcoeffs,
     snakemake.output.avg_scores,
+    snakemake.output.wt_scores,
     snakemake.output.hist_plot,
     snakemake.output.upset_plot,
     snakemake.output.timepoints_plot,

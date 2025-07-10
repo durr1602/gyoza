@@ -34,7 +34,12 @@ layout_mandatory_cols = [
     "Replicate",
     "Timepoint",
 ]
+
 layout_csv = pd.read_csv(config["samples"]["path"], dtype={"Replicate": str})
+
+# Get timepoints other than T0
+TIMEPOINTS = sorted(set(layout_csv["Timepoint"]) - {"T0"})
+
 # Sanitize Replicate column
 layout_csv["Replicate"] = layout_csv["Replicate"].fillna("").astype(str).str.strip()
 validate(layout_csv, schema="../schemas/sample_layout.schema.yaml")
@@ -208,6 +213,12 @@ REPORTED_SAMPLES = sorted(
     }
 )
 
+
+##### Cross groups x time points #####
+GF = [(g, t) for g in GROUP_KEYS for t in TIMEPOINTS]
+GF_REPORTED = [(g, t) for g in REPORTED_GROUPS for t in TIMEPOINTS]
+
+
 ##### Prepare HTML report #####
 # Note: I've tried multiple approaches. Report cannot be reliably integrated
 # in a dedicated rule (for DAG inclusion) because of the nested snakemake statements
@@ -224,7 +235,7 @@ def collect_graphs():
         "unexp_rc_plot.svg",
     ]
 
-    group_specific_graphs = []
+    group_specific_graphs = [f"heatmap_readcount_{s}.svg" for s in REPORTED_SAMPLES]
 
     if config["process_read_counts"]:
         agg_graphs += [
@@ -239,6 +250,7 @@ def collect_graphs():
             [f"hist_plot_{k}.svg" for k in REPORTED_GROUPS]
             + [f"upset_plot_{k}.svg" for k in REPORTED_GROUPS]
             + [f"timepoints_plot_{k}.svg" for k in REPORTED_GROUPS]
+            + [f"heatmap_fitness_{k}_{t}.svg" for (k, t) in GF_REPORTED]
         )
 
     return [
@@ -253,10 +265,14 @@ def collect_graphs():
 
 def get_target():
     targets = ["results/all_stats.csv"]
+    targets += expand("results/graphs/heatmap_readcount_{sample}.svg", sample=SAMPLES)
 
     if config["process_read_counts"]:
+        targets += expand("results/df/all_scores_{group_key}.csv", group_key=GROUP_KEYS)
         targets += expand(
-            "results/df/all_scores_{group_key}.csv", group_key=REPORTED_GROUPS
+            "results/graphs/heatmap_fitness_{group_key}_{t}.svg",
+            group_key=GROUP_KEYS,
+            t=TIMEPOINTS,
         )
         targets.append("results/graphs/rc_var_plot.svg")
 
