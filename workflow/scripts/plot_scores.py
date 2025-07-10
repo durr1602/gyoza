@@ -246,6 +246,11 @@ def get_s_plots(
     df = concatenate_df(df_files)
     df["Replicate"] = df["Replicate"].astype(str)
     plot_scoeff_violin(df, scoeff_plot_outpath, plot_formats)
+
+    # Mark wild-type nucleotide sequence as distinct "mutation type"
+    # To be able to compare behavior with synonymous codons
+    # (in case of impactful mutations outside the sequenced locus)
+    df.loc[df.mutated_codon == 0, "mutation_type"] = "WT"
     plot_impact_over_time(df, s_time_plot_outpath, plot_formats)
 
     # Save list of replicates

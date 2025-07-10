@@ -4,6 +4,10 @@ rule annotate_random:
     output:
         annot_rc="results/df/unfiltered/{sample}_unfiltered-rc.csv",
         indels="results/df/indels/{sample}_indels.csv",
+    params:
+        position_offset=lambda wildcards: sample_layout.loc[
+            wildcards.sample, "Pos_start"
+        ],
     message:
         f"Annotating mutants observed in sequencing data"
     log:

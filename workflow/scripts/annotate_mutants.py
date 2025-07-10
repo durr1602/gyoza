@@ -123,7 +123,9 @@ def annotate_mutants(df, codon_dic):
     return df
 
 
-def get_annotated_mutants(mut_path, outpath, indel_outpath, codon_table):
+def get_annotated_mutants(
+    mut_path, outpath, indel_outpath, position_offset, codon_table
+):
     """
     Annotates mutants (input = 1 dataframe per sample).
     """
@@ -142,6 +144,12 @@ def get_annotated_mutants(mut_path, outpath, indel_outpath, codon_table):
     # Annotate non-indels if there are any
     if not df_valid.empty:
         annot_df = annotate_mutants(df_valid, codon_dic)
+        # Add position offset
+        annot_df["aa_pos"] = annot_df.pos.apply(
+            lambda x: (
+                int(x) + position_offset if x != "not-applicable" else "not-applicable"
+            )
+        )
     else:
         # Rescue expected column headers
         annot_df = pd.DataFrame(
@@ -155,6 +163,7 @@ def get_annotated_mutants(mut_path, outpath, indel_outpath, codon_table):
                 "Nham_aa",
                 "mutated_codon",
                 "pos",
+                "aa_pos",
                 "alt_codons",
                 "alt_aa",
             ]
@@ -165,7 +174,7 @@ def get_annotated_mutants(mut_path, outpath, indel_outpath, codon_table):
         df_indels = pd.DataFrame(columns=df.columns)
 
     # Save outputs
-    annot_df.to_csv(outpath, index=False)
+    annot_df.sort_values(by="WT", ascending=False).to_csv(outpath, index=False)
     df_indels.to_csv(indel_outpath, index=False)
 
     return
@@ -175,5 +184,6 @@ get_annotated_mutants(
     snakemake.input[0],
     snakemake.output.annot_rc,
     snakemake.output.indels,
+    snakemake.params.position_offset,
     snakemake.config["codon"]["table"],
 )

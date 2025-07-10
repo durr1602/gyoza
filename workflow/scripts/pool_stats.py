@@ -85,6 +85,7 @@ def get_pooled_stats(
     csv_outpath,
     barplot_outpath,
     unexpplot_outpath,
+    reported_samples,
     exp_rc_per_sample,
     plot_formats,
 ):
@@ -109,7 +110,11 @@ def get_pooled_stats(
 
     unexp_all_seqs = pd.concat(list_df, ignore_index=True)
 
-    plot_unexp_plot(unexp_all_seqs, unexpplot_outpath, plot_formats)
+    plot_unexp_plot(
+        unexp_all_seqs[unexp_all_seqs["Sample_name"].isin(reported_samples)],
+        unexpplot_outpath,
+        plot_formats,
+    )
 
     unexp_df = unexp_all_seqs.groupby("Sample_name")[["readcount"]].sum()
 
@@ -127,7 +132,12 @@ def get_pooled_stats(
 
     stacked_df.to_csv(csv_outpath)
 
-    plot_stacked_barplot(stacked_df, barplot_outpath, exp_rc_per_sample, plot_formats)
+    plot_stacked_barplot(
+        stacked_df[stacked_df["Sample_name"].isin(reported_samples)],
+        barplot_outpath,
+        exp_rc_per_sample,
+        plot_formats,
+    )
 
     return
 
@@ -138,6 +148,7 @@ get_pooled_stats(
     snakemake.output.all_stats,
     snakemake.output.rc_filter_plot,
     snakemake.output.unexp_rc_plot,
+    snakemake.params.reported_samples,
     float(snakemake.config["rc_aims"]["exp_rc_per_sample"]),
     [x for x in snakemake.config["plots"]["format"] if x != "svg"],
 )

@@ -34,7 +34,12 @@ layout_mandatory_cols = [
     "Replicate",
     "Timepoint",
 ]
+
 layout_csv = pd.read_csv(config["samples"]["path"], dtype={"Replicate": str})
+
+# Get timepoints other than T0
+TIMEPOINTS = sorted(set(layout_csv["Timepoint"]) - {"T0"})
+
 # Sanitize Replicate column
 layout_csv["Replicate"] = layout_csv["Replicate"].fillna("").astype(str).str.strip()
 validate(layout_csv, schema="../schemas/sample_layout.schema.yaml")
@@ -198,6 +203,45 @@ grouped_samples_for_report = [
 # Serialize groups of samples to be included in the reported
 REPORTED_GROUPS = [serialize_key(group) for group in grouped_samples_for_report]
 
+# Derive individual samples to be reported
+REPORTED_SAMPLES = sorted(
+    {
+        sample
+        for group in grouped_samples_for_report
+        for sample in grouped_samples.get(group, [])
+        if sample in SAMPLES
+    }
+)
+
+
+##### Cross groups x time points #####
+GF = [(g, t) for g in GROUP_KEYS for t in TIMEPOINTS]
+GF_REPORTED = [(g, t) for g in REPORTED_GROUPS for t in TIMEPOINTS]
+
+
+##### Helper functions to retrieve parameters from top of files #####
+def extract_param_from_header(wildcards, input):
+    with open(input[0], "r") as f:
+        # Extract wild-type protein sequence from first line of input file
+        first_line = f.readline().strip()
+        if first_line.startswith("# WT_aa:"):
+            return first_line.split(":", 1)[1]
+        else:
+            raise ValueError(
+                f"Error.. Wild-type amino acid sequence not found in first line of {input[0]}"
+            )
+
+
+def extract_param_from_first_row(wildcards, input):
+    df = pd.read_csv(input[0], nrows=1)
+    if not df.loc[0, "WT"]:
+        raise ValueError(
+            f"Error.. First row of {input[0]} does not have WT == True. Cannot extract wild-type amino acid sequence."
+        )
+
+    return df.loc[0, "aa_seq"]
+
+
 ##### Prepare HTML report #####
 # Note: I've tried multiple approaches. Report cannot be reliably integrated
 # in a dedicated rule (for DAG inclusion) because of the nested snakemake statements
@@ -212,9 +256,9 @@ def collect_graphs():
     agg_graphs = [
         "rc_filter_plot.svg",
         "unexp_rc_plot.svg",
-    ]    
+    ]
 
-    group_specific_graphs = []
+    group_specific_graphs = [f"heatmap_readcount_{s}.svg" for s in REPORTED_SAMPLES]
 
     if config["process_read_counts"]:
         agg_graphs += [
@@ -224,11 +268,12 @@ def collect_graphs():
             "replicates_plot.svg",
             "s_through_time_plot.svg",
         ]
-        
+
         group_specific_graphs += (
             [f"hist_plot_{k}.svg" for k in REPORTED_GROUPS]
             + [f"upset_plot_{k}.svg" for k in REPORTED_GROUPS]
             + [f"timepoints_plot_{k}.svg" for k in REPORTED_GROUPS]
+            + [f"heatmap_fitness_{k}_{t}.svg" for (k, t) in GF_REPORTED]
         )
 
     return [
@@ -243,10 +288,14 @@ def collect_graphs():
 
 def get_target():
     targets = ["results/all_stats.csv"]
+    targets += expand("results/graphs/heatmap_readcount_{sample}.svg", sample=SAMPLES)
 
     if config["process_read_counts"]:
+        targets += expand("results/df/all_scores_{group_key}.csv", group_key=GROUP_KEYS)
         targets += expand(
-            "results/df/all_scores_{group_key}.csv", group_key=REPORTED_GROUPS
+            "results/graphs/heatmap_fitness_{group_key}_{t}.svg",
+            group_key=GROUP_KEYS,
+            t=TIMEPOINTS,
         )
         targets.append("results/graphs/rc_var_plot.svg")
 
