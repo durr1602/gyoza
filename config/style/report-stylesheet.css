@@ -5,5 +5,5 @@
     background-repeat: no-repeat;
     background-size: auto 80%; /* maintains ratio */
     background-position: center;
-    background-image: url("../gyoza.png"); /* Path needs to be relative to report file output, not CSS or workdir! */
+    background-image: url("../config/style/gyoza.png"); /* Path needs to be relative to report file output, not CSS or workdir! */
 }

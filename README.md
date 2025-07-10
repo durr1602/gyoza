@@ -6,7 +6,7 @@
 
 # gyōza: a Snakemake-based workflow to analyze DMS data
 <p align="left">
-  <img src="./gyoza.png" width="200">
+  <img src="config/style/gyoza.png" width="200">
 </p>
 
 ## Installation
