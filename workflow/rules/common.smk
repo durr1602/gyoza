@@ -177,8 +177,18 @@ def deserialize_key(key_str):
     return tuple(key_str.split("__"))
 
 
-# Map from string keys to sample lists
-grouped_samples_str = {serialize_key(k): v for k, v in grouped_samples.items()}
+# Map from string keys to sample lists and add corresponding T0 samples
+grouped_samples_str = {
+    serialize_key(group): sorted({
+        s for s in layout_csv["Sample_name"]
+        if sample_layout.loc[s, "Timepoint"] == "T0"
+        and tuple(sample_layout.loc[s, attr] for attr in config["samples"]["attributes"]) == group
+    } | {
+        s for s in SAMPLES
+        if tuple(sample_layout.loc[s, attr] for attr in config["samples"]["attributes"]) == group
+    })
+    for group in grouped_samples
+}
 GROUP_KEYS = list(grouped_samples_str.keys())
 
 # Derive which groups should be reported
