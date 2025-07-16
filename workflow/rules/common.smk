@@ -37,9 +37,6 @@ layout_mandatory_cols = [
 
 layout_csv = pd.read_csv(config["samples"]["path"], dtype={"Replicate": str})
 
-# Get timepoints other than T0
-TIMEPOINTS = sorted(set(layout_csv["Timepoint"]) - {"T0"})
-
 # Sanitize Replicate column
 layout_csv["Replicate"] = layout_csv["Replicate"].fillna("").astype(str).str.strip()
 validate(layout_csv, schema="../schemas/sample_layout.schema.yaml")
@@ -78,10 +75,11 @@ if len(config["samples"]["attributes"]) > 0:
                 if x not in config["samples"]["attributes"]
             ]
     TR_layout = layout_csv[["Sample_name"] + config["samples"]["attributes"]]
-    grouped_samples = defaultdict(list)
+    # Initial sample grouping based on layout
+    grouped_all = defaultdict(list)
     for _, row in TR_layout.iterrows():
         key = tuple(row[col] for col in config["samples"]["attributes"])
-        grouped_samples[key].append(row["Sample_name"])
+        grouped_all[key].append(row["Sample_name"])
     print("Sample attributes imported.")
 else:
     print("No sample attributes provided.")
@@ -158,11 +156,34 @@ if config["samples"]["selection"] != "all":
 
 MUTATED_SEQS = sorted(set(sample_to_mutseq[s] for s in SAMPLES))
 
-grouped_samples = {
-    key: [s for s in samples if s in SAMPLES]
-    for key, samples in grouped_samples.items()
-    if any(s in SAMPLES for s in samples)
-}
+# Rescue T0 + match output timepoints from sample selection
+global_selected_timepoints = set()
+grouped_final = {}
+
+for group, samples in grouped_all.items():
+    selected_samples = [s for s in samples if s in SAMPLES]
+    if not selected_samples:
+        continue
+
+    selected_timepoints = {
+        sample_layout.loc[s, "Timepoint"]
+        for s in selected_samples
+        if sample_layout.loc[s, "Timepoint"] != "T0"
+    }
+
+    global_selected_timepoints.update(selected_timepoints)
+
+    grouped_final[group] = sorted(
+        [
+            s
+            for s in samples
+            if sample_layout.loc[s, "Timepoint"] == "T0"
+            or sample_layout.loc[s, "Timepoint"] in selected_timepoints
+        ]
+    )
+
+# Save output timepoints
+TIMEPOINTS = sorted(global_selected_timepoints)
 
 ##### Convert sample grouping wilcard <-> string #####
 
@@ -177,19 +198,12 @@ def deserialize_key(key_str):
     return tuple(key_str.split("__"))
 
 
-# Map from string keys to sample lists and add corresponding T0 samples
-grouped_samples_str = {
-    serialize_key(group): sorted({
-        s for s in layout_csv["Sample_name"]
-        if sample_layout.loc[s, "Timepoint"] == "T0"
-        and tuple(sample_layout.loc[s, attr] for attr in config["samples"]["attributes"]) == group
-    } | {
-        s for s in SAMPLES
-        if tuple(sample_layout.loc[s, attr] for attr in config["samples"]["attributes"]) == group
-    })
-    for group in grouped_samples
+# Serialize sample groups
+grouped_final_str = {
+    serialize_key(group): samples for group, samples in grouped_final.items()
 }
-GROUP_KEYS = list(grouped_samples_str.keys())
+
+GROUP_KEYS = list(grouped_final_str.keys())
 
 # Derive which groups should be reported
 grouped_samples_for_report = [
@@ -207,7 +221,7 @@ grouped_samples_for_report = [
 grouped_samples_for_report = [
     group
     for group in grouped_samples_for_report
-    if any(s in SAMPLES for s in grouped_samples.get(group, []))
+    if any(s in SAMPLES for s in grouped_all.get(group, []))
 ]
 
 # Serialize groups of samples to be included in the reported
@@ -218,11 +232,10 @@ REPORTED_SAMPLES = sorted(
     {
         sample
         for group in grouped_samples_for_report
-        for sample in grouped_samples.get(group, [])
+        for sample in grouped_all.get(group, [])
         if sample in SAMPLES
     }
 )
-
 
 ##### Cross groups x time points #####
 GF = [(g, t) for g in GROUP_KEYS for t in TIMEPOINTS]
