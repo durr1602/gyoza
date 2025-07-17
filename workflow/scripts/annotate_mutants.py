@@ -2,6 +2,7 @@ from snakemake.script import snakemake
 
 # from scripts.my_functions import load_codon_dic, annotate_mutants
 import pandas as pd
+import json
 
 
 def load_codon_dic(table):
@@ -22,6 +23,7 @@ def get_mutations(seq, wt, codon_dic):
     in lists with matching indexes to be able to quickly convert to 1 row per mutation per mutated codon
     The alternative and corresponding wild-type codons are translated into their corresponding amino acid using the provided codon table dictionary
     From there, we also calculate the Hamming distances in codons, nucleotides and amino acids.
+    Finally, we retrieve other sequence-level attributes (how the sequence differs from the WT, regardless of the number of mutations)
     """
     if len(seq) != len(wt):
         raise ValueError(
@@ -33,16 +35,15 @@ def get_mutations(seq, wt, codon_dic):
             f"Error.. the length of the DNA sequence is not a multiple of 3."
         )
 
-    VALID_BASES = {"A", "C", "G", "T"}
-
-    if not set(seq).issubset(VALID_BASES):
+    if not set(seq).issubset({"A", "C", "G", "T"}):
         raise ValueError(
             f"Error.. one of the provided nucleotide sequences contains an unrecognized character."
         )
 
     is_wt = seq == wt
 
-    list_alt_pos, list_alt_cod, list_alt_aa, list_aa = [], [], [], []
+    mutation_pos, mutation_alt_codon, mutation_alt_aa, mutation_type = [], [], [], []
+    full_aa_seq, full_wt_aa = [], []
     Nham_nt = 0
     Nham_aa = 0
 
@@ -60,30 +61,48 @@ def get_mutations(seq, wt, codon_dic):
     ]
 
     for i, (wtc, c) in enumerate(zip(wt_codons, seq_codons)):  # Loop through codons
-        alt_aa = codon_dic.get(c)
         wt_aa = codon_dic.get(wtc)
-        list_aa.append(alt_aa)
+        alt_aa = codon_dic.get(c)
+        full_aa_seq.append(alt_aa)
+        full_wt_aa.append(wt_aa)
+
         if c != wtc:
-            list_alt_pos.append(i)
-            list_alt_cod.append(c)
-            list_alt_aa.append(alt_aa)
-            Nham_nt += (wtc != c) * sum(
-                x != y for x, y in zip(wtc, c)  # Calls zip only when codons differ
-            )
+            mutation_pos.append(i)
+            mutation_alt_codon.append(c)
+            mutation_alt_aa.append(alt_aa)
+            Nham_nt += sum(x != y for x, y in zip(wtc, c))
             if alt_aa != wt_aa:
                 Nham_aa += 1
+                mutation_type.append("nonsense" if alt_aa == "*" else "missense")
+            else:
+                mutation_type.append("silent")
 
-    Nham_codons = len(list_alt_pos)
+    # Protein-level comparison
+    aa_seq = "".join(full_aa_seq)
+    wt_aa_seq = "".join(full_wt_aa)
+
+    protein_pos, protein_alt_aa = [], []
+
+    for i, (wt_aa, alt_aa) in enumerate(zip(wt_aa_seq, aa_seq)):
+        if wt_aa != alt_aa:
+            protein_pos.append(int(i)),
+            protein_alt_aa.append(alt_aa)
+
+    Nham_codons = len(mutation_pos)
 
     if Nham_codons > 0:
-        mut_codons = list(range(1, Nham_codons + 1))
-    else:
-        mut_codons = [0]
-        list_alt_pos = ["not-applicable"]
-        list_alt_cod = ["not-applicable"]
-        list_alt_aa = ["not-applicable"]
-
-    aa_seq = "".join(list_aa)
+        mutated_codon = list(
+            range(1, Nham_codons + 1)
+        )  # 1-based index of mutated codons
+        if Nham_aa == 0:
+            protein_alt_aa = ["not-applicable"]
+    else:  # Handle WT (no mutations)
+        mutated_codon = [0]
+        mutation_pos = ["not-applicable"]
+        mutation_alt_codon = ["not-applicable"]
+        mutation_alt_aa = ["not-applicable"]
+        mutation_type = ["wt"]
+        protein_alt_aa = ["not-applicable"]
 
     return (
         is_wt,
@@ -91,10 +110,13 @@ def get_mutations(seq, wt, codon_dic):
         Nham_codons,
         Nham_nt,
         Nham_aa,
-        mut_codons,
-        list_alt_pos,
-        list_alt_cod,
-        list_alt_aa,
+        protein_pos,
+        protein_alt_aa,
+        mutated_codon,
+        mutation_pos,
+        mutation_alt_codon,
+        mutation_alt_aa,
+        mutation_type,
     )
 
 
@@ -104,8 +126,22 @@ def annotate_mutants(df, codon_dic):
     Compares both and returns mutations with a custom function
     Outputs corresponding subdataframe with annotated mutations
     """
-    per_seq_cols = ["WT", "aa_seq", "Nham_codons", "Nham_nt", "Nham_aa"]
-    per_mut_cols = ["mutated_codon", "pos", "alt_codons", "alt_aa"]
+    per_seq_cols = [
+        "WT",
+        "aa_seq",
+        "Nham_codons",
+        "Nham_nt",
+        "Nham_aa",
+        "pos",
+        "alt_aa",
+    ]
+    per_mut_cols = [
+        "mutated_codon",
+        "mutation_pos",
+        "mutation_alt_codons",
+        "mutation_alt_aa",
+        "mutation_type",
+    ]
     new_cols = per_seq_cols + per_mut_cols
 
     # Making sure sequences are capitalized
@@ -144,12 +180,25 @@ def get_annotated_mutants(
     # Annotate non-indels if there are any
     if not df_valid.empty:
         annot_df = annotate_mutants(df_valid, codon_dic)
-        # Add position offset
-        annot_df["aa_pos"] = annot_df.pos.apply(
+        # Add position offset at mutation level
+        annot_df["mutation_aa_pos"] = annot_df.mutation_pos.apply(
             lambda x: (
                 int(x) + position_offset if x != "not-applicable" else "not-applicable"
             )
         )
+        # Add position offset for amino acid changes at protein level
+        # We also need to robustly convert the type and serialize
+        # for proper parsing downstream
+        annot_df["aa_pos"] = annot_df.pos.apply(
+            lambda x: (
+                json.dumps([int(y + position_offset) for y in x])
+                if x != []
+                else json.dumps(["not-applicable"])
+            )
+        )
+        annot_df["alt_aa"] = annot_df.alt_aa.apply(json.dumps)
+        # Remove obsolete columns
+        annot_df.drop(["mutation_pos", "pos"], axis=1, inplace=True)
     else:
         # Rescue expected column headers
         annot_df = pd.DataFrame(
@@ -161,11 +210,13 @@ def get_annotated_mutants(
                 "Nham_codons",
                 "Nham_nt",
                 "Nham_aa",
-                "mutated_codon",
-                "pos",
                 "aa_pos",
-                "alt_codons",
                 "alt_aa",
+                "mutated_codon",
+                "mutation_aa_pos",
+                "mutation_alt_codons",
+                "mutation_alt_aa",
+                "mutation_type",
             ]
         )
 

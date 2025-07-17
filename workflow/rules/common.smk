@@ -205,6 +205,12 @@ grouped_final_str = {
 
 GROUP_KEYS = list(grouped_final_str.keys())
 
+# Map back position position offset for each group
+pos_offset_by_group = {
+    group_key: sample_layout.loc[samples[0], "Pos_start"]
+    for group_key, samples in grouped_final_str.items()
+}
+
 # Derive which groups should be reported
 grouped_samples_for_report = [
     tuple(row[attr] for attr in config["samples"]["attributes"])
@@ -240,29 +246,6 @@ REPORTED_SAMPLES = sorted(
 ##### Cross groups x time points #####
 GF = [(g, t) for g in GROUP_KEYS for t in TIMEPOINTS]
 GF_REPORTED = [(g, t) for g in REPORTED_GROUPS for t in TIMEPOINTS]
-
-
-##### Helper functions to retrieve parameters from top of files #####
-def extract_param_from_header(wildcards, input):
-    with open(input[0], "r") as f:
-        # Extract wild-type protein sequence from first line of input file
-        first_line = f.readline().strip()
-        if first_line.startswith("# WT_aa:"):
-            return first_line.split(":", 1)[1]
-        else:
-            raise ValueError(
-                f"Error.. Wild-type amino acid sequence not found in first line of {input[0]}"
-            )
-
-
-def extract_param_from_first_row(wildcards, input):
-    df = pd.read_csv(input[0], nrows=1)
-    if not df.loc[0, "WT"]:
-        raise ValueError(
-            f"Error.. First row of {input[0]} does not have WT == True. Cannot extract wild-type amino acid sequence."
-        )
-
-    return df.loc[0, "aa_seq"]
 
 
 ##### Prepare HTML report #####
