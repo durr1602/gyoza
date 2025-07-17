@@ -81,7 +81,7 @@ if config["report"]["generate"]:
             # CSS Style sheet
             css = "report-stylesheet"
 
-            report_cmd = f"snakemake {' '.join(str(f) for f in graphs)} --report results/report.{ext} --{css} workflow/report/{css}.css {configfile_str}"
+            report_cmd = f"snakemake {' '.join(str(f) for f in graphs)} --report results/report.{ext} --{css} config/style/{css}.css {configfile_str}"
             shell(report_cmd)
         else:
             print(">> No graphs found. Skipping report generation.")

@@ -9,6 +9,7 @@ from scripts.plotting_functions import (
 )
 """
 import pandas as pd
+import json
 import numpy as np
 import seaborn as sns
 import matplotlib
@@ -35,19 +36,6 @@ def get_confidence_score(g, threshold):
         return 2  # medium confidence score
     else:
         return 3  # low confidence score
-
-
-def get_mutation_type(Nham_aa, alt_aa):
-    """
-    Quick function to determine if the mutation is silent or non-synonymous
-    and if it's missense or nonsense
-    """
-    if Nham_aa == 0:
-        return "silent"
-    elif alt_aa == "*":
-        return "nonsense"
-    else:
-        return "missense"
 
 
 def plot_rc_per_seq(
@@ -173,7 +161,6 @@ def get_selcoeffs(
     nbgen_path,
     outpath,
     avg_outpath,
-    wt_outpath,
     histplot_outpath,
     upsetplot_outpath,
     timepointsplot_outpath,
@@ -195,23 +182,27 @@ def get_selcoeffs(
     """
     mutation_attributes = [
         "mutated_codon",
-        "pos",
-        "alt_codons",
-        "alt_aa",
-        "aa_pos",
+        "mutation_aa_pos",
+        "mutation_alt_codons",
+        "mutation_alt_aa",
+        "mutation_type",
+    ]
+
+    sequence_attributes = [
         "nt_seq",
         "aa_seq",
         "Nham_nt",
         "Nham_aa",
         "Nham_codons",
-    ]
-
-    mutation_attributes_aa = [
-        "mutated_codon",
         "aa_pos",
         "alt_aa",
+    ]
+
+    prot_seq_attributes = [
         "Nham_aa",
-        "mutation_type",
+        "aa_seq",
+        "aa_pos",
+        "alt_aa",
     ]
 
     # Get back tuple from str wildcard
@@ -231,7 +222,11 @@ def get_selcoeffs(
             f,
             dtype={
                 "WT": "boolean",  # Boolean type supports missing data
-                "pos": str,
+                "mutation_aa_pos": str,
+            },
+            converters={
+                "aa_pos": json.loads,  # List
+                "alt_aa": json.loads,  # List
             },
         )
         groupdf = groupdf.merge(
@@ -239,7 +234,7 @@ def get_selcoeffs(
             left_on="Sample_name",
             right_index=True,
         )
-        df_list.append(groupdf)
+        df_list.append(groupdf.explode(["aa_pos", "alt_aa"]))
 
     df = pd.concat(df_list, ignore_index=True)
 
@@ -249,16 +244,16 @@ def get_selcoeffs(
     T0_conditions = [x for x in conditions if "T0" in x]
 
     upset = df.pivot_table(
-        index=mutation_attributes + barcode_attributes,
+        index=mutation_attributes + sequence_attributes + barcode_attributes,
         columns="TR",
         values="readcount",
         fill_value=0,
-    ).reset_index(level=mutation_attributes + barcode_attributes)
+    ).reset_index(level=mutation_attributes + sequence_attributes + barcode_attributes)
 
     upset["confidence_score"] = upset[T0_conditions].apply(
         lambda row: get_confidence_score(row, rc_threshold), axis=1
     )
-    mutation_attributes += ["confidence_score"]
+    sequence_attributes += ["confidence_score"]
 
     # Get total number of sequences
     tot_rc_level = upset[rc_level].nunique()
@@ -292,13 +287,15 @@ def get_selcoeffs(
     freq[freq_conditions] = freq[conditions].add(1) / freq[conditions].sum()
 
     # Retrieve overall mean frequency corresponding to the expected read count per variant
-    mean_exp_freq = (np.log10((exp_rc_per_var + 1) / freq[conditions].sum())).mean(
-        axis=None
-    )
+    mean_exp_freq = (
+        np.log10(
+            (exp_rc_per_var + 1) / freq.groupby("nt_seq")[conditions].first().sum()
+        )
+    ).mean(axis=None)
 
     # Plot read count per sequence
-    graph1df = freq[conditions]
-    graph2df = freq[freq_conditions]
+    graph1df = freq.groupby("nt_seq")[conditions].first()
+    graph2df = freq.groupby("nt_seq")[freq_conditions].first()
     plot_rc_per_seq(
         graph1df,
         graph2df,
@@ -310,17 +307,22 @@ def get_selcoeffs(
     )
 
     # Plot overlap across time points and replicates
-    freq["mean_input"] = freq[T0_freq].mean(axis=1)
+    upset_freq = freq.copy()
+    upset_freq["mean_input"] = upset_freq[T0_freq].mean(axis=1)
     bool_conditions = [f"{x}_indicator" for x in conditions]
-    freq[bool_conditions] = freq[conditions].astype(bool)
-    upset_sub = freq.drop(conditions, axis=1).rename(
-        columns=dict(zip(bool_conditions, conditions))
+    upset_freq[bool_conditions] = upset_freq[conditions].astype(bool)
+    upset_sub = (
+        upset_freq.groupby("nt_seq")[
+            bool_conditions + ["mean_input", "confidence_score"]
+        ]
+        .first()
+        .rename(columns=dict(zip(bool_conditions, conditions)))
     )
     plot_upset_TR(upset_sub, conditions, upsetplot_outpath, sample_group, plot_formats)
 
-    # Output dataframe to plot distribution of allele frequencies
+    # Reshape dataframe
     longfreq = freq.melt(
-        id_vars=mutation_attributes + barcode_attributes,
+        id_vars=mutation_attributes + sequence_attributes + barcode_attributes,
         value_vars=freq_conditions,
         var_name="TR_freq",
         value_name="frequency",
@@ -329,20 +331,27 @@ def get_selcoeffs(
     longfreq["Timepoint"] = longfreq.TR_freq.apply(lambda x: x.split("_")[0])
     longfreq["Replicate"] = longfreq.TR_freq.apply(lambda x: x.split("_")[1])
     timepoints = sorted(longfreq.Timepoint.unique())
-    # Save metadata in df for simplicity
-    longfreq["Sample attributes"] = sample_group
-    longfreq["Mean_exp_freq"] = mean_exp_freq
-    longfreq.to_csv(freq_outpath, index=False)
 
-    # Annotate with mutation type
-    longfreq["mutation_type"] = longfreq.apply(
-        lambda row: get_mutation_type(row.Nham_aa, row.alt_aa), axis=1
+    # Output dataframe to plot distribution of allele frequencies
+    longfreq_per_seq = (
+        longfreq.groupby(
+            sequence_attributes + barcode_attributes + ["Timepoint", "Replicate"]
+        )[["frequency"]]
+        .first()
+        .reset_index()
     )
-    mutation_attributes += ["mutation_type"]
+    # Save metadata in df for simplicity
+    longfreq_per_seq["Sample attributes"] = sample_group
+    longfreq_per_seq["Mean_exp_freq"] = mean_exp_freq
+    longfreq_per_seq.to_csv(freq_outpath, index=False)
 
     # Calculate Log2(fold-change) for every time point relative to T0
+    # We cannot just go back to wide format since we need to melt Replicate --> pivot again
     freq_wide = longfreq.pivot(
-        index=mutation_attributes + ["Replicate"] + barcode_attributes,
+        index=mutation_attributes
+        + sequence_attributes
+        + barcode_attributes
+        + ["Replicate"],
         columns="Timepoint",
         values="frequency",
     )
@@ -387,9 +396,12 @@ def get_selcoeffs(
         lfc_wide[x[0]] /= lfc_wide[x[1]]
 
     # Normalize with median of silent mutants
-    syn = lfc_wide[(lfc_wide.Nham_nt > 0) & (lfc_wide.Nham_aa == 0)][
-        ["Replicate"] + lfc_cols
-    ]
+    syn = (
+        lfc_wide[(lfc_wide.Nham_nt > 0) & (lfc_wide.Nham_aa == 0)]
+        .groupby(["Replicate", "nt_seq"])[lfc_cols]
+        .first()
+        .reset_index()
+    )
     mediansyn = syn.groupby("Replicate")[lfc_cols].median()
     mediansyn.columns = [x.replace("Lfc", "med") for x in mediansyn.columns]
     med_cols = mediansyn.columns
@@ -403,31 +415,23 @@ def get_selcoeffs(
     # Retrieve wild-type protein sequence
     wtaa = s_wide.loc[s_wide.Nham_nt == 0, "aa_seq"].values[0]
 
-    # Export
+    # Export full dataframe
     s_wide.to_csv(outpath)
 
-    # Filter out groups for which selection coefficients are all missing (e.g. in case of missing replicates)
-    def filter_non_empty_s(group):
-        return group[selcoeff_cols].notna().any().any()
-
-    filtered = s_wide.groupby(
-        ["Replicate", "mutated_codon", "aa_pos", "alt_aa"]
-    ).filter(filter_non_empty_s)
-
-    # Calculate median functional impact score (over synonymous mutants)
+    # Calculate median functional impact score (over synonymous codons), for each replicate separately
     median_df = (
-        filtered.groupby(["Replicate", "mutated_codon", "aa_pos", "alt_aa"])[
-            selcoeff_cols + ["confidence_score", "Nham_aa", "mutation_type"]
+        s_wide.groupby(["Replicate"] + prot_seq_attributes)[
+            selcoeff_cols + ["confidence_score"]
         ]
         .agg(
             dict(
                 zip(
-                    selcoeff_cols + ["confidence_score", "Nham_aa", "mutation_type"],
-                    ["median"] * len(selcoeff_cols) + ["min", "first", "first"],
+                    selcoeff_cols + ["confidence_score"],
+                    ["median"] * len(selcoeff_cols) + ["min"],
                 )
             )
         )
-        .reset_index(level=["mutated_codon", "aa_pos", "alt_aa"])
+        .reset_index(level=prot_seq_attributes)
     )
 
     # Plot correlation between time points
@@ -452,15 +456,22 @@ def get_selcoeffs(
             "you may want to double check the config file and adjust the rc_threshold parameter."
         )
 
+    # Note: I decided to keep low confidence variants in this plot
+    # but we filter right after
     plot_timepoint_corr(graphdf, timepointsplot_outpath, sample_group, plot_formats)
 
-    median_long = median_df.melt(
-        id_vars=mutation_attributes_aa,
-        value_vars=selcoeff_cols,
-        var_name="Compared timepoints",
-        value_name="s",
-        ignore_index=False,
-    ).reset_index()
+    # Filter only high confidence variants + reshape
+    median_long = (
+        median_df[median_df.confidence_score == 1]
+        .melt(
+            id_vars=prot_seq_attributes,
+            value_vars=selcoeff_cols,
+            var_name="Compared timepoints",
+            value_name="s",
+            ignore_index=False,
+        )
+        .reset_index()
+    )
     # Rename column to keep only output time point (all are compared relative to T0)
     median_long["Compared timepoints"] = median_long["Compared timepoints"].apply(
         lambda x: x.split("_")[1]
@@ -474,7 +485,7 @@ def get_selcoeffs(
     # Calculate median across replicates for high confidence variants
     avg_df = (
         median_df[median_df.confidence_score == 1]
-        .groupby(mutation_attributes_aa)[selcoeff_cols]
+        .groupby(prot_seq_attributes)[selcoeff_cols]
         .agg(
             [
                 "median",
@@ -489,7 +500,7 @@ def get_selcoeffs(
     )
 
     # Rename columns
-    cols_to_rename = [x for x in avg_df.columns if x not in mutation_attributes_aa]
+    cols_to_rename = [x for x in avg_df.columns if x not in prot_seq_attributes]
     new_names = []
     for c in cols_to_rename:
         if c[1] == "median":
@@ -512,18 +523,7 @@ def get_selcoeffs(
             avg_df[x] = avg_df[x] - avg_df[f"fitness_{tp}"]
 
     # Export dataframe with fitness and error values
-    final_all = avg_df.reset_index()
-
-    # Export WT separately
-    final_WT = final_all[final_all.mutated_codon == 0]
-    final_WT.to_csv(wt_outpath, index=False)
-
-    # Export final dataframe
-    with open(avg_outpath, "w") as f:
-        f.write(
-            f"# WT_aa:{wtaa}\n"
-        )  # Save wild-type protein sequence in header comment line
-        final_all[final_all.mutated_codon > 0].to_csv(f, index=False)
+    avg_df.reset_index().to_csv(avg_outpath, index=False)
 
     return
 
@@ -533,7 +533,6 @@ get_selcoeffs(
     snakemake.input.nbgen,
     snakemake.output.selcoeffs,
     snakemake.output.avg_scores,
-    snakemake.output.wt_scores,
     snakemake.output.hist_plot,
     snakemake.output.upset_plot,
     snakemake.output.timepoints_plot,

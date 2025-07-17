@@ -1,6 +1,6 @@
 readcounts_by_group = {
     k: [f"results/df/annotated_readcounts/{s}_annot_rc.csv" for s in v]
-    for k, v in grouped_samples_str.items()
+    for k, v in grouped_final_str.items()
 }
 
 
@@ -11,7 +11,6 @@ rule process_read_counts:
     output:
         selcoeffs="results/df/all_scores_{group_key}.csv",
         avg_scores="results/df/avg_scores_{group_key}.csv",
-        wt_scores="results/df/avg_WT_{group_key}.csv",
         hist_plot=report(
             "results/graphs/hist_plot_{group_key}.svg",
             "../report/hist_plot.rst",
@@ -30,7 +29,7 @@ rule process_read_counts:
             "results/graphs/timepoints_plot_{group_key}.svg",
             "../report/timepoints_plot.rst",
             category="3. Functional impact",
-            subcategory="3.2. Correlation between time points",
+            subcategory="3.1. Correlation between time points",
             labels={"figure": "{group_key}"},
         ),
         freq_df="results/df/distribution_freq/freq_{group_key}.csv",
@@ -61,29 +60,29 @@ rule plot_scores:
             "results/graphs/scoeff_violin_plot.svg",
             "../report/scoeff_violin_plot.rst",
             category="3. Functional impact",
-            subcategory="3.1. Aggregated",
-            labels={"figure": "3.1.a. Distribution of functional impact scores"},
+            subcategory="3.2. Aggregated",
+            labels={"figure": "3.2.a. Distribution of functional impact scores"},
         ),
         replicates_heatmap_plot=report(
             "results/graphs/replicates_heatmap_plot.svg",
             "../report/replicates_heatmap_plot.rst",
             category="3. Functional impact",
-            subcategory="3.1. Aggregated",
-            labels={"figure": "3.1.b. Correlation between replicates (1/2)"},
+            subcategory="3.2. Aggregated",
+            labels={"figure": "3.2.b. Correlation between replicates (1/2)"},
         ),
         replicates_plot=report(
             "results/graphs/replicates_plot.svg",
             "../report/replicates_plot.rst",
             category="3. Functional impact",
-            subcategory="3.1. Aggregated",
-            labels={"figure": "3.1.c. Correlation between replicates (2/2)"},
+            subcategory="3.2. Aggregated",
+            labels={"figure": "3.2.c. Correlation between replicates (2/2)"},
         ),
         s_through_time_plot=report(
             "results/graphs/s_through_time_plot.svg",
             "../report/s_through_time_plot.rst",
             category="3. Functional impact",
-            subcategory="3.1. Aggregated",
-            labels={"figure": "3.1.d. Functional impact over time"},
+            subcategory="3.2. Aggregated",
+            labels={"figure": "3.2.d. Functional impact over time"},
         ),
     message:
         "Aggregating dataframes to plot functional impact scores"

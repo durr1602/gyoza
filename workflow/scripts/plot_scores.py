@@ -20,12 +20,11 @@ import matplotlib.pyplot as plt
 
 plt.rcParams["svg.fonttype"] = "none"
 
-mutation_attributes_aa = [
-    "mutated_codon",
+prot_seq_attributes = [
+    "Nham_aa",
+    "aa_seq",
     "aa_pos",
     "alt_aa",
-    "Nham_aa",
-    "mutation_type",
 ]
 
 
@@ -138,7 +137,7 @@ def plot_impact_over_time(df, outpath, plot_formats):
         y="s",
         col="Sample attributes",
         col_wrap=3,
-        hue="mutation_type",
+        hue="Nham_aa",
         palette="hls",
         style="Replicate",
         kind="line",
@@ -246,11 +245,6 @@ def get_s_plots(
     df = concatenate_df(df_files)
     df["Replicate"] = df["Replicate"].astype(str)
     plot_scoeff_violin(df, scoeff_plot_outpath, plot_formats)
-
-    # Mark wild-type nucleotide sequence as distinct "mutation type"
-    # To be able to compare behavior with synonymous codons
-    # (in case of impactful mutations outside the sequenced locus)
-    df.loc[df.mutated_codon == 0, "mutation_type"] = "WT"
     plot_impact_over_time(df, s_time_plot_outpath, plot_formats)
 
     # Save list of replicates
@@ -262,7 +256,7 @@ def get_s_plots(
 
     # Reshape dataframe
     repwide = df.pivot(
-        index=mutation_attributes_aa + ["Sample attributes", "Compared timepoints"],
+        index=prot_seq_attributes + ["Sample attributes", "Compared timepoints"],
         columns="Replicate",
         values="s",
     ).reset_index()

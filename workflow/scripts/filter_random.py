@@ -8,7 +8,7 @@ def filter_random(df, max_Nham_aa, filtered_out, discarded_out):
     specified number of amino acid changes.
     Important to output the "unexpected" dataframe.
     """
-    unfiltered_df = pd.read_csv(df)
+    unfiltered_df = pd.read_csv(df, dtype={"mutation_aa_pos": str})
     unfiltered_df[unfiltered_df.Nham_aa <= max_Nham_aa].to_csv(
         filtered_out, index=False
     )
