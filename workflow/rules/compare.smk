@@ -5,7 +5,7 @@ def get_mutseq_for_sample(wildcards):
 rule compare_to_sequencing:
     input:
         expected_mut_path=get_mutseq_for_sample,
-        readcount_path=rules.parse_fasta.output,
+        readcount_path=rules.parse_fasta.output[0],
     output:
         observed="results/df/observed_seqs/{sample}_observed.csv",
         unexpected="results/df/unexpected_seqs/{sample}_unexpected.csv",
