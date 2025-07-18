@@ -4,7 +4,8 @@ rule parse_fasta:
     output:
         "results/df/readcounts/{sample}_rc.csv",
     params:
-        lambda wildcards: mutseq_to_wtseq[sample_to_mutseq[wildcards.sample]],
+        mutseq=lambda wildcards: sample_to_mutseq[wildcards.sample],
+        wt=lambda wildcards: mutseq_to_wtseq[sample_to_mutseq[wildcards.sample]],
     message:
         "Parsing fasta files to get read counts..."
     log:
