@@ -151,7 +151,7 @@ def get_nt_seq(seq, mut_dic):
     return "".join(list_codons)
 
 
-def generate_mutants(wtseq_path, outpath, codon_table, codon_mode):
+def generate_mutants(wtseq_path, outpath, mutated_seq, codon_table, codon_mode):
     """
     Generates all single mutants and optionally all double mutants,
     based on the provided wild-type sequence
@@ -163,38 +163,32 @@ def generate_mutants(wtseq_path, outpath, codon_table, codon_mode):
     codon_dic = load_codon_dic(codon_table)
 
     # Load dataframe with all wild-type sequences
-    wt_df = pd.read_csv(wtseq_path)
-    wt_df["nt_seq"] = wt_df["WT_seq"].str.upper()
+    all_wt = pd.read_csv(wtseq_path)
+    wt_df = all_wt[all_wt["Mutated_seq"] == mutated_seq].copy()
+    wt_df["WT_seq"] = wt_df["WT_seq"].str.upper()
+    wt_df["nt_seq"] = wt_df["WT_seq"]
 
-    for mutated_seq in wt_df["Mutated_seq"].unique():
-        sub_df = wt_df[wt_df["Mutated_seq"] == mutated_seq]
+    # Get all single mutants (and double mutants if necessary)
+    mutants_df = get_single_double(wt_df, codon_dic, codon_mode)
 
-        if len(sub_df["WT_seq"].unique()) > 1:
-            raise ValueError(
-                f"Error.. For any mutated sequence, there should be a single possible WT sequence."
-            )
-
-        # Get all single mutants (and double mutants if necessary)
-        mutants_df = get_single_double(sub_df, codon_dic, codon_mode)
-
-        # Reconstruct nucleotide sequences from mutations
-        mutants_df["nt_seq"] = list(
-            itertools.starmap(
-                get_nt_seq, zip(mutants_df["WT_seq"], mutants_df["mutations"])
-            )
+    # Reconstruct nucleotide sequences from mutations
+    mutants_df["nt_seq"] = list(
+        itertools.starmap(
+            get_nt_seq, zip(mutants_df["WT_seq"], mutants_df["mutations"])
         )
-        # Concatenate with WT
-        # The mutations are dropped so we can annotate anything in downstream steps
-        expmut_df = pd.concat(
-            [wt_df, mutants_df.drop(["mutations"], axis=1)], ignore_index=True
-        )
+    )
+    # Concatenate with WT
+    # The mutations are dropped so we can annotate anything in downstream steps
+    expmut_df = pd.concat(
+        [wt_df, mutants_df.drop(["mutations"], axis=1)], ignore_index=True
+    )
 
-        # Convert to slightly lighter data types
-        for x in expmut_df.columns:
-            expmut_df[x] = expmut_df[x].astype("string")
+    # Convert to slightly lighter data types
+    for x in expmut_df.columns:
+        expmut_df[x] = expmut_df[x].astype("string")
 
-        # Export dataframe
-        expmut_df.to_csv(outpath, index=False, compression="gzip", chunksize=100_000)
+    # Export dataframe
+    expmut_df.to_csv(outpath, index=False, compression="gzip", chunksize=100_000)
 
     return
 
@@ -202,6 +196,7 @@ def generate_mutants(wtseq_path, outpath, codon_table, codon_mode):
 generate_mutants(
     snakemake.input[0],
     snakemake.output[0],
+    snakemake.wildcards.mutseq,
     snakemake.config["codon"]["table"],
     snakemake.config["codon"]["mode"],
 )
