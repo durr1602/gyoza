@@ -9,9 +9,6 @@ reads:
 samples:
     # Specify path to sample layout
     path: 'config/project_files/layout.csv'
-    # Choice of samples to process, either list of Sample_names: ['My_sample_1', 'My_sample_2']
-    # or to process all samples: 'all'
-    selection: 'all'
     # Specify what makes each sample unique (other than Timepoint and Replicate)
     attributes: ['Species', 'Mating_type', 'Fragment']
     # Specify path to create file containing the number of mitotic generations for each condition
@@ -65,10 +62,6 @@ process_read_counts: True
 normalize:
     # Set to True if you want to normalize impact scores with the number of cellular generations
     with_gen: False
-    
-report:
-    # Set to True if you want the HTML report to be automatically generated upon completion of the workflow
-    generate: True
 
 plots:
     # Indicate in which format(s) you want to export plots, e.g. ['png','pdf'] (most formats supported)

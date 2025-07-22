@@ -12,16 +12,6 @@ properties:
         type: string
         description: Path to sample layout (should be CSV-formatted and end with .csv)
         pattern: '[\\\/\-\_\.A-Za-z0-9]+(\.csv|\.CSV){1}'
-      selection:
-        description: Selected samples (either 'all' or list of samples)
-        oneOf:
-          - type: string
-            enum: ['all']
-          - type: array
-            minItems: 1
-            uniqueItems: true
-            items:
-              type: string
       attributes:
         description: List of sample attributes = columns in the sample layout other than Timepoint and Replicate
         type: array
@@ -39,7 +29,6 @@ properties:
         pattern: '[\\\/\-\_\.A-Za-z0-9]+(\.csv|\.CSV){1}'
     required:
       - path
-      - selection
       - attributes
       - generations
       - wt
@@ -121,16 +110,6 @@ properties:
     required:
       - with_gen
 
-  report:
-    type: object
-    properties:
-      generate:
-        description: Set to True for automatic generation of the report upon completion of the workflow, else False
-        type: boolean
-        default: True
-    required:
-      - generate
-
   plots:
     type: object
     properties:
@@ -153,5 +132,4 @@ required:
   - filter
   - qc
   - normalize
-  - report
   - plots

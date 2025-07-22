@@ -1,6 +1,6 @@
 readcounts_by_group = {
     k: [f"results/df/annotated_readcounts/{s}_annot_rc.csv" for s in v]
-    for k, v in grouped_final_str.items()
+    for k, v in final_groups_str.items()
 }
 
 
@@ -46,8 +46,8 @@ rule process_read_counts:
 
 rule plot_scores:
     input:
-        freq_df=expand(rules.process_read_counts.output.freq_df, group_key=GROUP_KEYS),
-        aa_df=expand(rules.process_read_counts.output.aa_df, group_key=GROUP_KEYS),
+        freq_df=expand(rules.process_read_counts.output.freq_df, group_key=ATTR_GROUPS_WITH_OUTPUTS),
+        aa_df=expand(rules.process_read_counts.output.aa_df, group_key=ATTR_GROUPS_WITH_OUTPUTS),
     output:
         rc_var_plot=report(
             "results/graphs/rc_var_plot.svg",

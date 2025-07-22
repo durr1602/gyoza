@@ -8,6 +8,7 @@ properties:
   Sample_name:
     type: string
     description: Unique identifier for the sample
+    uniqueItems: True
   R1:
     type: string
     pattern: '[\\\/\-\_\.A-Za-z0-9]+(\.fastq|\.FASTQ){1}(\.gz|\.GZ)?'
@@ -36,6 +37,12 @@ properties:
     type: string
     minLength: 1
     description: Time point (mandatory are T0 and at least one other time point, e.g. T1)
+  Analyze:
+    description: Generate data for this sample
+    default: False
+  Report:
+    description: Include sample in the HTML report
+    default: False
 
 required:
   - Sample_name
@@ -45,3 +52,5 @@ required:
   - Pos_start
   - Replicate
   - Timepoint
+  - Analyze
+  - Report
