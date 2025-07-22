@@ -229,9 +229,13 @@ if exists(config["samples"]["generations"]):
     else:
         print("No normalization with cellular generations")
 else:
-    nbgen_temp = layout_csv[layout_csv.Timepoint != "T0"][
-        config["samples"]["attributes"] + ["Replicate", "Timepoint"]
-    ].drop_duplicates()
+    nbgen_temp = (
+        layout_csv[
+            layout_csv["Sample_name"].isin(SAMPLES)
+            & (layout_csv["Timepoint"] != "T0")
+        ][config["samples"]["attributes"] + ["Replicate", "Timepoint"]]
+        .drop_duplicates()
+    )
     nbgen_temp["Nb_gen"] = 1
     nbgen_temp.to_csv(config["samples"]["generations"], index=None)
     if config["normalize"]["with_gen"]:
