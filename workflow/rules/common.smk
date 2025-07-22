@@ -1,6 +1,5 @@
 ##### Import libraries #####
 
-import sys
 import pandas as pd
 from snakemake.utils import validate
 from pathlib import Path
