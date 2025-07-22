@@ -149,17 +149,17 @@ pos_offset_by_group = {
 
 ##### Determine groups with output timepoints #####
 
-groups_with_output_timepoints = {
-    group: [s for s in samples if sample_layout.loc[s, "Timepoint"] != "T0"]
-    for group, samples in final_groups.items()
-}
-groups_with_output_timepoints = {
-    group: samples
-    for group, samples in groups_with_output_timepoints.items()
-    if samples
-}
+groups_with_output_timepoints = {}
+for group, samples in final_groups.items():
+    timepoints = {sample_layout.loc[s, "Timepoint"] for s in samples}
+    if "T0" in timepoints and any(tp != "T0" for tp in timepoints):
+        groups_with_output_timepoints[group] = samples
+
 ATTR_GROUPS_WITH_OUTPUTS = [
     serialize_key(group) for group in groups_with_output_timepoints
+]
+REPORTED_GROUPS_WITH_OUTPUTS = [
+    g for g in ATTR_GROUPS_WITH_OUTPUTS if g in REPORTED_GROUPS
 ]
 
 ##### Get combinations of groups and output time points #####
