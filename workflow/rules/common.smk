@@ -62,7 +62,7 @@ print("Sample layout validated.")
 ##### Validate sample attributes and group samples #####
 
 [
-    warnings.warn(f"Column {col} is not listed in your sample attributes.")
+    warnings.warn(f"Column {x} is not listed in your sample attributes.")
     for x in layout_add_cols
     if x not in config["samples"]["attributes"]
 ]
@@ -81,6 +81,7 @@ else:
         key = tuple(row[col] for col in config["samples"]["attributes"])
         all_groups[key].append(row["Sample_name"])
     print("Sample attributes imported.")
+
 
 ##### Select samples to analyze/report #####
 
@@ -120,6 +121,7 @@ for group, samples in analyze_groups.items():
 for group, samples in report_groups.items():
     final_groups[group].extend(samples)
 final_groups = {group: sorted(set(samples)) for group, samples in final_groups.items()}
+
 
 ##### Convert sample grouping wilcard <-> string #####
 
