@@ -39,9 +39,11 @@ properties:
     description: Time point (mandatory are T0 and at least one other time point, e.g. T1)
   Analyze:
     description: Generate data for this sample
+    type: [boolean, string]
     default: False
   Report:
     description: Include sample in the HTML report
+    type: [boolean, string]
     default: False
 
 required:

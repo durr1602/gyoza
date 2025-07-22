@@ -47,7 +47,7 @@ validate(layout_csv, schema="../schemas/sample_layout.schema.yaml")
 truthy = {"true", "t", "yes", "y", "ok", "1"}
 for col in ["Analyze", "Report"]:
     layout_csv[col] = (
-        layout_csv[col].fillna(False).astype(str).str.strip().str.lower().isin(truthy)
+        layout_csv[col].fillna("").astype(str).str.strip().str.lower().isin(truthy)
     )
 
 # Retrieve non-mandatory columns
@@ -61,11 +61,9 @@ print("Sample layout validated.")
 
 ##### Validate sample attributes and group samples #####
 
-[
-    warnings.warn(f"Column {x} is not listed in your sample attributes.")
-    for x in layout_add_cols
-    if x not in config["samples"]["attributes"]
-]
+for x in layout_add_cols:
+    if x not in config["samples"]["attributes"]:
+        warnings.warn(f"Column {x} is not listed in your sample attributes.")
 
 if not config["samples"]["attributes"]:
     raise ValueError("Error.. Please specify at least one sample attribute.")
