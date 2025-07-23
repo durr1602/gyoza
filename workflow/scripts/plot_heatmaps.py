@@ -22,6 +22,8 @@ def get_heatmaps(f, meta, outpath, label, plot_formats):
     fitness = metadata.get("fitness")
     wtcoord = metadata.get("wt_coordinates")
     cmap = metadata.get("color_map")
+    vmax = metadata.get("vmax")
+    vmin = metadata.get("vmin")
 
     # Load dataframe
     df = pd.read_csv(f, index_col=idx)
@@ -50,7 +52,9 @@ def get_heatmaps(f, meta, outpath, label, plot_formats):
         df,
         mask=mask,
         cmap=cmap,
+        vmin=vmin,
         center=0,
+        vmax=vmax,
         xticklabels=2,
         cbar_kws={"label": fitness, "shrink": 0.7},
     )

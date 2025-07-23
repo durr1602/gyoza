@@ -17,6 +17,10 @@ def get_heatmap_s_data(f, outpath, meta_out, pos_offset):
 
     df = pd.read_csv(f)
 
+    # Get min/max values
+    vmax = max(1, int(df[[x for x in df.columns if "fitness_" in x]].max().max()) + 1)
+    vmin = min(-1, int(df[[x for x in df.columns if "fitness_" in x]].min().min()))
+
     # Retrieve wild-type
     wtaa = df.loc[df.Nham_aa == 0, "aa_seq"].values[0]
 
@@ -58,6 +62,8 @@ def get_heatmap_s_data(f, outpath, meta_out, pos_offset):
         "fitness": f"fitness_{t}",
         "wt_coordinates": wtcoord,
         "color_map": cmap,
+        "vmax": vmax,
+        "vmin": vmin,
     }
     with open(meta_out, "wb") as m:
         pickle.dump(meta, m)

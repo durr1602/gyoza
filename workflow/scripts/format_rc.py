@@ -1,10 +1,11 @@
 from snakemake.script import snakemake
 import pandas as pd
+import numpy as np
 import pickle
 import matplotlib.pyplot as plt
 
 
-def get_heatmap_rc_data(f, outpath, meta_out):
+def get_heatmap_rc_data(f, outpath, meta_out, exp_rc):
     """
     Takes dataframe of annotated read counts (for 1 sample) as input.
     Formats it and shapes it to be passed to the heatmap plotting module.
@@ -24,10 +25,11 @@ def get_heatmap_rc_data(f, outpath, meta_out):
     # Reshape dataframe
     filtered = df[df.Nham_codons == 1].copy()
     filtered["mutation_aa_pos"] = filtered["mutation_aa_pos"].astype(int)
+    filtered["Log10(readcount)"] = np.log10(filtered["readcount"])
     wide = filtered.pivot(
         index=["mutation_alt_aa", "mutation_alt_codons"],
         columns="mutation_aa_pos",
-        values="readcount",
+        values="Log10(readcount)",
     )
     wide.sort_index(key=lambda x: x.map(AA_SORT), inplace=True)
 
@@ -51,9 +53,11 @@ def get_heatmap_rc_data(f, outpath, meta_out):
     # Assemble and save metadata
     meta = {
         "idx": ["mutation_alt_aa", "mutation_alt_codons"],
-        "fitness": "readcount",
+        "fitness": "Log10(readcount)",
         "wt_coordinates": wtcoord,
         "color_map": cmap,
+        "vmax": np.log10(exp_rc),
+        "vmin": 0,
     }
     with open(meta_out, "wb") as m:
         pickle.dump(meta, m)
@@ -65,4 +69,5 @@ get_heatmap_rc_data(
     snakemake.input[0],
     snakemake.output.heatmap_df,
     snakemake.output.heatmap_meta,
+    snakemake.params.exp_rc,
 )

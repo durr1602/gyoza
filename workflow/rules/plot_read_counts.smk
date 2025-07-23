@@ -4,6 +4,8 @@ rule format_read_counts:
     output:
         heatmap_df="results/df/formatted_readcounts/{sample}_format_rc.csv",
         heatmap_meta="results/heatmap_metadata/{sample}_rc.pkl",
+    params:
+        exp_rc=float(config["rc_aims"]["exp_rc_per_sample"]),
     message:
         f"Format read counts.."
     log:
