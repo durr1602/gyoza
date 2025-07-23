@@ -29,7 +29,7 @@ def get_heatmaps(f, meta, outpath, label, plot_formats):
     # Prepare graph space
     sns.set_theme(
         rc={
-            "figure.figsize": (0.2 * len(df.columns), 0.2 * len(df.index)),
+            "figure.figsize": (max(3, 0.2 * len(df.columns)), 0.2 * len(df.index)),
             "font.size": 8,
             "legend.title_fontsize": 8,
             "legend.fontsize": 8,
