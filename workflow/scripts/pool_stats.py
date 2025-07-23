@@ -138,7 +138,7 @@ def get_pooled_stats(
         exp_rc_per_sample,
         plot_formats,
     )
-    
+
     return
 
 

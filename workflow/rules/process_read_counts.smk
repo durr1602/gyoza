@@ -46,8 +46,14 @@ rule process_read_counts:
 
 rule plot_scores:
     input:
-        freq_df=expand(rules.process_read_counts.output.freq_df, group_key=REPORTED_GROUPS_WITH_OUTPUTS),
-        aa_df=expand(rules.process_read_counts.output.aa_df, group_key=REPORTED_GROUPS_WITH_OUTPUTS),
+        freq_df=expand(
+            rules.process_read_counts.output.freq_df,
+            group_key=REPORTED_GROUPS_WITH_OUTPUTS,
+        ),
+        aa_df=expand(
+            rules.process_read_counts.output.aa_df,
+            group_key=REPORTED_GROUPS_WITH_OUTPUTS,
+        ),
     output:
         rc_var_plot=report(
             "results/graphs/rc_var_plot.svg",

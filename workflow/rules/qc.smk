@@ -26,7 +26,11 @@ rule fastqc:
 
 rule multiqc:
     input:
-        expand("results/0_qc/{sample}_{RF}_fastqc.zip", sample=REPORTED_SAMPLES, RF=RF_VALS),
+        expand(
+            "results/0_qc/{sample}_{RF}_fastqc.zip",
+            sample=REPORTED_SAMPLES,
+            RF=RF_VALS,
+        ),
     output:
         report(
             "results/0_qc/multiqc.html",
