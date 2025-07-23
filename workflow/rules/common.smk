@@ -216,12 +216,14 @@ print("Codon table validated.")
 # If the user opts in, a warning will notify the user that the template needs to be filled
 # Once the column contains other values than 1 for every row, we'll use the data for normalization
 
-required_rows = layout_csv[layout_csv["Sample_name"].isin(SAMPLES) & (layout_csv["Timepoint"] != "T0")][config["samples"]["attributes"] + ["Replicate", "Timepoint"]].drop_duplicates()
+required_rows = layout_csv[
+    layout_csv["Sample_name"].isin(SAMPLES) & (layout_csv["Timepoint"] != "T0")
+][config["samples"]["attributes"] + ["Replicate", "Timepoint"]].drop_duplicates()
 
 if exists(config["samples"]["generations"]):
     nbgen = pd.read_csv(config["samples"]["generations"], dtype={"Replicate": str})
     validate(nbgen, schema="../schemas/nbgen.schema.yaml")
-    if (config["normalize"]["with_gen"]) & ((nbgen.Nb_gen == 1).any(0)):
+    if (config["normalize"]["with_gen"]) & ((nbgen.Nb_gen == 1).any()):
         raise Exception(
             f">>Please fill in the file {config['samples']['generations']} with the number of cellular generations<<\n"
             ">>(or deactivate this normalization in the main config file)<<"
@@ -232,14 +234,16 @@ if exists(config["samples"]["generations"]):
             nbgen,
             on=config["samples"]["attributes"] + ["Replicate", "Timepoint"],
             how="left",
-            indicator=True
+            indicator=True,
         )
         missing_rows = merged[merged["_merge"] == "left_only"].drop(columns=["_merge"])
         missing_rows["Nb_gen"] = 1
 
         # Append to existing file
         if not missing_rows.empty:
-            print(f"Adding {len(missing_rows)} missing row(s) to {config['samples']['generations']}")
+            print(
+                f"Adding {len(missing_rows)} missing row(s) to {config['samples']['generations']}"
+            )
             nbgen = pd.concat([nbgen, missing_rows], ignore_index=True)
             nbgen.to_csv(config["samples"]["generations"], index=False)
 
@@ -248,16 +252,18 @@ if exists(config["samples"]["generations"]):
         selected_rows = nbgen.merge(
             required_rows,
             on=config["samples"]["attributes"] + ["Replicate", "Timepoint"],
-            how="inner"
+            how="inner",
         )
 
-        if (selected_rows["Nb_gen"] == 1).any(0):
+        if (selected_rows["Nb_gen"] == 1).any():
             raise Exception(
                 f">> Please fill in the file {config['samples']['generations']} with the number of cellular generations <<\n"
                 ">>(or deactivate this normalization in the main config file)<<"
             )
         else:
-            print("Ready to normalize with the provided numbers of cellular generations.")
+            print(
+                "Ready to normalize with the provided numbers of cellular generations."
+            )
     else:
         print("No normalization with cellular generations")
 else:
