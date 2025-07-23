@@ -70,7 +70,11 @@ def plot_allele_freq(df, outpath, mean_exp_freq, plot_formats):
     g.set_axis_labels("", "Frequency")
     g.set_titles(row_template="{row_name}")
     avg_label_length = sum(len(label) for label in labels) / len(labels)
-    g.set_xticklabels(labels, rotation=min(90, 4.5*avg_label_length), ha="right")
+    if avg_label_length > 20:  # wrap long labels
+        labels = [
+            "\n".join([a[i : i + 20] for i in range(0, len(a), 20)]) for a in labels
+        ]
+    g.set_xticklabels(labels, rotation=min(90, 4.5 * avg_label_length), ha="right")
     g.tight_layout()
     plt.savefig(outpath, format="svg", dpi=300)
     [
@@ -117,7 +121,11 @@ def plot_scoeff_violin(df, outpath, plot_formats):
     g.set_axis_labels("", "s")
     g.set_titles(row_template="{row_name}")
     avg_label_length = sum(len(label) for label in labels) / len(labels)
-    g.set_xticklabels(labels, rotation=min(90, 4.5*avg_label_length), ha="right")
+    if avg_label_length > 20:  # wrap long labels
+        labels = [
+            "\n".join([a[i : i + 20] for i in range(0, len(a), 20)]) for a in labels
+        ]
+    g.set_xticklabels(labels, rotation=min(90, 4.5 * avg_label_length), ha="right")
     g.tight_layout()
     plt.savefig(outpath, format="svg", dpi=300)
     [
