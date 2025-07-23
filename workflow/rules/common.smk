@@ -315,6 +315,41 @@ def collect_graphs():
     ]
 
 
+def generate_report():
+    try:
+        graphs = collect_graphs()
+
+        # Add QC report if present
+        qc_path = Path("results/0_qc/multiqc.html")
+        if config["qc"]["perform"] and qc_path.exists():
+            graphs.append(str(qc_path))
+
+        if graphs:
+            # Inject config (if specified on the command line)
+            config_arg = None
+            args = sys.argv
+            if "--configfile" in args:
+                idx = args.index("--configfile")
+                if idx + 1 < len(args):
+                    config_arg = args[idx + 1]
+
+            configfile_str = f"--configfile {config_arg}" if config_arg else ""
+
+            # Switch to .zip if too many graphs collected
+            ext = "html" if len(graphs) <= 30 else "zip"
+
+            # CSS Style sheet
+            css = "report-stylesheet"
+
+            report_cmd = f"snakemake {' '.join(str(f) for f in graphs)} --report results/report.{ext} --{css} config/style/{css}.css {configfile_str}"
+            shell(report_cmd)
+        else:
+            print(">> No graphs found. Skipping report generation.")
+
+    except Exception as e:
+        print(f"Report generation failed: {e}")
+
+
 ##### Workflow targets #####
 
 
