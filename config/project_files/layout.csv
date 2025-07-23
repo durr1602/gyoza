@@ -1,7 +1,7 @@
 Sample_name,R1,R2,N_forward,N_reverse,Mutated_seq,Pos_start,Replicate,Timepoint,Species,Mating_type,Fragment,Pos_stop,Analyze,Report
 CN_alp_r1_F1_T0,CN_alp_r1_F1_T0_R1_small.fastq.gz,CN_alp_r1_F1_T0_R2_small.fastq.gz,TTCATAGCTAATG,GGAACTCTGCCTAAATTTTC,CN_F1,2,r1,T0,CN,alp,F1,71,True,yes
 CN_alp_r2_F1_T0,CN_alp_r2_F1_T0_R1_small.fastq.gz,CN_alp_r2_F1_T0_R2_small.fastq.gz,TTCATAGCTAATG,GGAACTCTGCCTAAATTTTC,CN_F1,2,r2,T0,CN,alp,F1,71,T,
-CN_alp_r1_F1_T1,CN_alp_r1_F1_T1_R1_small.fastq.gz,CN_alp_r1_F1_T1_R2_small.fastq.gz,TTCATAGCTAATG,GGAACTCTGCCTAAATTTTC,CN_F1,2,r1,T1,CN,alp,F1,71,Yes,
+CN_alp_r1_F1_T1,CN_alp_r1_F1_T1_R1_small.fastq.gz,CN_alp_r1_F1_T1_R2_small.fastq.gz,TTCATAGCTAATG,GGAACTCTGCCTAAATTTTC,CN_F1,2,r1,T1,CN,alp,F1,71,Yes,y
 CN_alp_r2_F1_T1,CN_alp_r2_F1_T1_R1_small.fastq.gz,CN_alp_r2_F1_T1_R2_small.fastq.gz,TTCATAGCTAATG,GGAACTCTGCCTAAATTTTC,CN_F1,2,r2,T1,CN,alp,F1,71,Y,
-CN_alp_r1_F1_T2,CN_alp_r1_F1_T2_R1_small.fastq.gz,CN_alp_r1_F1_T2_R2_small.fastq.gz,TTCATAGCTAATG,GGAACTCTGCCTAAATTTTC,CN_F1,2,r1,T2,CN,alp,F1,71,,
+CN_alp_r1_F1_T2,CN_alp_r1_F1_T2_R1_small.fastq.gz,CN_alp_r1_F1_T2_R2_small.fastq.gz,TTCATAGCTAATG,GGAACTCTGCCTAAATTTTC,CN_F1,2,r1,T2,CN,alp,F1,71,,y
 CN_alp_r2_F1_T2,CN_alp_r2_F1_T2_R1_small.fastq.gz,CN_alp_r2_F1_T2_R2_small.fastq.gz,TTCATAGCTAATG,GGAACTCTGCCTAAATTTTC,CN_F1,2,r2,T2,CN,alp,F1,71,1,
