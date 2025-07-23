@@ -6,16 +6,22 @@ If you use Windows, the following steps need to be run in WSL2 ([WSL installatio
 
 If you already have WSL2 or if you use Linux or MacOS X, the following steps need `conda` (see [Conda documentation](https://conda.io/docs/index.html)).
 
-If you don't already have it, we recommend installing Miniforge by following the instructions listed in the "Step 1" section of [this tutorial](https://snakemake.readthedocs.io/en/stable/tutorial/setup.html#step-1-installing-miniforge).
+If you don't already have it, we recommend installing Miniforge by following the instructions listed in the "Step **1b**" section of [this tutorial](https://snakemake.readthedocs.io/en/stable/tutorial/setup.html#step-1b-installing-miniforge).
 
-If you already have it, make sure to update it to a recent version (>=24.7.1, ideally even more recent such as >=24.9.1). Here are two helpful command lines to do this: `conda update -n base -c defaults conda --repodata-fn=repodata.json`, or `mamba update conda`. If you already have it or another instance such as Anaconda, you can uninstall (for example) anaconda by running `rm -rf anaconda3`.
+If you already have it, make sure to update it to a recent version (>=24.7.1, ideally even more recent such as >=24.9.1). Here are two helpful command lines to do this: `conda update -n base -c defaults conda --repodata-fn=repodata.json`, or `mamba update conda`. If you have multiple instances of conda and want to uninstall, say, Anaconda, run `rm -rf anaconda3`.
 
-1. Create a Python>=3.9 virtual environment to install dependencies. You may need to adapt `python3.11` depending on your version (try `python --version` or `python3 --version` for example, to check the Python version).
+1. Install [`uv`](https://github.com/astral-sh/uv)
+2. Create a Python>=3.12 virtual environment to install dependencies. The specified Python version should automatically be installed if not available locally.
 ```
-python3.11 -m venv gyoza_env
+uv venv gyoza_env --python 3.13
 source gyoza_env/bin/activate
-pip install snakedeploy>=0.11.0 snakemake>=9.4.0 snakemake-wrapper-utils>=0.7.2 pygments>=2.19.1 snakemake-executor-plugin-cluster-generic
+uv pip install "snakedeploy>=0.11.0" "snakemake>=9.4.0" "snakemake-wrapper-utils>=0.7.2" pygments snakemake-executor-plugin-cluster-generic setuptools
 ```
+Whenever your gyoza_env is activated, you should see it in the prompt:
+```
+(gyoza_env) <USER>@<MACHINE>
+```
+If another env is displayed, e.g. (base), make sure to deactivate it so that there is only (gyoza_env) left. You may need to run `conda config --set auto_activate_base False`.
 
 ### Recommended installation of gyōza
 
