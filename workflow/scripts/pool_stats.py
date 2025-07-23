@@ -22,7 +22,7 @@ def plot_stacked_barplot(df, outpath, exp_rc_per_sample, plot_formats):
         )
     )
 
-    f, ax = plt.subplots(figsize=(20, 5))
+    f, ax = plt.subplots(figsize=(max(1, len(samples)), 5))
     bottom = np.zeros(len(df))
 
     for l in color_dict.keys():
@@ -138,7 +138,7 @@ def get_pooled_stats(
         exp_rc_per_sample,
         plot_formats,
     )
-
+    
     return
 
 

@@ -69,7 +69,8 @@ def plot_allele_freq(df, outpath, mean_exp_freq, plot_formats):
 
     g.set_axis_labels("", "Frequency")
     g.set_titles(row_template="{row_name}")
-    g.set_xticklabels(labels, rotation=45, ha="right")
+    avg_label_length = sum(len(label) for label in labels) / len(labels)
+    g.set_xticklabels(labels, rotation=min(90, 4.5*avg_label_length), ha="right")
     g.tight_layout()
     plt.savefig(outpath, format="svg", dpi=300)
     [
@@ -115,7 +116,8 @@ def plot_scoeff_violin(df, outpath, plot_formats):
 
     g.set_axis_labels("", "s")
     g.set_titles(row_template="{row_name}")
-    g.set_xticklabels(labels, rotation=45, ha="right")
+    avg_label_length = sum(len(label) for label in labels) / len(labels)
+    g.set_xticklabels(labels, rotation=min(90, 4.5*avg_label_length), ha="right")
     g.tight_layout()
     plt.savefig(outpath, format="svg", dpi=300)
     [
@@ -132,7 +134,7 @@ def plot_impact_over_time(df, outpath, plot_formats):
     Bands indicate spread (standard deviation) for each mutation type.
     """
     g = sns.relplot(
-        data=df,
+        data=df.sort_values(by="Compared timepoints"),
         x="Compared timepoints",
         y="s",
         col="Sample attributes",
