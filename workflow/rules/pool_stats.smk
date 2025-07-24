@@ -22,6 +22,7 @@ rule pool_stats:
         ),
     params:
         reported_samples=REPORTED_SAMPLES,
+        exp_rc_per_sample=float(config["rc_aims"]["exp_rc_per_sample"]),
     message:
         "Pooling statistics from all samples..."
     log:

@@ -8,10 +8,12 @@ properties:
   Mutated_seq:
     type: string
     description: Unique identifier for the mutated locus
+    uniqueItems: True
   WT_seq:
     type: string
     pattern: (?i)^[ATGC]+$
     description: Wild-type DNA sequence for the mutated locus (length should be a multiple of 3, the first 3 bases constitute the first mutated codon)
+    uniqueItems: True
 
 required:
   - Mutated_seq

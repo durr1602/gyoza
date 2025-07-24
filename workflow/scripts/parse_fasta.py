@@ -2,7 +2,7 @@ from snakemake.script import snakemake
 import pandas as pd
 
 
-def get_read_counts(fasta_file, outpath, sample_name, wt, readcount_level):
+def get_read_counts(fasta_file, outpath, mutated_seq, sample_name, wt, readcount_level):
     with open(fasta_file, "r") as file:
         entries = file.read().split(">")[1:]
 
@@ -11,6 +11,7 @@ def get_read_counts(fasta_file, outpath, sample_name, wt, readcount_level):
     fasta_df = pd.DataFrame(
         list(zip(seqs, readcount)), columns=[readcount_level, "readcount"]
     )
+    fasta_df["Mutated_seq"] = mutated_seq
     fasta_df["Sample_name"] = sample_name
     fasta_df["WT_seq"] = wt
     fasta_df.to_csv(outpath, index=False)
@@ -21,7 +22,8 @@ def get_read_counts(fasta_file, outpath, sample_name, wt, readcount_level):
 get_read_counts(
     snakemake.input[0],
     snakemake.output[0],
+    snakemake.params.mutseq,
     snakemake.wildcards.sample,
-    snakemake.params[0],
+    snakemake.params.wt,
     snakemake.config["barcode"]["rc_level"],
 )

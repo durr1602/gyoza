@@ -14,7 +14,7 @@ def get_observed_mutants(expmut, readcounts, outpath, unexp_outpath, readcount_l
         left=expmut_df,
         right=readcounts_df,
         how="outer",
-        on=["WT_seq", readcount_level],
+        on=["Mutated_seq", "WT_seq", readcount_level],
         indicator="Location",
     )
 
@@ -37,8 +37,8 @@ def get_observed_mutants(expmut, readcounts, outpath, unexp_outpath, readcount_l
 
 
 get_observed_mutants(
-    str(snakemake.input["expected_mut_path"]),
-    str(snakemake.input["readcount_path"]),
+    snakemake.input.expected_mut_path,
+    snakemake.input.readcount_path,
     snakemake.output.observed,
     snakemake.output.unexpected,
     snakemake.config["barcode"]["rc_level"],

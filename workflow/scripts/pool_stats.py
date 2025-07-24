@@ -22,7 +22,7 @@ def plot_stacked_barplot(df, outpath, exp_rc_per_sample, plot_formats):
         )
     )
 
-    f, ax = plt.subplots(figsize=(20, 5))
+    f, ax = plt.subplots(figsize=(max(1, len(samples)), 5))
     bottom = np.zeros(len(df))
 
     for l in color_dict.keys():
@@ -149,6 +149,6 @@ get_pooled_stats(
     snakemake.output.rc_filter_plot,
     snakemake.output.unexp_rc_plot,
     snakemake.params.reported_samples,
-    float(snakemake.config["rc_aims"]["exp_rc_per_sample"]),
+    snakemake.params.exp_rc_per_sample,
     [x for x in snakemake.config["plots"]["format"] if x != "svg"],
 )

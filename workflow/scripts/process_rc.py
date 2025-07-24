@@ -131,7 +131,7 @@ def plot_timepoint_corr(df, outpath, sample_group, plot_formats):
     """
     # Check number of columns
     if len([x for x in df.columns if x != "confidence_score"]) <= 1:
-        f, ax = plt.subplots(figsize=(4, 4))
+        f, ax = plt.subplots(figsize=(max(4, 0.1 * len(sample_group)), 4))
         ax.text(0.5, 0.5, "Not enough time points to plot", ha="center", va="center")
         ax.set_axis_off()  # hide axes
     else:
