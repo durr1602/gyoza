@@ -21,9 +21,10 @@ samples:
     expected_mut: 'config/project_files/expected_mut/'
 
 design: 'random'
-    # Specify the design of your experiment: codon | provided | random
+    # Specify the design of your experiment: codon | provided | barcode | random
     # codon: Automatically generate all expected mutants based on the codon mode
-    # provided: You provide the list of expected mutants or the dataframe of barcode-variant associations
+    # provided: You provide the list of expected mutants
+    # barcode: You provide the dataframe of barcode-variant associations
     # random: Random mutagenesis - mutants observed in the sequencing data are directly annotated
 
 codon:
@@ -33,8 +34,6 @@ codon:
     mode: 'NNN'
 
 barcode:
-    # Level to which read count is attributed (default: 'nt_seq', change to 'barcode' for barcoded design)
-    rc_level: 'nt_seq'
     # Specify barcode attributes to label each variant
     attributes: []
 

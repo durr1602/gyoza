@@ -1,5 +1,3 @@
-import sys
-
 ##### Load main report caption #####
 
 
@@ -19,6 +17,8 @@ include: "rules/plot_read_counts.smk"
 
 
 RF_VALS = ["R1"]
+RC_LEVEL = "nt_seq"
+
 if config["reads"]["paired"]:
     RF_VALS.append("R2")
     include: "rules/cutadapt.smk"
@@ -30,15 +30,23 @@ if config["qc"]["perform"]:
 
 
 design = config["design"]
+
 if design == "random":
     include: "rules/annotate_random.smk"
-elif design == "provided":
+
+elif design in ["provided", "barcode"]:
     include: "rules/compare.smk"
     include: "rules/annotate_mutants.smk"
+    
+    if design == "barcode":
+        RC_LEVEL = "barcode"
+        barcode_attributes.append([RC_LEVEL] + config["barcode"]["attributes"])
+
 elif design == "codon":
     include: "rules/generate_expected_mutants.smk"
     include: "rules/compare.smk"
     include: "rules/annotate_mutants.smk"
+
 else:
     raise ValueError(f"Unknown experiment design: {design}")
 

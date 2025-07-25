@@ -1,6 +1,21 @@
-rule annotate_random:
+rule inject_WT:
     input:
         rules.parse_fasta.output,
+    output:
+        temp("results/df/readcounts/{sample}_rc_with_WT.csv"),
+    params:
+        wt=lambda wildcards: mutseq_to_wtseq[sample_to_mutseq[wildcards.sample]],
+    log:
+        "logs/6_annotate/inject_WT-sample={sample}.log",
+    conda:
+        "../envs/main.yaml"
+    script:
+        "../scripts/inject_WT.py"
+
+
+rule annotate_random:
+    input:
+        rules.inject_WT.output,
     output:
         annot_rc="results/df/unfiltered/{sample}_unfiltered-rc.csv",
         indels="results/df/indels/{sample}_indels.csv",

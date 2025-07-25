@@ -1,5 +1,6 @@
 ##### Import libraries #####
 
+import sys
 import pandas as pd
 from snakemake.utils import validate
 from pathlib import Path
@@ -190,6 +191,10 @@ if not SAMPLES:
 print(f"{len(SAMPLES)} sample(s) selected for analysis.")
 
 ##### Validate CSV file containing WT DNA sequences #####
+# Required only for 'codon' and 'random' designs
+# If avaible, we retrieve the WT from there to be able to annotate mutants
+
+mutseq_to_wtseq = {}
 
 if exists(config["samples"]["wt"]):
     wtseqs = pd.read_csv(config["samples"]["wt"])
@@ -197,11 +202,18 @@ if exists(config["samples"]["wt"]):
     mutseq_to_wtseq = dict(zip(wtseqs["Mutated_seq"], wtseqs["WT_seq"]))
     print("WT imported.")
 
-##### Validate CSV file containing expected DNA sequences #####
-# if exists(config["samples"]["expected_mut"]):
-#    expmut = pd.read_csv(config["samples"]["expected_mut"])
-#    validate(expmut, schema="../schemas/wt_seqs.schema.yaml")
-#    print("Expected mutated sequences imported.")
+##### Validate CSV files containing expected DNA sequences #####
+# Note: WT CSV is not required for 'provided' design
+# For 'provided' and 'random' designs, we get the WT from the list of expected mutants
+
+for f in EXPMUT_PATH:
+    if exists(f):
+        expmut = pd.read_csv(f)
+        validate(expmut, schema="../schemas/wt_seqs.schema.yaml")
+        mutseq = expmut.at[0, "Mutated_seq"]
+        wtseq = expmut.at[0, "WT_seq"].upper()
+        mutseq_to_wtseq[mutseq] = wtseq
+        print(f"Imported expectant mutants of {mutseq}.")
 
 ##### Validate codon table #####
 

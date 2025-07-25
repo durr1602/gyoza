@@ -542,7 +542,7 @@ get_selcoeffs(
     snakemake.config["samples"]["path"],
     snakemake.config["samples"]["attributes"],
     snakemake.config["barcode"]["attributes"],
-    snakemake.config["barcode"]["rc_level"],
+    snakemake.params.readcount_level,
     snakemake.config["filter"]["rc_threshold"],
     snakemake.config["rc_aims"]["exp_rc_per_var"],
     [x for x in snakemake.config["plots"]["format"] if x != "svg"],

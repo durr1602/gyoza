@@ -34,6 +34,8 @@ rule process_read_counts:
         ),
         freq_df="results/df/distribution_freq/freq_{group_key}.csv",
         aa_df="results/df/agg_aa/aa_{group_key}.csv",
+    params:
+        readcount_level = RC_LEVEL,
     message:
         "Processing read counts... converting to functional impact scores"
     log:
