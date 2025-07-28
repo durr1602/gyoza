@@ -1,6 +1,7 @@
 from snakemake.script import snakemake
 import pandas as pd
 
+
 def inject_WT(f, wt, outpath):
     """
     Short script to inject WT sequence

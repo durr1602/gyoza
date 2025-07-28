@@ -10,7 +10,7 @@ rule compare_to_sequencing:
         observed="results/df/observed_seqs/{sample}_observed.csv",
         unexpected="results/df/unexpected_seqs/{sample}_unexpected.csv",
     params:
-        readcount_level = RC_LEVEL,
+        readcount_level=RC_LEVEL,
     message:
         f"Comparing sequencing data to expected mutants"
     log:
