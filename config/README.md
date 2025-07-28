@@ -43,9 +43,12 @@ To prevent any typing mistake, the genetic code is imported from a [CoCoPUTs](ht
 
 ### WT DNA sequences
 
-If you've selected a 'codon' or 'random' design, please provide a csv-formatted list of WT DNA sequences. The file should be named `wt_seq.csv` and be located in the `config/project_files` folder. Here is [an example](project_files/wt_seq.csv). The file should contain **exactly** the two following columns:
+If you've selected a 'codon' or 'random' design, please provide a csv-formatted list of WT DNA sequences. The file should be named `wt_seq.csv` and be located in the `config/project_files` folder. Here is [an example](project_files/wt_seq.csv). The file should contain the following columns:
 - Mutated_seq: all possible values for the Mutated_seq flag from the layout (no duplicates!)
 - WT_seq: corresponding WT DNA sequence, assuming the first three bases constitute the first mutated codon (no duplicates!)
+
+For 'codon' designs, please add a third column:
+- codon_mode: type of degenerate codons you introduced at each position in the locus that features on the same row (choose between the currently supported options: "NNN", "NNK", "NNN x NNN" or "NNK x NNK"). This is used to generate the expected sequences.
 
 ### List of expected mutants
 
@@ -66,10 +69,6 @@ This normalization is **optional**. Please set the corresponding parameter to Tr
 ## Conditional config entries
 
 Some entries in the main config may depend on other config entries, e.g. the design you've specified.
-
-### Codon mode
-
-Only needed for 'codon' designs. Please edit the corresponding config entry to specify the type of degenerate codons you introduced at each position in the specified loci. Currently supported are: "NNN" (default value) or "NNK" for single mutants, "NNN x NNN" or "NNK x NNK" for double mutants (including the corresponding single mutants). This is used to generate the expected sequences for non-barcoded designs.
 
 ### Barcoded design
 

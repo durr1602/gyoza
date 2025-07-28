@@ -1,23 +1,20 @@
 ##### Load main report caption #####
 
-
 report: "report/workflow.rst"
-
 
 ##### Load rules #####
 
+RF_VALS = ["R1"]
+RC_LEVEL = "nt_seq"
+BC_ATTR = []
 
 include: "rules/common.smk"
 
 include: "rules/vsearch.smk"
+include: "rules/parse_fasta.smk"
 include: "rules/stats.smk"
 include: "rules/pool_stats.smk"
-include: "rules/parse_fasta.smk"
 include: "rules/plot_read_counts.smk"
-
-
-RF_VALS = ["R1"]
-RC_LEVEL = "nt_seq"
 
 if config["reads"]["paired"]:
     RF_VALS.append("R2")
@@ -27,7 +24,6 @@ else:
     include: "rules/cutadapt-se.smk"
 if config["qc"]["perform"]:
     include: "rules/qc.smk"
-
 
 design = config["design"]
 
@@ -40,7 +36,7 @@ elif design in ["provided", "barcode"]:
     
     if design == "barcode":
         RC_LEVEL = "barcode"
-        barcode_attributes.append([RC_LEVEL] + config["barcode"]["attributes"])
+        BC_ATTR.append([RC_LEVEL] + config["barcode"]["attributes"])
 
 elif design == "codon":
     include: "rules/generate_expected_mutants.smk"
@@ -50,18 +46,15 @@ elif design == "codon":
 else:
     raise ValueError(f"Unknown experiment design: {design}")
 
-
 if config["process_read_counts"]:
     include: "rules/process_read_counts.smk"
     include: "rules/plot_final_heatmaps.smk"
 
 ##### Target(s) #####
 
-
 rule all:
     input:
         get_target(),
-
 
 ##### Generate dynamic report upon completion of the workflow #####
 

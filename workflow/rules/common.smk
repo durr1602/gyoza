@@ -206,14 +206,13 @@ if exists(config["samples"]["wt"]):
 # Note: WT CSV is not required for 'provided' design
 # For 'provided' and 'random' designs, we get the WT from the list of expected mutants
 
-for f in EXPMUT_PATH:
-    if exists(f):
-        expmut = pd.read_csv(f)
-        validate(expmut, schema="../schemas/wt_seqs.schema.yaml")
-        mutseq = expmut.at[0, "Mutated_seq"]
-        wtseq = expmut.at[0, "WT_seq"].upper()
-        mutseq_to_wtseq[mutseq] = wtseq
-        print(f"Imported expectant mutants of {mutseq}.")
+for f in EXPMUT_PATH.glob("*.csv.gz"):
+    expmut = pd.read_csv(f)
+    validate(expmut, schema="../schemas/wt_seqs.schema.yaml")
+    mutseq = expmut.at[0, "Mutated_seq"]
+    wtseq = expmut.at[0, "WT_seq"].upper()
+    mutseq_to_wtseq[mutseq] = wtseq
+    print(f"Imported expectant mutants of {mutseq}.")
 
 ##### Validate codon table #####
 

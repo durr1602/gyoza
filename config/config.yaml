@@ -30,8 +30,6 @@ design: 'random'
 codon:
     # Codon table
     table: 'config/project_files/ScerevisiaeTAXID559292_Cocoputs_codon_table.csv'
-    # Codon mode, currently supports 'NNN', 'NNK', 'NNN x NNN' or 'NNK x NNK'
-    mode: 'NNN'
 
 barcode:
     # Specify barcode attributes to label each variant
