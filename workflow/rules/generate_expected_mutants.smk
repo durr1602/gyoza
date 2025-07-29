@@ -26,11 +26,11 @@ def calc_time(wildcards, input, attempt):
 
 rule generate_mutants:
     input:
-        config["samples"]["wt"],
+        WT_PATH,
     output:
         temp(f"{EXPMUT_PATH}/{{mutseq}}.csv.gz"),
     params:
-        genetic_code=config["codon"]["table"],
+        genetic_code=GEN_CODE_PATH,
     resources:
         mem_gb=calc_mem,
         time=calc_time,

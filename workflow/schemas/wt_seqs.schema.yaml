@@ -16,7 +16,7 @@ properties:
     uniqueItems: True
   codon_mode:
     type: string
-    description: Codon mode - 'NNN', 'NNK', 'NNN x NNN' or 'NNK x NNK'
+    description: Codon mode: 'NNN' | 'NNK' | 'NNN x NNN' | 'NNK x NNK'
     enum: ['NNN','NNK','NNN x NNN','NNK x NNK']
     default: 'NNN'
 

@@ -25,7 +25,7 @@ else:
 if config["qc"]["perform"]:
     include: "rules/qc.smk"
 
-design = config["design"]
+design = config["project"]["design"]
 
 if design == "random":
     include: "rules/annotate_random.smk"

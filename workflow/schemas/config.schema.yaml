@@ -5,126 +5,109 @@ description: main configuration file
 type: object
 
 properties:
-  samples:
+
+  project:
     type: object
     properties:
-      path:
+      design:
         type: string
-        description: Path to sample layout (should be CSV-formatted and end with .csv)
-        pattern: '[\\\/\-\_\.A-Za-z0-9]+(\.csv|\.CSV){1}'
-      attributes:
-        description: List of sample attributes = columns in the sample layout other than Timepoint and Replicate
+        description: Design of your experiment: codon | provided | barcode | random
+        enum: ['codon','provided','barcode','random']
+        default: 'random'
+      folder:
+        type: string
+        description: Path to project folder (should end with '/' or '\')
+        pattern: '^[\\\/\-\_\.A-Za-z0-9]+(\\|\/){1}$'
+      sample_attributes:
         type: array
+        description: List of sample attributes = columns in the sample layout other than Timepoint and Replicate
         uniqueItems: true
         default: []
         items:
           type: string
-      generations:
-        description: Path to file containing the number of mitotic generations
-        type: string
-        pattern: '[\\\/\-\_\.A-Za-z0-9]+(\.csv|\.CSV){1}'
-      wt:
-        description: Path to file listing the WT DNA sequences
-        type: string
-        pattern: '[\\\/\-\_\.A-Za-z0-9]+(\.csv|\.CSV){1}'
     required:
-      - path
-      - attributes
-      - generations
-      - wt
-
-  codon:
+      - design
+      - folder
+      - sample_attributes
+  
+  reads:
     type: object
     properties:
-      table:
-        description: Path to codon table
+      paired:
+        type: boolean
+        description: Specify if reads are paired-end (True) or single-end (False)
+        default: True
+      path:
         type: string
-        pattern: '[\\\/\-\_\.A-Za-z0-9]+(\.csv|\.CSV){1}'
+        description: Path to reads folder (should end with '/' or '\')
+        pattern: '^[\\\/\-\_\.A-Za-z0-9]+(\\|\/){1}$'
+      exp_rc_per_sample:
+        type: string
+        description: Expected read count per sample in scientific notation without quotes, e.g. 3e2
+        pattern: -?\d\.?\d*[Ee][+\-]?\d+
+      rc_threshold:
+        type: integer
+        description: Read count threshold (integer). Used to label variants based on the read count at T0
+        default: 10
     required:
-      - table
+      - paired
+      - path
+      - exp_rc_per_sample
+      - rc_threshold
 
   barcode:
     type: object
     properties:
-      rc_level:
-        description: Level to which read count is attributed, i.e. read count per nulcleotide sequence = 'nt_seq' (default), per barcode = 'barcode'
-        type: string
-        enum: ['nt_seq','barcode']
-        default: 'nt_seq'
       attributes:
-        description: List of barcode attributes = columns in the list of expected mutants to label them
         type: array
+        description: List of barcode attributes
         uniqueItems: true
         default: []
         items:
           type: string
     required:
-      - rc_level
       - attributes
 
-  rc_aims:
+  random:
     type: object
     properties:
-      exp_rc_per_sample:
-        description: Expected read count per sample in scientific notation without quotes, e.g. 3e2
-        type: string
-        pattern: -?\d\.?\d*[Ee][+\-]?\d+
-      exp_rc_per_var:
-        description: Expected read count per variant (integer)
+      Nham_aa_max:
         type: integer
+        description: Acceptable number of amino acid changes relative to wild-type (used to filter variants of 'random' designs)
+        default: 1
     required:
-      - exp_rc_per_sample
-      - exp_rc_per_var
+      - Nham_aa_max
 
-  filter:
-    type: object
-    properties:
-      rc_threshold:
-        description: Read count threshold (integer). Used to label variants based on the read count at T0
-        type: integer
-    required:
-      - rc_threshold
+  perform_qc:
+    type: boolean
+    description: Set to True to run FASTQC and MultiQC
+    default: False
+  
+  process_read_counts:
+    type: boolean
+    description: Set to True if you want to convert read counts into functional impact scores
+    default: False
 
-  qc:
-    type: object
-    properties:
-      perform:
-        description: Set to True to run FASTQC and MultiQC
-        type: boolean
-        default: True
-    required:
-      - perform
+  normalize_with_gen:
+    type: boolean
+    description: Set to True to normalize impact scores with the number of cellular generations
+    default: False
 
-  normalize:
-    type: object
-    properties:
-      with_gen:
-        description: Set to True to normalize impact scores with the number of cellular generations
-        type: boolean
-        default: False
-    required:
-      - with_gen
-
-  plots:
-    type: object
-    properties:
-      format:
-        description: Format of plots for export, list of extensions, e.g. ['png','pdf']
-        type: array
-        uniqueItems: true
-        default: ['png']
-        items:
-          type: string
-          enum: ['eps','jpg','jpeg','pdf','pgf','png','ps','raw','rgba','svg','svgz','tif','tiff']
-    required:
-      - format
+  plot_formats:
+    type: array
+    description: Format of plots for export, list of extensions, e.g. ['png','pdf']
+    uniqueItems: true
+    default: ['png']
+    items:
+      type: string
+      enum: ['eps','jpg','jpeg','pdf','pgf','png','ps','raw','rgba','svg','svgz','tif','tiff']
 
 required:
-  - samples
-  - codon
+  - project
+  - reads
   - barcode
-  - rc_aims
-  - filter
-  - qc
-  - normalize
-  - plots
+  - random
+  - perform_qc
+  - process_read_counts
+  - normalize_with_gen
+  - plot_formats

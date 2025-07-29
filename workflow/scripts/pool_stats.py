@@ -150,5 +150,5 @@ get_pooled_stats(
     snakemake.output.unexp_rc_plot,
     snakemake.params.reported_samples,
     snakemake.params.exp_rc_per_sample,
-    [x for x in snakemake.config["plots"]["format"] if x != "svg"],
+    snakemake.params.plot_formats,
 )

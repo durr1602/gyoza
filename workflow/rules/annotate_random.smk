@@ -23,6 +23,7 @@ rule annotate_random:
         position_offset=lambda wildcards: sample_layout.loc[
             wildcards.sample, "Pos_start"
         ],
+        genetic_code=GEN_CODE_PATH,
     message:
         f"Annotating mutants observed in sequencing data"
     log:
@@ -39,6 +40,8 @@ rule filter_random_mutants:
     output:
         filtered="results/df/annotated_readcounts/{sample}_annot_rc.csv",
         discarded="results/df/unexpected_seqs/{sample}_unexpected.csv",
+    params:
+        Nham_aa_max=int(config["random"]["Nham_aa_max"]),
     message:
         f"Filtering out mutants based on number of amino acid changes"
     log:

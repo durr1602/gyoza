@@ -236,5 +236,5 @@ get_annotated_mutants(
     snakemake.output.annot_rc,
     snakemake.output.indels,
     snakemake.params.position_offset,
-    snakemake.config["codon"]["table"],
+    snakemake.params.genetic_code,
 )

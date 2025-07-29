@@ -1,66 +1,44 @@
 # Main configuration file for gyōza
 
-reads:
-    # Specify if reads are paired-end (True) or single-end (False)
-    paired: True
-    # Specify path to directory containing sequencing data
-    path: 'config/reads/'
-
-samples:
-    # Specify path to sample layout
-    path: 'config/project_files/layout.csv'
-    # Specify what makes each sample unique (other than Timepoint and Replicate)
-    attributes: ['Species', 'Mating_type', 'Fragment']
-    # Specify path to create file containing the number of mitotic generations for each condition
-    generations: 'config/project_files/nbgen.csv'
-    # Specify path to file containing the wild-type DNA sequences
-    wt: 'config/project_files/wt_seq.csv'
-    # Specify path (no file name) to directory where expected mutated sequences will be saved
-    # For barcoded-design experiments, the compressed dataframes associating barcodes with mutants should be placed in this directory...
-    # ...and be named <Mutated_seq>.csv.gz (replace with each unique value of Mutated_seq)
-    expected_mut: 'config/project_files/expected_mut/'
-
-design: 'random'
+project:
     # Specify the design of your experiment: codon | provided | barcode | random
     # codon: Automatically generate all expected mutants based on the codon mode
     # provided: You provide the list of expected mutants
     # barcode: You provide the dataframe of barcode-variant associations
     # random: Random mutagenesis - mutants observed in the sequencing data are directly annotated
+    design: 'random'
+    # Specify path to folder containing project-specific files
+    folder: 'config/project_files/'
+    # Specify what makes each sample unique (other than Timepoint and Replicate)
+    sample_attributes: ['Species', 'Mating_type', 'Fragment']
 
-codon:
-    # Codon table
-    table: 'config/project_files/ScerevisiaeTAXID559292_Cocoputs_codon_table.csv'
+reads:
+    # Specify if reads are paired-end (True) or single-end (False)
+    paired: True
+    # Specify path to directory containing sequencing data
+    path: 'config/reads/'
+    # Specify targeted read count per sample in scientific notation
+    exp_rc_per_sample: 3e4
+    # Specify read count threshold (integer) to label variants with a confidence score
+    rc_threshold: 10
 
 barcode:
-    # Specify barcode attributes to label each variant
+    # Specify barcode attributes to label each variant, e.g. ['bc_index'] (default: [])
     attributes: []
 
 random:
     # Acceptable number of amino acid changes relative to wild-type
     Nham_aa_max: 1
 
-rc_aims:
-    # Specify targeted read count per sample in scientific notation
-    exp_rc_per_sample: 3e4
-    # Specify target read count per variant (integer)
-    exp_rc_per_var: 5
-
-filter:
-    # Specify read count threshold (integer) to label variants with a confidence score
-    rc_threshold: 10
-
-qc:
+perform_qc: True
     # Set to True if you want to run FASTQC on all raw FASTQ files and generate a MultiQC report
-    perform: True
 
 process_read_counts: True
     # Set to True if you want to convert read counts into functional impact scores
 
-normalize:
+normalize_with_gen: False
     # Set to True if you want to normalize impact scores with the number of cellular generations
-    with_gen: False
 
-plots:
+plot_formats: ['png']
     # Indicate in which format(s) you want to export plots, e.g. ['png','pdf'] (most formats supported)
-    # Plots will be exported in .svg regardless of what is specified below
-    format: ['png']
+    # Plots will be exported in .svg regardless of what is specified

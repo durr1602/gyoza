@@ -281,7 +281,7 @@ def get_s_plots(
 get_allele_freq_plot(
     snakemake.input.freq_df,
     snakemake.output.rc_var_plot,
-    [x for x in snakemake.config["plots"]["format"] if x != "svg"],
+    snakemake.params.plot_formats,
 )
 
 get_s_plots(
@@ -290,5 +290,5 @@ get_s_plots(
     snakemake.output.s_through_time_plot,
     snakemake.output.replicates_heatmap_plot,
     snakemake.output.replicates_plot,
-    [x for x in snakemake.config["plots"]["format"] if x != "svg"],
+    snakemake.params.plot_formats,
 )

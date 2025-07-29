@@ -87,5 +87,5 @@ get_heatmaps(
     snakemake.input.heatmap_meta,
     snakemake.output[0],
     snakemake.wildcards[0],
-    [x for x in snakemake.config["plots"]["format"] if x != "svg"],
+    snakemake.params.plot_formats,
 )

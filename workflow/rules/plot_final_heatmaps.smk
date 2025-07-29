@@ -28,6 +28,8 @@ rule plot_heatmaps:
             subcategory="3.3. Heatmaps of functional impact",
             labels={"figure": "{group_key}_{t}"},
         ),
+    params:
+        plot_formats=[x for x in config["plot_formats"] if x != "svg"],
     message:
         f"Plotting heatmaps of raw read counts.."
     log:

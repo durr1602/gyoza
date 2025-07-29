@@ -39,7 +39,7 @@ def get_confidence_score(g, threshold):
 
 
 def plot_rc_per_seq(
-    df1, df2, outpath, sample_group, exp_rc_per_var, mean_exp_freq, plot_formats
+    df1, df2, outpath, sample_group, thresh, thresh_freq, plot_formats
 ):
     """
     Expects a dataframe of raw read counts and
@@ -49,11 +49,11 @@ def plot_rc_per_seq(
     fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(10, 4))
 
     sns.histplot(df1, element="step", bins=50, common_norm=False, log_scale=10, ax=ax1)
-    ax1.axvline(x=exp_rc_per_var, linestyle="--", color=".8")
+    ax1.axvline(x=thresh, linestyle="--", color=".8")
     ax1.set(xlabel="Raw read count")
 
     sns.histplot(df2, element="step", bins=50, log_scale=10, common_norm=False, ax=ax2)
-    ax2.axvline(x=10**mean_exp_freq, linestyle="--", color=".8")
+    ax2.axvline(x=10**thresh_freq, linestyle="--", color=".8")
     ax2.set(xlabel="Frequency")
 
     plt.subplots_adjust(top=0.9)
@@ -172,7 +172,6 @@ def get_selcoeffs(
     rc_level,
     barcode_attributes,
     rc_threshold,
-    exp_rc_per_var,
     plot_formats,
 ):
     """
@@ -286,10 +285,10 @@ def get_selcoeffs(
 
     freq[freq_conditions] = freq[conditions].add(1) / freq[conditions].sum()
 
-    # Retrieve overall mean frequency corresponding to the expected read count per variant
-    mean_exp_freq = (
+    # Retrieve overall mean frequency corresponding to the specified read count threshold
+    mean_thresh_freq = (
         np.log10(
-            (exp_rc_per_var + 1) / freq.groupby("nt_seq")[conditions].first().sum()
+            (rc_threshold + 1) / freq.groupby("nt_seq")[conditions].first().sum()
         )
     ).mean(axis=None)
 
@@ -301,8 +300,8 @@ def get_selcoeffs(
         graph2df,
         histplot_outpath,
         sample_group,
-        exp_rc_per_var,
-        mean_exp_freq,
+        rc_threshold,
+        mean_thresh_freq,
         plot_formats,
     )
 
@@ -539,11 +538,10 @@ get_selcoeffs(
     snakemake.output.freq_df,
     snakemake.output.aa_df,
     snakemake.wildcards.group_key,
-    snakemake.config["samples"]["path"],
-    snakemake.config["samples"]["attributes"],
+    snakemake.params.layout,
+    snakemake.params.sample_attributes,
     snakemake.params.readcount_level,
     snakemake.params.barcode_attributes,
-    snakemake.config["filter"]["rc_threshold"],
-    snakemake.config["rc_aims"]["exp_rc_per_var"],
-    [x for x in snakemake.config["plots"]["format"] if x != "svg"],
+    snakemake.params.rc_threshold,
+    snakemake.params.plot_formats,
 )

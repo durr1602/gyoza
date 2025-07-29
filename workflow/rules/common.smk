@@ -16,10 +16,17 @@ configfile: "config/config.yaml"
 validate(config, schema="../schemas/config.schema.yaml")
 print("Main config validated.")
 
-##### Convert paths #####
+##### Paths and other constant variables #####
 
+PROJECT_DIR = Path(config["project"]["folder"])
 READS_PATH = Path(config["reads"]["path"])
-EXPMUT_PATH = Path(config["samples"]["expected_mut"])
+LAYOUT_PATH = PROJECT_DIR / "layout.csv"
+GEN_CODE_PATH = PROJECT_DIR / "codon_table.csv"
+WT_PATH = PROJECT_DIR / "wt_seq.csv"
+EXPMUT_PATH = PROJECT_DIR / "expected_mut/"
+NBGEN_PATH = PROJECT_DIR / "nbgen.csv"
+
+SAMPLE_ATTR = config["project"]["sample_attributes"]
 
 ##### Import and validate sample layout #####
 
@@ -37,7 +44,7 @@ layout_mandatory_cols = [
     "Report",
 ]
 
-layout_csv = pd.read_csv(config["samples"]["path"], dtype={"Replicate": str})
+layout_csv = pd.read_csv(LAYOUT_PATH, dtype={"Replicate": str})
 
 # Sanitize Replicate column
 layout_csv["Replicate"] = layout_csv["Replicate"].fillna("").astype(str).str.strip()
@@ -62,21 +69,21 @@ print("Sample layout validated.")
 ##### Validate sample attributes and group samples #####
 
 for x in layout_add_cols:
-    if x not in config["samples"]["attributes"]:
+    if x not in SAMPLE_ATTR:
         warnings.warn(f"Column {x} is not listed in your sample attributes.")
 
-if not config["samples"]["attributes"]:
+if not SAMPLE_ATTR:
     raise ValueError("Error.. Please specify at least one sample attribute.")
 else:
-    for attr in config["samples"]["attributes"]:
+    for attr in SAMPLE_ATTR:
         if attr not in layout_csv.columns:
             raise Exception(f"Missing sample attribute column in the layout: {attr}.")
 
-    TR_layout = layout_csv[["Sample_name"] + config["samples"]["attributes"]]
+    TR_layout = layout_csv[["Sample_name"] + SAMPLE_ATTR]
     # Initial sample grouping based on layout
     all_groups = defaultdict(list)
     for _, row in TR_layout.iterrows():
-        key = tuple(row[col] for col in config["samples"]["attributes"])
+        key = tuple(row[col] for col in SAMPLE_ATTR)
         all_groups[key].append(row["Sample_name"])
     print("Sample attributes imported.")
 
@@ -196,8 +203,8 @@ print(f"{len(SAMPLES)} sample(s) selected for analysis.")
 
 mutseq_to_wtseq = {}
 
-if exists(config["samples"]["wt"]):
-    wtseqs = pd.read_csv(config["samples"]["wt"])
+if exists(WT_PATH):
+    wtseqs = pd.read_csv(WT_PATH)
     validate(wtseqs, schema="../schemas/wt_seqs.schema.yaml")
     mutseq_to_wtseq = dict(zip(wtseqs["Mutated_seq"], wtseqs["WT_seq"]))
     print("WT imported.")
@@ -216,7 +223,7 @@ for f in EXPMUT_PATH.glob("*.csv.gz"):
 
 ##### Validate codon table #####
 
-codon_table = pd.read_csv(config["codon"]["table"], header=0)
+codon_table = pd.read_csv(GEN_CODE_PATH, header=0)
 validate(codon_table, schema="../schemas/codon_table.schema.yaml")
 print("Codon table validated.")
 
@@ -229,21 +236,21 @@ print("Codon table validated.")
 
 required_rows = layout_csv[
     layout_csv["Sample_name"].isin(SAMPLES) & (layout_csv["Timepoint"] != "T0")
-][config["samples"]["attributes"] + ["Replicate", "Timepoint"]].drop_duplicates()
+][SAMPLE_ATTR + ["Replicate", "Timepoint"]].drop_duplicates()
 
-if exists(config["samples"]["generations"]):
-    nbgen = pd.read_csv(config["samples"]["generations"], dtype={"Replicate": str})
+if exists(NBGEN_PATH):
+    nbgen = pd.read_csv(NBGEN_PATH, dtype={"Replicate": str})
     validate(nbgen, schema="../schemas/nbgen.schema.yaml")
-    if (config["normalize"]["with_gen"]) & ((nbgen.Nb_gen == 1).any()):
+    if (config["normalize_with_gen"]) & ((nbgen.Nb_gen == 1).any()):
         raise Exception(
-            f">>Please fill in the file {config['samples']['generations']} with the number of cellular generations<<\n"
+            f">>Please fill in the file {NBGEN_PATH} with the number of cellular generations<<\n"
             ">>(or deactivate this normalization in the main config file)<<"
         )
-    elif config["normalize"]["with_gen"]:
+    elif config["normalize_with_gen"]:
         # Find missing rows from existing file
         merged = required_rows.merge(
             nbgen,
-            on=config["samples"]["attributes"] + ["Replicate", "Timepoint"],
+            on=SAMPLE_ATTR + ["Replicate", "Timepoint"],
             how="left",
             indicator=True,
         )
@@ -252,23 +259,21 @@ if exists(config["samples"]["generations"]):
 
         # Append to existing file
         if not missing_rows.empty:
-            print(
-                f"Adding {len(missing_rows)} missing row(s) to {config['samples']['generations']}"
-            )
+            print(f"Adding {len(missing_rows)} missing row(s) to {NBGEN_PATH}")
             nbgen = pd.concat([nbgen, missing_rows], ignore_index=True)
-            nbgen.to_csv(config["samples"]["generations"], index=False)
+            nbgen.to_csv(NBGEN_PATH, index=False)
 
         # Additional check to make sure all rows from selection are filled properly
         # This is done to prevent bothering the user with filling data for non currently selected samples
         selected_rows = nbgen.merge(
             required_rows,
-            on=config["samples"]["attributes"] + ["Replicate", "Timepoint"],
+            on=SAMPLE_ATTR + ["Replicate", "Timepoint"],
             how="inner",
         )
 
         if (selected_rows["Nb_gen"] == 1).any():
             raise Exception(
-                f">> Please fill in the file {config['samples']['generations']} with the number of cellular generations <<\n"
+                f">> Please fill in the file {NBGEN_PATH} with the number of cellular generations <<\n"
                 ">>(or deactivate this normalization in the main config file)<<"
             )
         else:
@@ -280,10 +285,10 @@ if exists(config["samples"]["generations"]):
 else:
     nbgen_temp = required_rows
     nbgen_temp["Nb_gen"] = 1
-    nbgen_temp.to_csv(config["samples"]["generations"], index=None)
-    if config["normalize"]["with_gen"]:
+    nbgen_temp.to_csv(NBGEN_PATH, index=None)
+    if config["normalize_with_gen"]:
         raise Exception(
-            f">> Please fill in {config['samples']['generations']} with the number of cellular generations <<\n"
+            f">> Please fill in {NBGEN_PATH} with the number of cellular generations <<\n"
             ">> Or disable this normalization in the config <<"
         )
     else:
@@ -332,7 +337,7 @@ def generate_report():
 
         # Add QC report if present
         qc_path = Path("results/0_qc/multiqc.html")
-        if config["qc"]["perform"] and qc_path.exists():
+        if config["perform_qc"] and qc_path.exists():
             graphs.append(str(qc_path))
 
         if graphs:
@@ -381,7 +386,7 @@ def get_target():
         )
         targets.append("results/graphs/rc_var_plot.svg")
 
-    if config["qc"]["perform"]:
+    if config["perform_qc"]:
         targets.append("results/0_qc/multiqc.html")
 
     return targets
