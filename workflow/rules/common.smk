@@ -73,7 +73,7 @@ for x in layout_add_cols:
         warnings.warn(f"Column {x} is not listed in your sample attributes.")
 
 if not SAMPLE_ATTR:
-    raise ValueError("Error.. Please specify at least one sample attribute.")
+    raise ValueError("Error.. Please specify at least one sample attribute (e.g. 'Mutated_seq').")
 else:
     for attr in SAMPLE_ATTR:
         if attr not in layout_csv.columns:

@@ -37,7 +37,11 @@ Please provide a csv-formatted layout of your samples. The file should be named 
 - Analyze: "y" (or a different truthy value) to process the sample. Leave empty or enter non-truthy value to exclude from analysis. Corresponding T0 samples and matching replicates are automatically rescued, regardless of the selection. In other words, you can select a single replicate for each group you want to analyze.
 - Report: "y" (or a different truthy value) to include the sample in the HTML report. Leave empty or enter non-truthy value to exclude from the report. Samples marked for reporting are rescued as describe above and will be automatically analyzed.
 
-Finally, additional columns can be added by the user to specify what makes this sample unique. These are referred to as "sample attributes" and could correspond to the genetic background, the fragment/region of the gene if it applies (in which case, sample attributes can overlap with Mutated_seq, as is the case for the toy dataset), the drug used for selection, etc. In summary, a "sample" is any unique combination of Mutated_seq + Replicate + Timepoint + sample attributes and should be associated to 1 or 2 fastq files, for the forward and reverse reads, respectively. Sample attributes should be specified in the config under 'project'.
+Finally, additional columns can be added by the user to specify what makes this sample unique (other than 'Replicate' and 'Timepoint').
+
+List the minimal set of columns in the layout that make samples unique as the **sample attributes** in the config under 'project'. Sample attributes may include 'Mutated_seq' or a combination of attributes that recapitulate 'Mutated_seq' (as illustrated by the toy dataset). Samples attributes also typically include the selective pressure ('Drug') and any other important qualifier for which there can be different values depending on the sample.
+
+In summary, a "sample" is any unique combination of Replicate + Timepoint + sample attributes and should be associated to 1 or 2 fastq files, for the forward and reverse reads, respectively.
 
 ### Genetic code
 
