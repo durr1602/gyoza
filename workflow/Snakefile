@@ -22,7 +22,7 @@ if config["reads"]["paired"]:
     include: "rules/pandaseq.smk"
 else:
     include: "rules/cutadapt-se.smk"
-if config["qc"]["perform"]:
+if config["perform_qc"]:
     include: "rules/qc.smk"
 
 design = config["project"]["design"]

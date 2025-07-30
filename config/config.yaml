@@ -6,7 +6,7 @@ project:
     # provided: You provide the list of expected mutants
     # barcode: You provide the dataframe of barcode-variant associations
     # random: Random mutagenesis - mutants observed in the sequencing data are directly annotated
-    design: 'random'
+    design: 'codon'
     # Specify path to folder containing project-specific files
     folder: 'config/project_files/'
     # Specify what makes each sample unique (other than Timepoint and Replicate)
@@ -23,10 +23,12 @@ reads:
     rc_threshold: 10
 
 barcode:
+    # For 'barcode' designs only
     # Specify barcode attributes to label each variant, e.g. ['bc_index'] (default: [])
     attributes: []
 
 random:
+    # For 'random' designs only
     # Acceptable number of amino acid changes relative to wild-type
     Nham_aa_max: 1
 

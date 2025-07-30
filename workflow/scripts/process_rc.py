@@ -341,7 +341,7 @@ def get_selcoeffs(
     )
     # Save metadata in df for simplicity
     longfreq_per_seq["Sample attributes"] = sample_group
-    longfreq_per_seq["Mean_exp_freq"] = mean_exp_freq
+    longfreq_per_seq["Mean_exp_freq"] = mean_thresh_freq
     longfreq_per_seq.to_csv(freq_outpath, index=False)
 
     # Calculate Log2(fold-change) for every time point relative to T0

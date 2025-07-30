@@ -11,8 +11,8 @@ properties:
     properties:
       design:
         type: string
-        description: Design of your experiment: codon | provided | barcode | random
-        enum: ['codon','provided','barcode','random']
+        description: "Design of your experiment: codon | provided | barcode | random"
+        enum: ['codon', 'provided', 'barcode', 'random']
         default: 'random'
       folder:
         type: string
@@ -29,7 +29,7 @@ properties:
       - design
       - folder
       - sample_attributes
-  
+
   reads:
     type: object
     properties:
@@ -82,7 +82,7 @@ properties:
     type: boolean
     description: Set to True to run FASTQC and MultiQC
     default: False
-  
+
   process_read_counts:
     type: boolean
     description: Set to True if you want to convert read counts into functional impact scores
@@ -100,7 +100,7 @@ properties:
     default: ['png']
     items:
       type: string
-      enum: ['eps','jpg','jpeg','pdf','pgf','png','ps','raw','rgba','svg','svgz','tif','tiff']
+      enum: ['eps', 'jpg', 'jpeg', 'pdf', 'pgf', 'png', 'ps', 'raw', 'rgba', 'svg', 'svgz', 'tif', 'tiff']
 
 required:
   - project

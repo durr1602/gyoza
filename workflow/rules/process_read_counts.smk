@@ -36,7 +36,7 @@ rule process_read_counts:
         aa_df="results/df/agg_aa/aa_{group_key}.csv",
     params:
         layout=LAYOUT_PATH,
-        sample_attributes=SAMPLE_ATTR
+        sample_attributes=SAMPLE_ATTR,
         readcount_level=RC_LEVEL,
         barcode_attributes=BC_ATTR,
         rc_threshold=config["reads"]["rc_threshold"],
