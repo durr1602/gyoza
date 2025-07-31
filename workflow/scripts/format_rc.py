@@ -23,13 +23,19 @@ def get_heatmap_rc_data(f, outpath, meta_out, exp_rc):
     wt_codons = [wtseq[i : i + 3] for i in range(0, len(wtseq), 3)]
 
     # Reshape dataframe
-    filtered = df[df.Nham_codons == 1].copy()
+    filtered = (
+        df[df.Nham_codons == 1]
+        .groupby(["mutation_aa_pos", "mutation_alt_codons", "mutation_alt_aa"])[
+            ["readcount"]
+        ]
+        .agg(Log10_readcount=("readcount", lambda x: np.log10(x.sum())))
+        .reset_index()
+    )
     filtered["mutation_aa_pos"] = filtered["mutation_aa_pos"].astype(int)
-    filtered["Log10(readcount)"] = np.log10(filtered["readcount"])
     wide = filtered.pivot(
         index=["mutation_alt_aa", "mutation_alt_codons"],
         columns="mutation_aa_pos",
-        values="Log10(readcount)",
+        values="Log10_readcount",
     )
     wide.sort_index(key=lambda x: x.map(AA_SORT), inplace=True)
 
@@ -53,7 +59,7 @@ def get_heatmap_rc_data(f, outpath, meta_out, exp_rc):
     # Assemble and save metadata
     meta = {
         "idx": ["mutation_alt_aa", "mutation_alt_codons"],
-        "fitness": "Log10(readcount)",
+        "fitness": "Log10_readcount",
         "wt_coordinates": wtcoord,
         "color_map": cmap,
         "vmax": np.log10(exp_rc),

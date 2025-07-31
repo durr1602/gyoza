@@ -20,7 +20,7 @@ def filter_random(df, max_Nham_aa, filtered_out, discarded_out):
 
 filter_random(
     snakemake.input[0],
-    snakemake.config["random"]["Nham_aa_max"],
+    snakemake.params.Nham_aa_max,
     snakemake.output.filtered,
     snakemake.output.discarded,
 )

@@ -22,7 +22,8 @@ rule pool_stats:
         ),
     params:
         reported_samples=REPORTED_SAMPLES,
-        exp_rc_per_sample=float(config["rc_aims"]["exp_rc_per_sample"]),
+        exp_rc_per_sample=float(config["reads"]["exp_rc_per_sample"]),
+        plot_formats=[x for x in config["plot_formats"] if x != "svg"],
     message:
         "Pooling statistics from all samples..."
     log:

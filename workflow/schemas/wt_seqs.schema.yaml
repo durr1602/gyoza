@@ -14,6 +14,11 @@ properties:
     pattern: (?i)^[ATGC]+$
     description: Wild-type DNA sequence for the mutated locus (length should be a multiple of 3, the first 3 bases constitute the first mutated codon)
     uniqueItems: True
+  codon_mode:
+    type: string
+    description: "Codon mode: 'NNN' | 'NNK' | 'NNN x NNN' | 'NNK x NNK'"
+    enum: ['NNN', 'NNK', 'NNN x NNN', 'NNK x NNK']
+    default: 'NNN'
 
 required:
   - Mutated_seq

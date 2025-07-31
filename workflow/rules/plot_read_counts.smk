@@ -5,7 +5,7 @@ rule format_read_counts:
         heatmap_df="results/df/formatted_readcounts/{sample}_format_rc.csv",
         heatmap_meta="results/heatmap_metadata/{sample}_rc.pkl",
     params:
-        exp_rc=float(config["rc_aims"]["exp_rc_per_sample"]),
+        exp_rc=float(config["reads"]["exp_rc_per_sample"]),
     message:
         f"Format read counts.."
     log:
@@ -28,6 +28,8 @@ rule plot_read_counts:
             subcategory="1.2. Heatmaps of raw read counts",
             labels={"figure": "{sample}"},
         ),
+    params:
+        plot_formats=[x for x in config["plot_formats"] if x != "svg"],
     message:
         f"Plotting heatmaps of raw read counts.."
     log:

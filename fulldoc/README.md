@@ -15,7 +15,7 @@ If you already have it, make sure to update it to a recent version (>=24.7.1, id
 ```
 uv venv gyoza_env --python 3.13
 source gyoza_env/bin/activate
-uv pip install "snakedeploy>=0.11.0" "snakemake>=9.4.0" "snakemake-wrapper-utils>=0.7.2" pygments snakemake-executor-plugin-cluster-generic setuptools
+uv pip install "snakedeploy>=0.11.0" "snakemake>=9.9.0" "snakemake-wrapper-utils>=0.7.2" pygments snakemake-executor-plugin-cluster-generic setuptools
 ```
 Whenever your gyoza_env is activated, you should see it in the prompt:
 ```
@@ -109,20 +109,22 @@ Please make sure `tmux` is installed (already installed on some servers). Then, 
 
 >[!TIP]
 >
-> Similarly, you can omit rules from the workflow.
+> Similarly, you can omit rules (and depending downstream rules) from the workflow.
 >
-> For example: `snakemake --omit rule_to_omit`
+> For example: `snakemake --omit-from rule_to_omit`
 
 >[!NOTE]
 >
-> To account for intermediate runs, the report is built dynamically based on existing files (out of all files expected to be included in the report). If any error were to arise, one can still generate an intermediate report with the dedicated snakemake command line.
+> To account for intermediate runs, the report is built dynamically based on existing files (out of all files expected to be included in the report). To manually specify what should be included in the report, use the dedicated snakemake command line.
 >
-> Default (same target as full workflow): `snakemake --report results/report.html`.
+> Default (same target as full workflow): `snakemake --report results/report.html --report-stylesheet config/style/report-stylesheet.css`.
 >
-> Specify targets (output files or rules, separated by a space): `snakemake multiqc parse_fasta --report results/report.html`
+> Specify targets (output files or rules, separated by a space): `snakemake multiqc parse_fasta --report results/report.html --report-stylesheet config/style/report-stylesheet.css`
 
 > [!TIP]
-> 
+>
+> *This particular tip might be obsolete given recent improvements, but I'm leaving it here for now*
+>
 > If one were to generate their own (perfectly formatted) file, for example the list of expected mutants to accomodate a custom experimental design, it is possible to plug it using `--touch`
 >
 > One compressed CSV file per mutated locus is expected in the `project_files/expected_mut` folder (create it if it does not exist)
@@ -151,7 +153,7 @@ One can manually edit the [Snakefile](../workflow/Snakefile) and/or the rules (.
 > [!TIP]
 > 
 > In certain cases, it might be interesting to modify the scripts themselves, for example one might want to alter **plotting**.
-> The recommended way is to edit [the functions](../workflow/scripts/plotting_functions.py) and call them from a custom script.
+> The recommended way is to edit [the functions](../workflow/scripts/plot_scores.py) and call them from a custom script.
 
 ## Edit Jupyter notebooks
 

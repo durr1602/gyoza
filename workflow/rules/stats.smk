@@ -5,6 +5,8 @@ rule stats:
         vsearch_log="logs/3_aggregate/vsearch-sample={sample}.stats",
     output:
         "results/stats/stats-sample={sample}.csv",
+    params:
+        is_paired=config["reads"]["paired"],
     message:
         "Parsing log files to aggregate read statistics..."
     log:

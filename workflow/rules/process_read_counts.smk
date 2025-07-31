@@ -7,7 +7,7 @@ readcounts_by_group = {
 rule process_read_counts:
     input:
         readcounts=lambda wildcards: readcounts_by_group.get(wildcards.group_key, []),
-        nbgen=config["samples"]["generations"],
+        nbgen=NBGEN_PATH,
     output:
         selcoeffs="results/df/all_scores_{group_key}.csv",
         avg_scores="results/df/avg_scores_{group_key}.csv",
@@ -34,6 +34,13 @@ rule process_read_counts:
         ),
         freq_df="results/df/distribution_freq/freq_{group_key}.csv",
         aa_df="results/df/agg_aa/aa_{group_key}.csv",
+    params:
+        layout=LAYOUT_PATH,
+        sample_attributes=SAMPLE_ATTR,
+        readcount_level=RC_LEVEL,
+        barcode_attributes=BC_ATTR,
+        rc_threshold=config["reads"]["rc_threshold"],
+        plot_formats=[x for x in config["plot_formats"] if x != "svg"],
     message:
         "Processing read counts... converting to functional impact scores"
     log:
@@ -90,6 +97,8 @@ rule plot_scores:
             subcategory="3.2. Aggregated",
             labels={"figure": "3.2.d. Functional impact over time"},
         ),
+    params:
+        plot_formats=[x for x in config["plot_formats"] if x != "svg"],
     message:
         "Aggregating dataframes to plot functional impact scores"
     log:

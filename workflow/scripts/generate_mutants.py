@@ -43,23 +43,20 @@ def get_alt_codons(seq, codon_dic, mode="NNN"):
     return pos_l, var_l
 
 
-def get_single_double(df, codon_dic, codon_mode):
+def get_single_double(df, codon_dic):
     """
-    Processes a minimal dataframe containing the wild-type nucleotide sequence to mutate.
-    From the codon_mode, generates all single mutants and optionally double mutants.
+    Processes a dataframe containing the wild-type nucleotide sequence to mutate,
+    as well as a codon_mode, indicating the type of degenerate codon to introduce.
+    Generates all single mutants and optionally double mutants.
     Returns dataframe in long format (one row per mutated codon).
     """
-    if codon_mode not in ["NNN", "NNK", "NNN x NNN", "NNK x NNK"]:
-        raise Exception(f"Error.. check the codon mode specified in the config.")
-    elif codon_mode in ["NNN", "NNK"]:
-        single_codon_mode = codon_mode
-    else:
-        single_codon_mode = codon_mode.split(" x ")[0]
-
     singles_compact = df.copy()
     singles_compact["pos"], singles_compact["alt_codons"] = zip(
-        *singles_compact.WT_seq.apply(
-            lambda x: get_alt_codons(x, codon_dic, single_codon_mode)
+        *singles_compact.apply(
+            lambda row: get_alt_codons(
+                row.WT_seq, codon_dic, str(row.codon_mode).split(" x ")[0]
+            ),
+            axis=1,
         )
     )
 
@@ -69,9 +66,9 @@ def get_single_double(df, codon_dic, codon_mode):
         lambda row: {row[f"pos"]: row[f"alt_codons"]}, axis=1
     )
 
-    if codon_mode in ["NNN x NNN", "NNK x NNK"]:
-        pairwise_df = df.copy()
+    pairwise_df = df[df.codon_mode.isin(["NNN x NNN", "NNK x NNK"])].copy()
 
+    if not pairwise_df.empty:
         # Get pairwise combinations of codons that will be mutated
         pairwise_df["combination"] = pairwise_df.WT_seq.apply(
             lambda x: [
@@ -151,7 +148,7 @@ def get_nt_seq(seq, mut_dic):
     return "".join(list_codons)
 
 
-def generate_mutants(wtseq_path, outpath, mutated_seq, codon_table, codon_mode):
+def generate_mutants(wtseq_path, outpath, mutated_seq, codon_table):
     """
     Generates all single mutants and optionally all double mutants,
     based on the provided wild-type sequence
@@ -169,7 +166,7 @@ def generate_mutants(wtseq_path, outpath, mutated_seq, codon_table, codon_mode):
     wt_df["nt_seq"] = wt_df["WT_seq"]
 
     # Get all single mutants (and double mutants if necessary)
-    mutants_df = get_single_double(wt_df, codon_dic, codon_mode)
+    mutants_df = get_single_double(wt_df, codon_dic)
 
     # Reconstruct nucleotide sequences from mutations
     mutants_df["nt_seq"] = list(
@@ -197,6 +194,5 @@ generate_mutants(
     snakemake.input[0],
     snakemake.output[0],
     snakemake.wildcards.mutseq,
-    snakemake.config["codon"]["table"],
-    snakemake.config["codon"]["mode"],
+    snakemake.params.genetic_code,
 )

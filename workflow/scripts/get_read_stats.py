@@ -204,5 +204,5 @@ generate_read_stats(
     str(snakemake.input["vsearch_log"]),
     snakemake.output[0],
     snakemake.wildcards.sample,
-    snakemake.config["reads"]["paired"],
+    snakemake.params.is_paired,
 )

@@ -1,47 +1,54 @@
-import sys
-
 ##### Load main report caption #####
-
 
 report: "report/workflow.rst"
 
-
 ##### Load rules #####
 
+RF_VALS = ["R1"]
+RC_LEVEL = "nt_seq"
+BC_ATTR = []
 
 include: "rules/common.smk"
 
-include: "rules/vsearch.smk"
-include: "rules/stats.smk"
-include: "rules/pool_stats.smk"
-include: "rules/parse_fasta.smk"
-include: "rules/plot_read_counts.smk"
-
-
-RF_VALS = ["R1"]
 if config["reads"]["paired"]:
     RF_VALS.append("R2")
     include: "rules/cutadapt.smk"
     include: "rules/pandaseq.smk"
+    include: "rules/vsearch.smk"
 else:
     include: "rules/cutadapt-se.smk"
-if config["qc"]["perform"]:
+    include: "rules/vsearch.smk"
+
+if config["perform_qc"]:
     include: "rules/qc.smk"
 
+design = config["project"]["design"]
 
-design = config["design"]
 if design == "random":
+    
+    include: "rules/parse_fasta.smk"
     include: "rules/annotate_random.smk"
-elif design == "provided":
+
+elif design in ["provided", "barcode"]:
+    if design == "barcode":
+        RC_LEVEL = "barcode"
+        BC_ATTR = [RC_LEVEL] + config["barcode"]["attributes"]
+    include: "rules/parse_fasta.smk"
     include: "rules/compare.smk"
     include: "rules/annotate_mutants.smk"
+
 elif design == "codon":
     include: "rules/generate_expected_mutants.smk"
+    include: "rules/parse_fasta.smk"
     include: "rules/compare.smk"
     include: "rules/annotate_mutants.smk"
+
 else:
     raise ValueError(f"Unknown experiment design: {design}")
 
+include: "rules/stats.smk"
+include: "rules/pool_stats.smk"
+include: "rules/plot_read_counts.smk"
 
 if config["process_read_counts"]:
     include: "rules/process_read_counts.smk"
@@ -49,11 +56,9 @@ if config["process_read_counts"]:
 
 ##### Target(s) #####
 
-
 rule all:
     input:
         get_target(),
-
 
 ##### Generate dynamic report upon completion of the workflow #####
 
