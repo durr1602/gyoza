@@ -38,9 +38,7 @@ def get_confidence_score(g, threshold):
         return 3  # low confidence score
 
 
-def plot_rc_per_seq(
-    df1, df2, outpath, sample_group, thresh, thresh_freq, plot_formats
-):
+def plot_rc_per_seq(df1, df2, outpath, sample_group, thresh, thresh_freq, plot_formats):
     """
     Expects a dataframe of raw read counts and
     equivalent converted into read frequencies
@@ -287,9 +285,7 @@ def get_selcoeffs(
 
     # Retrieve overall mean frequency corresponding to the specified read count threshold
     mean_thresh_freq = (
-        np.log10(
-            (rc_threshold + 1) / freq.groupby("nt_seq")[conditions].first().sum()
-        )
+        np.log10((rc_threshold + 1) / freq.groupby("nt_seq")[conditions].first().sum())
     ).mean(axis=None)
 
     # Plot read count per sequence

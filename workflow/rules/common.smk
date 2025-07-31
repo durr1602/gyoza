@@ -73,7 +73,9 @@ for x in layout_add_cols:
         warnings.warn(f"Column {x} is not listed in your sample attributes.")
 
 if not SAMPLE_ATTR:
-    raise ValueError("Error.. Please specify at least one sample attribute (e.g. 'Mutated_seq').")
+    raise ValueError(
+        "Error.. Please specify at least one sample attribute (e.g. 'Mutated_seq')."
+    )
 else:
     for attr in SAMPLE_ATTR:
         if attr not in layout_csv.columns:
@@ -293,6 +295,33 @@ else:
         )
     else:
         print("No normalization with cellular generations")
+
+
+##### Helper functions for dynamic allocation of resources #####
+def calc_mem(wildcards, input, attempt):
+    # Manually calculate input filesize because input.size_mb gets it wrong in this specific case
+    total_size = os.path.getsize(input[0])
+    size_mb = total_size / 1024
+    df = pd.read_csv(input[0], usecols=["codon_mode"])
+    if (df.codon_mode.astype(str).str.count("x") == 1).any():
+        factor = 1000
+    else:
+        factor = 1
+    mem = max(0.05 * size_mb * factor * attempt, 2)
+    return int(mem)
+
+
+def calc_time(wildcards, input, attempt):
+    # Manually calculate input filesize
+    total_size = os.path.getsize(input[0])
+    size_mb = total_size / 1024
+    df = pd.read_csv(input[0], usecols=["codon_mode"])
+    if (df.codon_mode.astype(str).str.count("x") == 1).any():
+        factor = 500
+    else:
+        factor = 1
+    alloc_time = max(0.08 * size_mb * factor * attempt, 2)
+    return alloc_time
 
 
 ##### Prepare HTML report #####

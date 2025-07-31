@@ -90,7 +90,7 @@ Go over your [main config file](config.yaml) one last time and check the followi
 
 ## Note on validation
 
-Currently, all the following files are validated against a YAML schema to help spot formatting issues (misspelled column headers, missing mandatory properties, improper format, etc.): main config file, sample layout, file with WT DNA sequences, files with expected sequences, codon table, file with the number of cellular generations.
+Currently, all the following files are validated against a YAML-formatted JSON schema to help spot formatting issues (misspelled column headers, missing mandatory properties, improper format, etc.): main config file, sample layout, file with WT DNA sequences, files with expected sequences, codon table, file with the number of cellular generations.
 
 ## Profiles for execution
 

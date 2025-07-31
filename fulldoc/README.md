@@ -15,7 +15,7 @@ If you already have it, make sure to update it to a recent version (>=24.7.1, id
 ```
 uv venv gyoza_env --python 3.13
 source gyoza_env/bin/activate
-uv pip install "snakedeploy>=0.11.0" "snakemake>=9.4.0" "snakemake-wrapper-utils>=0.7.2" pygments snakemake-executor-plugin-cluster-generic setuptools
+uv pip install "snakedeploy>=0.11.0" "snakemake>=9.9.0" "snakemake-wrapper-utils>=0.7.2" pygments snakemake-executor-plugin-cluster-generic setuptools
 ```
 Whenever your gyoza_env is activated, you should see it in the prompt:
 ```
@@ -109,17 +109,17 @@ Please make sure `tmux` is installed (already installed on some servers). Then, 
 
 >[!TIP]
 >
-> Similarly, you can omit rules from the workflow.
+> Similarly, you can omit rules (and depending downstream rules) from the workflow.
 >
-> For example: `snakemake --omit rule_to_omit`
+> For example: `snakemake --omit-from rule_to_omit`
 
 >[!NOTE]
 >
 > To account for intermediate runs, the report is built dynamically based on existing files (out of all files expected to be included in the report). To manually specify what should be included in the report, use the dedicated snakemake command line.
 >
-> Default (same target as full workflow): `snakemake --report results/report.html`.
+> Default (same target as full workflow): `snakemake --report results/report.html --report-stylesheet config/style/report-stylesheet.css`.
 >
-> Specify targets (output files or rules, separated by a space): `snakemake multiqc parse_fasta --report results/report.html`
+> Specify targets (output files or rules, separated by a space): `snakemake multiqc parse_fasta --report results/report.html --report-stylesheet config/style/report-stylesheet.css`
 
 > [!TIP]
 >
