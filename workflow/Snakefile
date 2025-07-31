@@ -32,7 +32,7 @@ if design == "random":
 elif design in ["provided", "barcode"]:
     if design == "barcode":
         RC_LEVEL = "barcode"
-        BC_ATTR.append([RC_LEVEL] + config["barcode"]["attributes"])
+        BC_ATTR = [RC_LEVEL] + config["barcode"]["attributes"]
     include: "rules/parse_fasta.smk"
     include: "rules/compare.smk"
     include: "rules/annotate_mutants.smk"
