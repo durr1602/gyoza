@@ -10,12 +10,6 @@ BC_ATTR = []
 
 include: "rules/common.smk"
 
-include: "rules/vsearch.smk"
-include: "rules/parse_fasta.smk"
-include: "rules/stats.smk"
-include: "rules/pool_stats.smk"
-include: "rules/plot_read_counts.smk"
-
 if config["reads"]["paired"]:
     RF_VALS.append("R2")
     include: "rules/cutadapt.smk"
@@ -49,6 +43,12 @@ else:
 if config["process_read_counts"]:
     include: "rules/process_read_counts.smk"
     include: "rules/plot_final_heatmaps.smk"
+
+include: "rules/vsearch.smk"
+include: "rules/parse_fasta.smk"
+include: "rules/stats.smk"
+include: "rules/pool_stats.smk"
+include: "rules/plot_read_counts.smk"
 
 ##### Target(s) #####
 
