@@ -74,6 +74,7 @@ properties:
       Nham_aa_max:
         type: integer
         description: Acceptable number of amino acid changes relative to wild-type (used to filter variants of 'random' designs)
+        minimum: 1
         default: 1
     required:
       - Nham_aa_max
