@@ -72,6 +72,12 @@ Additional columns can be further added to label barcodes with "barcode attribut
 
 This normalization is **optional**. Please set the corresponding parameter to True or False in the config. In any case, a csv-formatted template named `nbgen.csv` will be **automatically generated** in the project folder the first time the workflow is run (even if it is a dry run). Again, if normalization is set to True in the config, you will be prompted to edit the file to add the number of cellular generations for each condition (based on current sample selection) in the column 'Nb_gen'. Once the file is edited, re-run the workflow.
 
+> [!TIP]
+> 
+> Even if you don't opt in for this normalization, the generated template can be useful to spot any error related to setting up the sample layout.
+>
+> Check that the expected groups are listed based on your current selection, with the appropriate values for each of your sample attributes.
+
 ## Final checklist for the main config file
 
 Go over your [main config file](config.yaml) one last time and check the following:
