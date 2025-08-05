@@ -60,7 +60,7 @@ For 'codon' designs, please add a third column:
 
 If you've selected the 'provided' design, please provide 1 compressed dataframe for each mutated locus, listing all expected sequences. The files should be named `{Mutated_seq}.csv.gz` (where `{Mutated_seq}` is replaced with the actual label, e.g. Fragment1) and be located in a subfolder `expected_mut/`, placed in the project folder. Each file should contain at least three columns:
 - Mutated_seq: a single value per file (out of those listed in the Mutated_seq column of the sample layout)
-- WT_seq: corresponding WT DNA sequence, assuming the first three bases constitute the first mutated codon (no duplicates!)
+- WT_seq: corresponding WT DNA sequence (single value per file), assuming the first three bases constitute the first mutated codon
 - nt_seq: expected sequences (one per row)
 
 For barcoded designs, please provide the same files with at least one additional column:

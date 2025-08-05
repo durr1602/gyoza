@@ -13,7 +13,8 @@ def get_read_counts(fasta_file, outpath, mutated_seq, sample_name, readcount_lev
     )
     fasta_df["Mutated_seq"] = mutated_seq
     fasta_df["Sample_name"] = sample_name
-    fasta_df.to_csv(outpath, index=False)
+    withNs = fasta_df[readcount_level].str.contains("N")
+    fasta_df[~withNs].to_csv(outpath, index=False)
 
     return
 
