@@ -9,7 +9,7 @@ def inject_WT(f, wt, outpath, indel_outpath):
     """
     df = pd.read_csv(f)
     df["WT_seq"] = wt
-    
+
     # Identify indels
     is_indel = df["nt_seq"].str.len() != df["WT_seq"].str.len()
     df_indels = df[is_indel].copy()
@@ -22,7 +22,7 @@ def inject_WT(f, wt, outpath, indel_outpath):
         df_indels.to_csv(indel_outpath, index=False)
 
     df_valid.to_csv(outpath, index=False)
-    
+
     return
 
 

@@ -29,7 +29,7 @@ def get_mutations(seq, wt, codon_dic):
         raise ValueError(
             f"Error.. the length of the DNA sequence is not a multiple of 3."
         )
-    
+
     # Note: the two following checks are validated early on
     # but let's keep them just in case
 
@@ -162,9 +162,7 @@ def annotate_mutants(df, codon_dic):
     return df
 
 
-def get_annotated_mutants(
-    mut_path, outpath, position_offset, codon_table
-):
+def get_annotated_mutants(mut_path, outpath, position_offset, codon_table):
     """
     Annotates mutants (input = 1 dataframe per sample).
     """

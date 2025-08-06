@@ -226,7 +226,9 @@ for f in EXPMUT_PATH.glob("*.csv.gz"):
     wtseq = expmut.at[0, "WT_seq"].upper()
     mutseq_to_wtseq[mutseq] = wtseq
     if not (df["nt_seq"].astype(str).str.len() == len(wtseq)).all():
-        raise ValueError(f"Not all 'nt_seq's have the same length as 'WT_seq' in {f.name}")
+        raise ValueError(
+            f"Not all 'nt_seq's have the same length as 'WT_seq' in {f.name}"
+        )
     print(f"Imported expectant mutants of {mutseq}.")
 
 ##### Validate codon table #####

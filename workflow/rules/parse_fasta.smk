@@ -2,7 +2,7 @@ rule parse_fasta:
     input:
         rules.vsearch_fastx_uniques.output,
     output:
-        "results/df/readcounts/{sample}_rc.csv",
+        readcounts="results/df/readcounts/{sample}_rc.csv",
     params:
         mutseq=lambda wildcards: sample_to_mutseq[wildcards.sample],
         readcount_level=RC_LEVEL,

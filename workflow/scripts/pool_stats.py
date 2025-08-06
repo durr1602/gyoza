@@ -17,8 +17,8 @@ def plot_stacked_barplot(df, outpath, exp_rc_per_sample, plot_formats):
     width = 0.5
     color_dict = dict(
         zip(
-            ["OK", "Trimming", "Merging", "Aggregating", "Unexpected"],
-            sns.color_palette("Spectral_r", 6)[1:],
+            ["OK", "Trimming", "Merging", "Aggregating", "Unexpected", "Contain_Ns"],
+            sns.color_palette("Spectral_r", 7)[1:],
         )
     )
 
@@ -97,7 +97,14 @@ def get_pooled_stats(
     for f in sample_stats:
         list_df.append(
             pd.read_csv(f)[
-                ["Sample_name", "Total_raw_reads", "Trimming", "Merging", "Aggregating"]
+                [
+                    "Sample_name",
+                    "Total_raw_reads",
+                    "Trimming",
+                    "Merging",
+                    "Aggregating",
+                    "Contain_Ns",
+                ]
             ]
         )
 
@@ -125,7 +132,7 @@ def get_pooled_stats(
     )
 
     stacked_df["OK"] = stacked_df["Total_raw_reads"] - stacked_df[
-        ["Trimming", "Merging", "Aggregating", "Unexpected"]
+        ["Trimming", "Merging", "Aggregating", "Unexpected", "Contain_Ns"]
     ].sum(axis=1)
 
     stacked_df.sort_index(inplace=True)

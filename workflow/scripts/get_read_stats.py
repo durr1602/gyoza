@@ -4,7 +4,13 @@ import pandas as pd
 
 
 def generate_read_stats(
-    cutadapt_logfile, pandaseq_logfile, vsearch_logfile, outpath, sample_name, is_paired
+    cutadapt_logfile,
+    pandaseq_logfile,
+    vsearch_logfile,
+    Nout_logfile,
+    outpath,
+    sample_name,
+    is_paired,
 ):
 
     stats_dict = {}
@@ -192,16 +198,22 @@ def generate_read_stats(
     # Calculate number of reads discarded at the aggregating step (= number of singletons)
     fullstats["Aggregating"] = fullstats["Nb_singletons"]
 
+    # Step 4 - Add number of discarded sequences (with Ns) at parsing step
+
+    Nout_df = pd.read_csv(Nout_logfile, header=None)
+    fullstats["Contain_Ns"] = Nout_df.iat[0, 1]
+
     # Output to csv file
-    fullstats.reset_index(names="Sample_name").to_csv(outpath)
+    fullstats.reset_index(names="Sample_name").to_csv(outpath, index=False)
 
     return
 
 
 generate_read_stats(
-    str(snakemake.input["cutadapt_log"]),
-    str(snakemake.input["pandaseq_log"]),
-    str(snakemake.input["vsearch_log"]),
+    snakemake.input.cutadapt_log,
+    snakemake.input.pandaseq_log,
+    snakemake.input.vsearch_log,
+    snakemake.input.N_discarded_log,
     snakemake.output[0],
     snakemake.wildcards.sample,
     snakemake.params.is_paired,

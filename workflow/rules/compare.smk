@@ -3,7 +3,7 @@ rule compare_to_sequencing:
         expected_mut_path=lambda wildcards: str(
             EXPMUT_PATH / f"{sample_to_mutseq[wildcards.sample]}.csv.gz"
         ),
-        readcount_path=rules.parse_fasta.output[0],
+        readcount_path=rules.parse_fasta.output.readcounts,
     output:
         observed="results/df/observed_seqs/{sample}_observed.csv",
         unexpected="results/df/unexpected_seqs/{sample}_unexpected.csv",

@@ -1,6 +1,6 @@
 rule discard_indels:
     input:
-        rules.parse_fasta.output[0],
+        rules.parse_fasta.output.readcounts,
     output:
         observed="results/df/observed_seqs/{sample}_observed.csv",
         indels="results/df/indels/{sample}_indels.csv",
