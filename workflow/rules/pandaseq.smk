@@ -17,7 +17,6 @@ rule pandaseq:
         ## Flags for pandaseq
         # -O max overlap, important, related to Aviti sequencing tech
         # -k number of k-mers
-        # -N exclude sequences N(s)
         # -B allow input sequences to lack a barcode/tag
         # -t minimum threshold for alignment score (0-1)
         # -T number of threads, important, see doc
@@ -28,7 +27,6 @@ rule pandaseq:
         -O 625 \
         -k 4 \
         -B \
-        -N \
         -t 0.6 \
         -T {threads} \
         -d bfsrk \

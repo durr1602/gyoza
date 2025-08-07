@@ -15,10 +15,18 @@ plt.rcParams["svg.fonttype"] = "none"
 def plot_stacked_barplot(df, outpath, exp_rc_per_sample, plot_formats):
     samples = df["Sample_name"].to_list()
     width = 0.5
+    custom_palette = [
+        (0.00784313725490196, 0.6196078431372549, 0.45098039215686275),
+        (0.8705882352941177, 0.5607843137254902, 0.0196078431372549),
+        (0.00392156862745098, 0.45098039215686275, 0.6980392156862745),
+        (0.8352941176470589, 0.3686274509803922, 0.0),
+        (0.8, 0.47058823529411764, 0.7372549019607844),
+        (0.792156862745098, 0.5686274509803921, 0.3803921568627451),
+    ]
     color_dict = dict(
         zip(
             ["OK", "Trimming", "Merging", "Aggregating", "Unexpected", "Contain_Ns"],
-            sns.color_palette("Spectral_r", 7)[1:],
+            custom_palette,
         )
     )
 

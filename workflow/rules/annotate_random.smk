@@ -3,7 +3,7 @@ rule discard_indels:
         rules.parse_fasta.output.readcounts,
     output:
         observed="results/df/observed_seqs/{sample}_observed.csv",
-        indels="results/df/indels/{sample}_indels.csv",
+        indels=temp("results/df/indels/{sample}_indels.csv"),
     params:
         wt=lambda wildcards: mutseq_to_wtseq[sample_to_mutseq[wildcards.sample]],
     log:
@@ -36,7 +36,8 @@ rule annotate_random:
 
 rule filter_random_mutants:
     input:
-        rules.annotate_random.output.annot_rc,
+        no_indels=rules.annotate_random.output.annot_rc,
+        indels=rules.discard_indels.output.indels,
     output:
         filtered="results/df/annotated_readcounts/{sample}_annot_rc.csv",
         discarded="results/df/unexpected_seqs/{sample}_unexpected.csv",
