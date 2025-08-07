@@ -14,7 +14,7 @@ properties:
     description: Time point (at least one time point other than T0)
   Nb_gen:
     type: number
-    description: Number of cellular generations between the indicated time point and the previous one (1 if you don''t want to normalize)
+    description: Number of cellular generations between the indicated time point and T0 (1 triggers a warning to modify the template, alternatively disable this normalization)
 
 required:
   - Replicate

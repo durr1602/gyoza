@@ -70,7 +70,7 @@ Additional columns can be further added to label barcodes with "barcode attribut
 
 ### Normalization with the number of cellular generations
 
-This normalization is **optional**. Please set the corresponding parameter to True or False in the config. In any case, a csv-formatted template named `nbgen.csv` will be **automatically generated** in the project folder the first time the workflow is run (even if it is a dry run). Again, if normalization is set to True in the config, you will be prompted to edit the file to add the number of cellular generations for each condition (based on current sample selection) in the column 'Nb_gen'. Once the file is edited, re-run the workflow.
+This normalization is **optional**. Please set the corresponding parameter to True or False in the config. In any case, a csv-formatted template named `nbgen.csv` will be **automatically generated** in the project folder the first time the workflow is run (even if it is a dry run). If normalization is set to True in the config, you will be prompted to edit the file to add the number of cellular generations for each condition (based on current sample selection) in the column 'Nb_gen'. The value entered should correspond to the number of cellular generations between T0 and the time point on the matching row. Once the file is edited, re-run the workflow.
 
 > [!TIP]
 > 
