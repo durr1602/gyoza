@@ -26,10 +26,10 @@ default-resources:
 # Resources allocated should prevent overallocation but might not be enough at first attempt
 set-resources:
   fastqc:
-    mem_gb: max(int(0.01 * input.size_mb * attempt + 0.99), 1)
+    mem_gb: min(10, max(int(0.01 * input.size_mb * attempt + 0.99), 1))
     time: max(int(0.005 * input.size_mb * attempt + 0.99), 1)
   compare_to_sequencing:
-    mem_gb: max(int(0.15 * input.size_mb * attempt + 0.99), 2)
+    mem_gb: min(10, max(int(0.15 * input.size_mb * attempt + 0.99), 2))
     time: max(int(0.15 * input.size_mb * attempt + 0.99), 2)
   annotate_mutants:
     time: max(int(0.002 * input.size_mb * attempt + 0.99), 1)
@@ -46,11 +46,11 @@ set-resources:
     time: max(int(0.001 * input.size_mb * attempt + 0.99), 1)
   parse_fasta:
     threads: 1
-    mem_gb: max(int(0.002 * input.size_mb * attempt + 0.99), 1)
+    mem_gb: min(10, max(int(0.002 * input.size_mb * attempt + 0.99), 1))
     time: max(int(0.002 * input.size_mb * attempt + 0.99), 1)
   process_read_counts:
     threads: 1
-    mem_gb: max(int(0.2 * input.size_mb * attempt + 0.99), 1)
+    mem_gb: min(10, max(int(0.2 * input.size_mb * attempt + 0.99), 1))
     time: max(int(0.5 * input.size_mb * attempt + 0.99), 1)
 
 jobs: 500
