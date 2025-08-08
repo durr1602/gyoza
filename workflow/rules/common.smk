@@ -218,14 +218,14 @@ if exists(WT_PATH):
 for f in EXPMUT_PATH.glob("*.csv.gz"):
     expmut = pd.read_csv(f)
     validate(expmut, schema="../schemas/exp_mut.schema.yaml")
-    if df["Mutated_seq"].nunique() != 1:
+    if expmut["Mutated_seq"].nunique() != 1:
         raise ValueError(f"Error.. Multiple 'Mutated_seq' values in {f.name}")
     mutseq = expmut.at[0, "Mutated_seq"]
-    if df["WT_seq"].nunique() != 1:
+    if expmut["WT_seq"].nunique() != 1:
         raise ValueError(f"Error.. Multiple 'WT_seq' values in {f.name}")
     wtseq = expmut.at[0, "WT_seq"].upper()
     mutseq_to_wtseq[mutseq] = wtseq
-    if not (df["nt_seq"].astype(str).str.len() == len(wtseq)).all():
+    if not (expmut["nt_seq"].astype(str).str.len() == len(wtseq)).all():
         raise ValueError(
             f"Not all 'nt_seq's have the same length as 'WT_seq' in {f.name}"
         )
