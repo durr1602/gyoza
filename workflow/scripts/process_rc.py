@@ -370,22 +370,10 @@ def get_selcoeffs(
         index="Replicate", columns="Timepoint", values="Nb_gen"
     )
     nbgen_wide.columns = [f"{x}_gen" for x in nbgen_wide.columns]
-    for i, x in enumerate(timepoints):
-        if i in [0, 1]:
-            pass
-        else:
-            nbgen_wide[f"cumul_{x}_gen"] = nbgen_wide[
-                [f"{t}_gen" for t in timepoints[1:i] + [x]]
-            ].sum(axis=1)
-    for x in nbgen_wide.columns:
-        if "cumul_" in x:
-            nbgen_wide[x.split("cumul_")[1]] = nbgen_wide[x]
-            nbgen_wide.drop(x, axis=1, inplace=True)
-
+    gen_cols = nbgen_wide.columns
     lfc_wide = freq_wide.reset_index().merge(
         right=nbgen_wide.reset_index(), on="Replicate"
     )
-    gen_cols = nbgen_wide.columns
 
     for x in list(zip(lfc_cols, gen_cols)):
         lfc_wide[x[0]] /= lfc_wide[x[1]]

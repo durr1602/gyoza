@@ -60,7 +60,7 @@ For 'codon' designs, please add a third column:
 
 If you've selected the 'provided' design, please provide 1 compressed dataframe for each mutated locus, listing all expected sequences. The files should be named `{Mutated_seq}.csv.gz` (where `{Mutated_seq}` is replaced with the actual label, e.g. Fragment1) and be located in a subfolder `expected_mut/`, placed in the project folder. Each file should contain at least three columns:
 - Mutated_seq: a single value per file (out of those listed in the Mutated_seq column of the sample layout)
-- WT_seq: corresponding WT DNA sequence, assuming the first three bases constitute the first mutated codon (no duplicates!)
+- WT_seq: corresponding WT DNA sequence (single value per file), assuming the first three bases constitute the first mutated codon
 - nt_seq: expected sequences (one per row)
 
 For barcoded designs, please provide the same files with at least one additional column:
@@ -70,7 +70,7 @@ Additional columns can be further added to label barcodes with "barcode attribut
 
 ### Normalization with the number of cellular generations
 
-This normalization is **optional**. Please set the corresponding parameter to True or False in the config. In any case, a csv-formatted template named `nbgen.csv` will be **automatically generated** in the project folder the first time the workflow is run (even if it is a dry run). Again, if normalization is set to True in the config, you will be prompted to edit the file to add the number of cellular generations for each condition (based on current sample selection) in the column 'Nb_gen'. Once the file is edited, re-run the workflow.
+This normalization is **optional**. Please set the corresponding parameter to True or False in the config. In any case, a csv-formatted template named `nbgen.csv` will be **automatically generated** in the project folder the first time the workflow is run (even if it is a dry run). If normalization is set to True in the config, you will be prompted to edit the file to add the number of cellular generations for each condition (based on current sample selection) in the column 'Nb_gen'. The value entered should correspond to the number of cellular generations between T0 and the time point on the matching row. Once the file is edited, re-run the workflow.
 
 > [!TIP]
 > 

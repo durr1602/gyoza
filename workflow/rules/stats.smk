@@ -3,8 +3,9 @@ rule stats:
         cutadapt_log="logs/1_trim/cutadapt-sample={sample}.stats",
         pandaseq_log="logs/2_merge/pandaseq-sample={sample}.stats",
         vsearch_log="logs/3_aggregate/vsearch-sample={sample}.stats",
+        N_discarded_log="logs/4_readcounts/parse-fasta-sample={sample}.log",
     output:
-        "results/stats/stats-sample={sample}.csv",
+        temp("results/stats/stats-sample={sample}.csv"),
     params:
         is_paired=config["reads"]["paired"],
     message:

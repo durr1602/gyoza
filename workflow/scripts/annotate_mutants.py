@@ -25,14 +25,17 @@ def get_mutations(seq, wt, codon_dic):
     From there, we also calculate the Hamming distances in codons, nucleotides and amino acids.
     Finally, we retrieve other sequence-level attributes (how the sequence differs from the WT, regardless of the number of mutations)
     """
-    if len(seq) != len(wt):
-        raise ValueError(
-            f"Error.. Cannot annotate expected mutants because at least one sequence is of different length than wild-type."
-        )
-
     if len(seq) % 3 != 0:
         raise ValueError(
             f"Error.. the length of the DNA sequence is not a multiple of 3."
+        )
+
+    # Note: the two following checks are validated early on
+    # but let's keep them just in case
+
+    if len(seq) != len(wt):
+        raise ValueError(
+            f"Error.. Cannot annotate expected mutants because at least one sequence is of different length than wild-type."
         )
 
     if not set(seq).issubset({"A", "C", "G", "T"}):
@@ -159,9 +162,7 @@ def annotate_mutants(df, codon_dic):
     return df
 
 
-def get_annotated_mutants(
-    mut_path, outpath, indel_outpath, position_offset, codon_table
-):
+def get_annotated_mutants(mut_path, outpath, position_offset, codon_table):
     """
     Annotates mutants (input = 1 dataframe per sample).
     """
@@ -172,14 +173,9 @@ def get_annotated_mutants(
     # Load dataframe
     df = pd.read_csv(mut_path)
 
-    # Identify indels
-    is_indel = df["nt_seq"].str.len() != df["WT_seq"].str.len()
-    df_indels = df[is_indel].copy()
-    df_valid = df[~is_indel].copy()
-
     # Annotate non-indels if there are any
-    if not df_valid.empty:
-        annot_df = annotate_mutants(df_valid, codon_dic)
+    if not df.empty:
+        annot_df = annotate_mutants(df, codon_dic)
         # Add position offset at mutation level
         annot_df["mutation_aa_pos"] = annot_df.mutation_pos.apply(
             lambda x: (
@@ -220,13 +216,8 @@ def get_annotated_mutants(
             ]
         )
 
-    # Ensure dataframe with indels is created even if empty
-    if df_indels.empty:
-        df_indels = pd.DataFrame(columns=df.columns)
-
     # Save outputs
     annot_df.sort_values(by="WT", ascending=False).to_csv(outpath, index=False)
-    df_indels.to_csv(indel_outpath, index=False)
 
     return
 
@@ -234,7 +225,6 @@ def get_annotated_mutants(
 get_annotated_mutants(
     snakemake.input[0],
     snakemake.output.annot_rc,
-    snakemake.output.indels,
     snakemake.params.position_offset,
     snakemake.params.genetic_code,
 )
