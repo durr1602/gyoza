@@ -98,7 +98,7 @@ Currently, all the following files are validated against a YAML-formatted JSON s
 > 
 > By default, the simple command line `snakemake` will run gyōza with [the default profile](../profiles/default/config.v8+.yaml) = local execution
 > 
-> To switch to the SLURM executor, edit [the slurm profile](../profiles/slurm/config.v8+.yaml), including to indicate your email adress
+> To switch to the SLURM executor, edit [the slurm profile](../profiles/slurm/config.v8+.yaml), including to indicate your email address
 
 Flags added to the snakemake command line will supersede the values specified in either profile.
 
