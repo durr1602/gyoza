@@ -1,15 +1,8 @@
-from snakemake.script import snakemake
+"""Plotting module for aggregated data.
 
 """
-from scripts.my_functions import concatenate_df
-from scripts.plotting_functions import (
-    plot_allele_freq,
-    plot_scoeff_violin,
-    plot_impact_over_time,
-    plot_spearman_heatmaps,
-    plot_replicate_scatter,
-)
-"""
+
+from snakemake.script import snakemake
 import pandas as pd
 from scipy import stats
 import seaborn as sns
@@ -29,9 +22,17 @@ prot_seq_attributes = [
 
 
 def concatenate_df(df_files):
-    """
-    Takes list of paths to dataframes as input.
-    Returns single concatenated dataframe.
+    r"""Opens and concatenates multiple dataframes.
+    
+    Parameters
+    ----------
+    df_files : list of str
+        List of paths to CSV-formatted dataframes.
+    
+    Returns
+    -------
+    pandas.DataFrame
+        Single concatenated dataframe.
     """
     list_df = []
     for f in df_files:
@@ -41,10 +42,22 @@ def concatenate_df(df_files):
 
 
 def plot_allele_freq(df, outpath, mean_exp_freq, plot_formats):
-    """
-    Plots distributions of allele frequencies for each sample group.
-    Sample groups must be in column "Sample attributes".
-    Replicates are shown as split violins.
+    r"""Plot distributions of allele frequencies for each sample group.
+    
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Dataframe of allele frequencies. Should contain columns:
+        + "Sample attributes" (str, sample group identifier)
+        + "frequency" (float)
+        + "Timepoint"
+        + "Replicate" (replicates are shown as split violins)
+    outpath : str
+        Path to save violin plot as SVG (should end with ".svg").
+    mean_exp_freq : float
+        Log10 of average expected allele frequency.
+    plot_formats : list of str
+        Formats other than SVG in which the plot should be saved.
     """
     labels = df["Sample attributes"].unique()
     timepoints = sorted(df.Timepoint.unique())
@@ -85,6 +98,17 @@ def plot_allele_freq(df, outpath, mean_exp_freq, plot_formats):
 
 
 def get_allele_freq_plot(df_files, outpath, plot_formats):
+    r"""Aggregate data and plot distributions of allele frequencies.
+    
+    Parameters
+    ----------
+    df_files : list of str
+        List of paths to CSV-formatted dataframes.
+    outpath : str
+        Path to save violin plot as SVG (should end with ".svg").
+    plot_formats : list of str
+        Formats other than SVG in which the plot should be saved.
+    """
     df = concatenate_df(df_files)
     mean_exp_freq = (
         df.groupby("Sample attributes")[["Mean_exp_freq"]].first().mean(axis=None)
@@ -94,10 +118,20 @@ def get_allele_freq_plot(df_files, outpath, plot_formats):
 
 
 def plot_scoeff_violin(df, outpath, plot_formats):
-    """
-    Plots distributions of functional impact scores for each sample group.
-    Sample groups must be in column "Sample attributes".
-    Replicates are shown as split violins.
+    r"""Plot distributions of functional impact scores for each sample group.
+    
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Dataframe of functional impact scores. Should contain columns:
+        + "Sample attributes" (str, sample group identifier)
+        + "s" (float, functional impact score)
+        + "Compared timepoints" (str)
+        + "Replicate" (replicates are shown as split violins)
+    outpath : str
+        Path to save violin plot as SVG (should end with ".svg").
+    plot_formats : list of str
+        Formats other than SVG in which the plot should be saved.
     """
     labels = df["Sample attributes"].unique()
     timepoints = sorted(df["Compared timepoints"].unique())
@@ -136,10 +170,21 @@ def plot_scoeff_violin(df, outpath, plot_formats):
 
 
 def plot_impact_over_time(df, outpath, plot_formats):
-    """
-    Plots functional impact over time for each sample group.
-    Sample groups must be in column "Sample attributes".
-    Bands indicate spread (standard deviation) for each mutation type.
+    r"""Plot functional impact over time for each sample group.
+    
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Dataframe of functional impact scores. Should contain columns:
+        + "Sample attributes" (str, sample group identifier)
+        + "s" (float, functional impact score)
+        + "Compared timepoints" (str)
+        + "Replicate" (replicates are shown as different markers)
+        + "Nham_aa" (int, number of amino acid changes as different colors)
+    outpath : str
+        Path to save plot as SVG (should end with ".svg").
+    plot_formats : list of str
+        Formats other than SVG in which the plot should be saved.
     """
     g = sns.relplot(
         data=df.sort_values(by="Compared timepoints"),
@@ -166,11 +211,23 @@ def plot_impact_over_time(df, outpath, plot_formats):
 
 
 def plot_spearman_heatmaps(df, replicates, outpath, plot_formats):
-    """
-    Plots heatmaps with Spearman correlation coefficient,
-    for each pairwise comparison between replicates,
-    for each sample group.
-    Sample groups must be in column "Sample attributes".
+    r"""Plot Spearman correlation between replicates as heatmaps.
+    
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Dataframe of functional impact scores. Should contain columns:
+        + "Sample attributes" (str, sample group identifier)
+        + "Compared timepoints" (str)
+        + `replicates`
+    replicates : list of str
+        List of replicates that should feature as columns in `df`.
+        Spearman correlation coefficients are obtained for each pairwise comparison
+        between replicates, for each sample group.
+    outpath : str
+        Path to save heatmap as SVG (should end with ".svg").
+    plot_formats : list of str
+        Formats other than SVG in which the plot should be saved.
     """
     labels = df["Sample attributes"].unique()
     timepoints = sorted(df["Compared timepoints"].unique())
@@ -219,10 +276,21 @@ def plot_spearman_heatmaps(df, replicates, outpath, plot_formats):
 
 
 def plot_replicate_scatter(df, replicates, outpath, plot_formats):
-    """
-    Plots correlation between first two replicates, for each sample group.
-    replicates argument = list with values corresponding to each replicate.
-    Sample groups must be in column "Sample attributes".
+    r"""Plot correlation between first two replicates, for each sample group.
+    
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Dataframe of functional impact scores. Should contain columns:
+        + "Sample attributes" (str, sample group identifier)
+        + "Compared timepoints" (str)
+        + `replicates`
+    replicates : list of str
+        List of replicates that should feature as columns in `df`.
+    outpath : str
+        Path to save scatter plot as SVG (should end with ".svg").
+    plot_formats : list of str
+        Formats other than SVG in which the plot should be saved.
     """
     g = sns.lmplot(
         df,
@@ -252,6 +320,27 @@ def get_s_plots(
     replicate_plot_outpath,
     plot_formats,
 ):
+    r"""Aggregate data and plot functional impact scores.
+    
+    Parameters
+    ----------
+    df_files : list of str
+        List of paths to CSV-formatted dataframes.
+    scoeff_plot_outpath : str
+        Path to save violin plot of distributions of scores as SVG (should end with
+        ".svg").
+    s_time_plot_outpath : str
+        Path to save plot of functional impact over time as SVG (should end with
+        ".svg").
+    heatmaps_outpath : str
+        Path to save heatmap of Spearman correlation coefficients for pairwise
+        comparisons of replicates as SVG (should end with ".svg").
+    replicate_plot_outpath : str
+        Path to save scatter plot of correlation between first two replicates (or
+        against same replicate if only one) as SVG (should end with ".svg")
+    plot_formats : list of str
+        Formats other than SVG in which all plots should be saved.
+    """
     df = concatenate_df(df_files)
     df["Replicate"] = df["Replicate"].astype(str)
     plot_scoeff_violin(df, scoeff_plot_outpath, plot_formats)

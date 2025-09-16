@@ -1,11 +1,27 @@
+"""Module to discard indels.
+
+"""
+
 from snakemake.script import snakemake
 import pandas as pd
 
 
 def inject_WT(f, wt, outpath, indel_outpath):
-    """
-    Short script to inject WT sequence in dataframe of raw read counts,
-    use it to discard indels --> prep for annotation.
+    r"""Inject WT sequence in dataframe of raw read counts, discard indel mutants.
+    
+    Parameters
+    ----------
+    f : str
+        Path to CSV-formatted dataframe of raw read counts.
+        Should contain column "nt_seq".
+    wt : str
+        Wild-type DNA sequence (with bases either A, C, G or T).
+    outpath : str
+        Path to save output dataframe (non-indel mutants only),
+        with column headers only if empty.
+    indel_outpath : str
+        Path to save output dataframe (indels only),
+        with column headers only if empty.
     """
     df = pd.read_csv(f)
     df["WT_seq"] = wt

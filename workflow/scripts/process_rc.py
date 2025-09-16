@@ -1,13 +1,8 @@
-from snakemake.script import snakemake
+"""Module to convert read counts into functional impact scores.
 
 """
-from scripts.my_functions import get_confidence_score, get_mutation_type
-from scripts.plotting_functions import (
-    plot_rc_per_seq,
-    plot_upset_TR,
-    plot_timepoint_corr,
-)
-"""
+
+from snakemake.script import snakemake
 import pandas as pd
 import json
 import numpy as np
@@ -27,22 +22,50 @@ CSCORE_COLORS = ["green", "orange", "red"]
 
 
 def get_confidence_score(g, threshold):
+    r"""Get confidence score based on read count at T0.
+        
+    Parameters
+    ----------
+    g : pandas.Series
+        Read counts across replicates for a single sequence.
+    threshold : int
+        Read count threshold.
+    
+    Returns
+    ----------
+    {1, 2, 3}
+        Confidence score:
+        + 1: high, read count above threshold in all replicates
+        + 2: medium, read count above threshold in at least one replicate
+        + 3: low, read count below threshold in all replicates
     """
-    Labels variants with a confidence score based on read count at T0
-    """
-    if (g >= threshold).all():  # Above threshold in all replicates
-        return 1  # best confidence score
-    elif (g >= threshold).any():  # Above threshold in at least 1 replicate
-        return 2  # medium confidence score
+    if (g >= threshold).all():
+        return 1
+    elif (g >= threshold).any():
+        return 2
     else:
-        return 3  # low confidence score
+        return 3
 
 
 def plot_rc_per_seq(df1, df2, outpath, sample_group, thresh, thresh_freq, plot_formats):
-    """
-    Expects a dataframe of raw read counts and
-    equivalent converted into read frequencies
-    (normalized with sample depth).
+    r"""Plot side-by-side distributions of read counts/frequencies.
+        
+    Parameters
+    ----------
+    df1 : pandas.DataFrame
+        Dataframe of raw read counts.
+    df2 : pandas.DataFrame
+        Dataframe of allele frequencies (read counts normalized with sample depth).
+    outpath : str
+        Path to save plot as SVG (should end with ".svg").
+    sample_group : str
+        Sample group identifier
+    thresh : int
+        Read count threshold
+    thresh_freq : float
+        Log10 of `thresh` normalized with sample depth.
+    plot_formats : list of str
+        Formats other than SVG in which the plot should be saved.
     """
     fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(10, 4))
 
@@ -65,12 +88,23 @@ def plot_rc_per_seq(df1, df2, outpath, sample_group, thresh, thresh_freq, plot_f
 
 
 def plot_upset_TR(df, conditions, outpath, sample_group, plot_formats):
-    """
-    Plots overlap across time points and replicates
-    in the form of an upsetplot, counting the number of unique sequences.
-    Conditions argument correspond to columns in the dataframe..
-    ..should be boolean and indicate whether or not the sequence is in the
-    combination of time point/replicate
+    r"""Plot overlap of unique sequences found across time points and replicates.
+        
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Dataframe of sequences found across time points and replicates.
+        Should contain columns:
+        + `conditions` (bool, indicates if the sequence was in the combination of
+        time point / replicate)
+        + "confidence_score"
+        + "mean_input" (float, average read frequency at T0)
+    conditions : list of str
+        Columns in `df`, should refer to combinations of time point / replicate
+    outpath : str
+        Path to save upset plot as SVG (should end with ".svg").
+    plot_formats : list of str
+        Formats other than SVG in which the plot should be saved.
     """
     fig = plt.figure(figsize=(6, 6))
     upset_obj = UpSet(
@@ -123,9 +157,19 @@ def plot_upset_TR(df, conditions, outpath, sample_group, plot_formats):
 
 
 def plot_timepoint_corr(df, outpath, sample_group, plot_formats):
-    """
-    Plots pairwise comparisons of selection coefficients
-    to look at correlation between time points.
+    r"""Plot pairwise comparisons of functional impact scores between time points.
+        
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Dataframe of functional impact scores.
+        Should contain column "confidence_score".
+    outpath : str
+        Path to save plot as SVG (should end with ".svg").
+    sample_group: str
+        Sample group identifier
+    plot_formats : list of str
+        Formats other than SVG in which the plot should be saved.
     """
     # Check number of columns
     if len([x for x in df.columns if x != "confidence_score"]) <= 1:
@@ -172,10 +216,60 @@ def get_selcoeffs(
     rc_threshold,
     plot_formats,
 ):
-    """
-    Processes read counts and transforms them into functional impact scores.
-    Samples sharing the same set of conditions (based on sample attributes)
-    are pooled together. The resulting groups of samples are processed separately.
+    r"""Convert read counts into functional impact scores for grouped samples.
+    
+    Parameters
+    ----------
+    readcount_files : list of str
+        List of paths to CSV-formatted dataframes of read counts per sample.
+    nbgen_path : str
+        Path to CSV-formatted dataframe containing the number of mitotic
+        generations between T0 and each time point.
+    outpath : str
+        Path to save output dataframe of functional impact scores.
+    avg_outpath : str
+        Path to save output dataframe of fitness and error values (functional
+        impact scores averaged over replicates for high confidence variants only).
+    histplot_outpath : str
+        Path to save plot with distributions of read counts/frequencies as SVG
+        (should end with ".svg").
+    upsetplot_outpath : str
+        Path to save upset plot showing overlap of unique sequences found across
+        time points and replicates, as SVG (should end with ".svg").
+    timepointsplot_outpath : str
+        Path to save plot with comparisons between time points as SVG
+        (should end with ".svg").
+    freq_outpath : str
+        Path to save output dataframe of allele frequencies.
+    aa_df_outpath : str
+        Path to save output dataframe of functional impact scores aggregated at
+        the protein level.
+    sample_group : str
+        Sample group identifier.
+        Should contain sample attributes concatenated with "__".
+    layout_path : str
+        Path to CSV-formatted sample layout.
+    sample_attributes : list of str
+        List of sample attributes.
+        The corresponding values should feature in `sample_group`.
+    rc_level : {"nt_seq", "barcode"}
+        Level to which read counts are attributed.
+    barcode_attributes : list of str
+        List of barcode attributes (includes `rc_level`).
+    rc_threshold : int
+        Threshold to label variants with a confidence score based on their
+        read count at T0 across replicates.
+    plot_formats : list of str
+        Formats other than SVG in which the plot should be saved.
+    
+    Notes
+    ----------
+    Functional impact scores are obtained with a log ratio method:
+
+    .. math:: s_v=\ \log_2{\left(\frac{c_{v,output}}{\sum\nolimits_{i} c_{i,\ output}}\right)}\ -\log_2{\left(\frac{c_{v,input}}{\sum\nolimits_{i} c_{i,\ input}}\right)}
+    
+    with :math:`c_v` being the raw read count of a variant + 1,
+    "input" being T0 and "output" designating any post-screening time point.
     """
     mutation_attributes = [
         "mutated_codon",

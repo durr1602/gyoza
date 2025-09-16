@@ -1,3 +1,7 @@
+"""Module to retrieve read count statistics from log files.
+
+"""
+
 import os
 from snakemake.script import snakemake
 import pandas as pd
@@ -12,7 +16,35 @@ def generate_read_stats(
     sample_name,
     is_paired,
 ):
-
+    r"""Parse different types of log files and extract read count statistics.
+    
+    Parameters
+    ----------
+    cutadapt_logfile : str
+        Path to log file from cutadapt v5.1
+    pandaseq_logfile : str
+        Path to log file from pandaseq v2.11
+    vsearch_logfile : str
+        Path to log file from vsearch v2.29.3
+    Nout_logfile : str
+        Path to text file containing the number of DNA sequencing reads
+        discarded because they contained N(s).
+    outpath : str
+        Path to save output dataframe of read count statistics.
+    sample_name : str
+        Sample identifier
+    is_paired : {True, False}
+        True if reads are paired, False for single-end reads.
+    
+    Notes
+    ----------
+    Statistics retrieved include:
+    + the total number of reads
+    + the number of trimmed reads
+    + the number of merged reads
+    + the number of aggregated reads
+    + the number of reads lost at each step 
+    """
     stats_dict = {}
 
     # Step 1 - Process cutadapt log

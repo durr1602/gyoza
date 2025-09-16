@@ -1,3 +1,7 @@
+"""Module to plot heatmaps from mutants.
+
+"""
+
 from snakemake.script import snakemake
 import pandas as pd
 import pickle
@@ -11,9 +15,25 @@ plt.rcParams["svg.fonttype"] = "none"
 
 
 def get_heatmaps(f, meta, outpath, label, plot_formats):
-    """
-    Plots heatmaps from input dataframe and
-    pickled metadata companion.
+    r"""Plot heatmap from dataframe, export in specified formats.
+
+    Parameters
+    ----------
+    f : str
+        Path to properly formatted dataframe.
+    meta : str
+        Path to serialized metadata. Should correspond to a dictionary with keys:
+        + "idx" (str or list of str, index column headers)
+        + "fitness" (str, column containing values to plot)
+        + "wt_coordinates" (list of wild-type coordinates to mark on heatmap)
+        + "color_map"
+        + "vmax" and "vmin" to set axes limits
+    outpath : str
+        Path to save heatmap as SVG (should end with ".svg").
+    label : str
+        Heatmap title
+    plot_formats : list of str
+        Formats other than SVG in which the plot should be saved.
     """
     # Load metadata
     with open(meta, "rb") as m:

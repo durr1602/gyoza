@@ -1,14 +1,25 @@
-from snakemake.script import snakemake
+"""Module to generate per-codon mutants from wild-type DNA sequence.
 
-# from scripts.my_functions import load_codon_dic, get_single_double, get_nt_seq
+"""
+
+from snakemake.script import snakemake
 import pandas as pd
 import numpy as np
 import itertools
 
 
 def load_codon_dic(table):
-    """
-    Small function to load the codon table and return a dictionary
+    r"""Convert the CSV-formatted codon table to a dict.
+    
+    Parameters
+    ----------
+    table : str
+        Path to CSV-formatted codon table.
+        Header must be on first line and include columns "codon" and "aminoacid"
+    
+    Returns
+    -------
+    dict
     """
     codon_table = pd.read_csv(table, header=0)
     codon_table["codon"] = codon_table["codon"].str.upper()
@@ -17,14 +28,25 @@ def load_codon_dic(table):
 
 
 def get_alt_codons(seq, codon_dic, mode="NNN"):
+    r"""Get acceptable alternative codons per position.
+    
+    Parameters
+    ----------
+    seq : str
+        Wild-type DNA sequence (with bases either A, C, G or T).
+        Length should be a multiple of 3.
+    codon_dic : dict
+        Codon table associating codons to amino acid residues.
+    mode : {"NNN", "NNK"}
+        Degenerate codon in IUPAC format.
+    
+    Returns
+    -------
+    pos_l : list
+        0-based positions in the protein sequence translated from mutated `seq`
+    var_l : list of list
+        Acceptable alternative codons at positions with indexes matching `pos_l`
     """
-    Based on a DNA sequence, the function returns two lists:
-    1) A list containing all 0-based amino acid positions for the sequence
-    2) A list containing all possible alternative codons (other than WT codon) at the matching positions
-    For list 2, the mode defines which codons are acceptable: NNN by default, or NNK
-    Codons are fetched in the provided codon table (dictionary)
-    """
-
     if mode == "NNN":
         alt = [x for x in codon_dic.keys()]
     elif mode == "NNK":
@@ -44,11 +66,21 @@ def get_alt_codons(seq, codon_dic, mode="NNN"):
 
 
 def get_single_double(df, codon_dic):
-    """
-    Processes a dataframe containing the wild-type nucleotide sequence to mutate,
-    as well as a codon_mode, indicating the type of degenerate codon to introduce.
-    Generates all single mutants and optionally double mutants.
-    Returns dataframe in long format (one row per mutated codon).
+    r"""Generate all mutants from dataframe of wild-type sequences.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Dataframe containing wild-type sequences to mutate (one per locus).
+        Should contain columns "Mutated_seq", "WT_seq" and "codon_mode".
+    codon_dic : dict
+        Codon table associating codons to amino acid residues.
+    
+    Returns
+    -------
+    mutants_df : pandas.DataFrame
+        Dataframe containing all generated mutants in long format
+        (one row per mutated codon)
     """
     singles_compact = df.copy()
     singles_compact["pos"], singles_compact["alt_codons"] = zip(
@@ -132,9 +164,22 @@ def get_single_double(df, codon_dic):
 
 
 def get_nt_seq(seq, mut_dic):
-    """
-    Reconstitutes a nucleotide sequence based on a dictionary of mutations,
-    containing positions and alternative codons.
+    r"""Get DNA sequence of mutant based on wild-type and dictionary of mutations.
+    
+    Parameters
+    ----------
+    seq : str
+        Wild-type DNA sequence (with bases either A, C, G or T).
+        Length should be a multiple of 3.
+    mut_dic : dict
+        Dictionary of mutations where keys correspond to positions in the protein
+        sequence translated from `seq` and values correspond to the alternative
+        codon.
+    
+    Returns
+    -------
+    str
+        Mutated DNA sequence
     """
     list_codons = [
         seq[i : i + 3]
@@ -149,13 +194,21 @@ def get_nt_seq(seq, mut_dic):
 
 
 def generate_mutants(wtseq_path, outpath, mutated_seq, codon_table):
+    r"""Generate mutants for a single locus identified by `mutated_seq`.
+    
+    Parameters
+    ----------
+    wtseq_path : str
+        Path to CSV-formatted dataframe of wild-type DNA sequences.
+        Should contain columns "Mutated_seq" and "WT_seq".
+    outpath : str
+        Path to save output dataframe of mutants (DNA sequences only).
+    mutated_seq : str
+        Locus identifier.
+    codon_table : str
+        Path to CSV-formatted codon table.
+        Header must be on first line and include columns "codon" and "aminoacid"
     """
-    Generates all single mutants and optionally all double mutants,
-    based on the provided wild-type sequence
-    """
-    # Create directory if does not already exist
-    # outdir.mkdir(parents=True, exist_ok=True)
-
     # Load codon dictionary
     codon_dic = load_codon_dic(codon_table)
 
