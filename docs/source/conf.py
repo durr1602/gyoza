@@ -1,6 +1,8 @@
 # Configuration file for the Sphinx documentation builder.
 
-import glob
+import sys
+
+sys.path.insert(0, os.path.abspath("../../workflow/scripts/"))
 
 # -- Project information
 
@@ -22,7 +24,7 @@ extensions = [
 ]
 
 autodoc2_packages = [
-    glob.glob("../../workflow/scripts/*.py"),
+    "../../workflow/scripts",
 ]
 
 intersphinx_mapping = {
