@@ -3,52 +3,21 @@
 gyōza: a Snakemake-based workflow to analyze DMS data
 =====================================================
 
-.. raw:: html
+.. image:: ../../gyoza.png
+   :height: 100px
+   :alt: gyoza logo
+   :align: left
 
-   <p align="left">
+gyōza is a command-line interface to help you analyze time-series
+deep-mutational scanning (DMS) data .
 
-.. raw:: html
+After `installation <installation.rst>`__,
+prepare the `configuration <configuration.rst>`__
+and `run the workflow <usage.rst>`__.
 
-   </p>
-
-Installation
-------------
-
-   [!TIP]
-
-   Follow `the full installation instructions <fulldoc/README.md>`__.
-
-Usage
------
-
-Prepare files and edit config
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   [!IMPORTANT]
-
-   1. Read the `config documentation <config/README.md>`__ and **edit**
-      `the main config <config/config.yaml>`__.
-   2. Choose the type of execution (local or SLURM), edit `the slurm
-      profile <profiles/slurm/config.v8+.yaml>`__ if needed.
-
-Check pipeline
-~~~~~~~~~~~~~~
-
-2. Perform a dry run using: ``snakemake -n``
-
-This step is strongly recommended. It will make sure the prepared
-workflow does not contain any error and will display the rules (steps)
-that need to be run in order to run the workflow (built dynamically
-based on the config). If you’re running the workflow for the first time
-and you toggled in normalization with growth data, you should see a
-warning prompting you to edit the generated template file (for more
-details, go back to step 1).
-
-Run pipeline
-~~~~~~~~~~~~
-
-3. Run the workflow either locally: ``snakemake`` or send to SLURM:
-   ``snakemake --profile profiles/slurm``.
+gyōza was developed by Romain Durand during his postdoc in the
+`Landry lab <https://landrylab.ibis.ulaval.ca/>`__
+at `Université Laval <https://www.ulaval.ca/>`__.
 
 .. |Conda| image:: https://img.shields.io/badge/conda-≥24.9.1-brightgreen.svg
    :target: https://github.com/conda/conda

@@ -1,29 +1,30 @@
 Installation
 ============
 
-If you use Windows, the following steps need to be run in WSL2 (`WSL
-installation
-instructions <https://learn.microsoft.com/en-us/windows/wsl/install>`__).
+.. tabs::
 
-If you already have WSL2 or if you use Linux or MacOS X, the following
-steps need ``conda`` (see `Conda
-documentation <https://conda.io/docs/index.html>`__).
+   .. tab:: Linux
 
-If you don’t already have it, we recommend installing Miniforge by
-following the instructions listed in the “Step **1b**” section of `this
+      Open a terminal.
+
+   .. tab:: Mac OSX
+
+      Open a terminal.
+
+   .. tab:: Windows
+
+      Install WSL2 (`WSL installation instructions <https://learn.microsoft.com/en-us/windows/wsl/install>`__)
+      , then open a WSL2 terminal.
+
+1. Make sure you have ``conda>=24.9.1`` (see `Conda documentation <https://conda.io/docs/index.html>`__).
+Proceed to step 2 or 3 accordingly.
+2. To update conda: ``conda update -n base -c defaults conda --repodata-fn=repodata.json``, or ``mamba update conda``.
+If you have multiple instances of conda and want to uninstall, say, Anaconda, run ``rm -rf anaconda3``.
+3. To install Miniforge (conda), follow the instructions listed in the “Step **1b**” section of `this
 tutorial <https://snakemake.readthedocs.io/en/stable/tutorial/setup.html#step-1b-installing-miniforge>`__.
-
-If you already have it, make sure to update it to a recent version
-(>=24.7.1, ideally even more recent such as >=24.9.1). Here are two
-helpful command lines to do this:
-``conda update -n base -c defaults conda --repodata-fn=repodata.json``,
-or ``mamba update conda``. If you have multiple instances of conda and
-want to uninstall, say, Anaconda, run ``rm -rf anaconda3``.
-
-1. Install ```uv`` <https://github.com/astral-sh/uv>`__
-2. Create a Python>=3.12 virtual environment to install dependencies.
-   The specified Python version should automatically be installed if not
-   available locally.
+4. Install ```uv`` <https://github.com/astral-sh/uv>`__
+5. Create a Python>=3.12 virtual environment to install dependencies.
+   The specified Python version should automatically be installed if not available locally.
 
 ::
 
