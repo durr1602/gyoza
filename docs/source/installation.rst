@@ -17,14 +17,14 @@ Installation
       , then open a WSL2 terminal.
 
 1. Make sure you have ``conda>=24.9.1`` (see `Conda documentation <https://conda.io/docs/index.html>`__).
-Proceed to step 2 or 3 accordingly.
-2. To update conda: ``conda update -n base -c defaults conda --repodata-fn=repodata.json``, or ``mamba update conda``.
-If you have multiple instances of conda and want to uninstall, say, Anaconda, run ``rm -rf anaconda3``.
-3. To install Miniforge (conda), follow the instructions listed in the “Step **1b**” section of `this
-tutorial <https://snakemake.readthedocs.io/en/stable/tutorial/setup.html#step-1b-installing-miniforge>`__.
-4. Install ``uv``: `https://github.com/astral-sh/uv <https://github.com/astral-sh/uv>`__
-5. Create a Python>=3.12 virtual environment to install dependencies.
-The specified Python version should automatically be installed if not available locally.
+   Proceed to step 2 or 3 accordingly.
+#. To update conda: ``conda update -n base -c defaults conda --repodata-fn=repodata.json``, or ``mamba update conda``.
+   If you have multiple instances of conda and want to uninstall, say, Anaconda, run ``rm -rf anaconda3``.
+#. To install Miniforge (conda), follow the instructions listed in the “Step **1b**” section of `this
+   tutorial <https://snakemake.readthedocs.io/en/stable/tutorial/setup.html#step-1b-installing-miniforge>`__.
+#. Install ``uv``: `https://github.com/astral-sh/uv <https://github.com/astral-sh/uv>`__
+#. Create a Python>=3.12 virtual environment to install dependencies.
+   The specified Python version should automatically be installed if not available locally.
 
 ::
 

@@ -11,9 +11,9 @@ gyōza: a Snakemake-based workflow to analyze DMS data
 gyōza is a command-line interface to help you analyze time-series
 deep-mutational scanning (DMS) data .
 
-After `installation <installation.rst>`__,
-prepare the `configuration <configuration.rst>`__
-and `run the workflow <usage.rst>`__.
+After `installation <installation.html>`__,
+prepare the `configuration <configuration.html>`__
+and `run the workflow <usage.html>`__.
 
 gyōza was developed by Romain Durand during his postdoc in the
 `Landry lab <https://landrylab.ibis.ulaval.ca/>`__
