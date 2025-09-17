@@ -1,6 +1,9 @@
 Installation
 ============
 
+Install requirements
+--------------------
+
 .. tabs::
 
    .. tab:: Linux
@@ -42,11 +45,8 @@ If another env is displayed, e.g. (base), make sure to deactivate it so
 that there is only (gyoza_env) left. You may need to run
 ``conda config --set auto_activate_base False``.
 
-Recommended installation of gyōza
----------------------------------
-
-Deploy gyōza
-~~~~~~~~~~~~
+Deploy gyōza with Snakedeploy (recommended)
+-------------------------------------------
 
 The following command line uses
 `Snakedeploy <https://snakedeploy.readthedocs.io/en/latest/index.html>`__
@@ -62,11 +62,8 @@ release version tag
    snakedeploy deploy-workflow https://github.com/durr1602/gyoza my_gyoza_project --tag main
    cd my_gyoza_project
 
-Alternative option
-------------------
-
-Clone this repository
-~~~~~~~~~~~~~~~~~~~~~
+Clone the repository (advanced)
+-------------------------------
 
 This option provides the most flexibility, although should be reserved for advanced users.
 

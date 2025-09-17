@@ -8,11 +8,11 @@ Prepare files and edit config
    1. Read the `config documentation <../config/README.md>`__
    2. **Edit** `the main config <../config/config.yaml>`__
 
-   If you choose to execute gyōza locally, you may optionally edit `the
-   default profile <../profiles/slurm/config.v8+.yaml>`__
+If you choose to execute gyōza locally, you may optionally edit
+`the default profile <../profiles/slurm/config.v8+.yaml>`__
 
-   If you choose to execute gyōza with SLURM, don’t forget to edit `the
-   slurm profile <../profiles/slurm/config.v8+.yaml>`__
+If you choose to execute gyōza with SLURM, don’t forget to edit
+`the slurm profile <../profiles/slurm/config.v8+.yaml>`__
 
 (optional) Prepare environments
 -------------------------------
