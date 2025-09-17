@@ -22,9 +22,9 @@ Proceed to step 2 or 3 accordingly.
 If you have multiple instances of conda and want to uninstall, say, Anaconda, run ``rm -rf anaconda3``.
 3. To install Miniforge (conda), follow the instructions listed in the “Step **1b**” section of `this
 tutorial <https://snakemake.readthedocs.io/en/stable/tutorial/setup.html#step-1b-installing-miniforge>`__.
-4. Install ```uv`` <https://github.com/astral-sh/uv>`__
+4. Install ``uv``: `https://github.com/astral-sh/uv <https://github.com/astral-sh/uv>`__
 5. Create a Python>=3.12 virtual environment to install dependencies.
-   The specified Python version should automatically be installed if not available locally.
+The specified Python version should automatically be installed if not available locally.
 
 ::
 
@@ -45,7 +45,8 @@ that there is only (gyoza_env) left. You may need to run
 Recommended installation of gyōza
 ---------------------------------
 
-2. Deploy gyōza.
+Deploy gyōza
+~~~~~~~~~~~~
 
 The following command line uses
 `Snakedeploy <https://snakedeploy.readthedocs.io/en/latest/index.html>`__
@@ -53,7 +54,7 @@ to create a minimal file tree that will allow you to use gyōza.
 
 It is specific to both the version of gyōza deployed and the DMS project
 your want to analyze, and should make it easier to create a repository
-for improved reproducibility. The –tag argument accepts any branch or
+for improved reproducibility. The ``--tag`` argument accepts any branch or
 release version tag
 
 ::
@@ -61,13 +62,13 @@ release version tag
    snakedeploy deploy-workflow https://github.com/durr1602/gyoza my_gyoza_project --tag main
    cd my_gyoza_project
 
-Alternative option: clone the repository
-----------------------------------------
+Alternative option
+------------------
 
-This option provides the most flexibility, since the entire repository
-is cloned, meaning one can potentially modify the code of gyōza.
+Clone this repository
+~~~~~~~~~~~~~~~~~~~~~
 
-2. Clone this repository:
+This option provides the most flexibility, although should be reserved for advanced users.
 
 ::
 
