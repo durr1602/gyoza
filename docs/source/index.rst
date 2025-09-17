@@ -7,4 +7,5 @@
    /installation
    /configuration
    /usage
+   /apidocs
    GitHub <https://github.com/durr1602/gyoza/>

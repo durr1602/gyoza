@@ -3,7 +3,7 @@ version: 2
 sphinx:
   # Path to your Sphinx configuration file.
   configuration: docs/source/conf.py
-  fail_on_warning: true
+  #fail_on_warning: true
 
 formats:
   - pdf

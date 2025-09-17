@@ -15,7 +15,12 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
-    'sphinx_tabs.tabs'
+    'sphinx_tabs.tabs',
+    "autodoc2"
+]
+
+autodoc2_packages = [
+    "../../workflow/scripts",
 ]
 
 intersphinx_mapping = {
