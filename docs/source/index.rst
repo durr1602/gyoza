@@ -1,4 +1,4 @@
-.. include:: ../../README.md
+.. include:: /README.rst
 
 .. toctree::
    :maxdepth: 0
@@ -7,4 +7,4 @@
    /installation
    /configuration
    /usage
-   Source code <https://github.com/durr1602/gyoza/>
+   GitHub <https://github.com/durr1602/gyoza/>
