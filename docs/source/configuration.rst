@@ -4,19 +4,22 @@ Configuration of gyōza
 gyōza provides a toy dataset to test installation. Simply run
 ``snakemake``.
 
-To analyze your data, edit the main `config file <config.yaml>`__. and
-provide the necessary project-specific files.
+To analyze your data, edit the main `config file
+<https://github.com/durr1602/gyoza/blob/main/config/config.yaml>`__.
+and provide the necessary project-specific files.
 
 Experimental design
 -------------------
 
 In the main config file, under ‘project’, choose between 4 possible
-designs: - codon: Automatically generate all expected mutants based on
-the codon mode - provided: You provide the list of expected mutants -
-barcode: You provide the dataframe of barcode-variant associations -
-random: Random mutagenesis - mutants observed in the sequencing data are
-directly annotated and filtered based on an acceptable number of amino
-acid changes (please specify this number in the config under ‘random’)
+designs:
+- codon: Automatically generate all expected mutants based on
+  the codon mode
+- provided: You provide the list of expected mutants
+- barcode: You provide the dataframe of barcode-variant associations
+- random: Random mutagenesis - mutants observed in the sequencing data are
+  directly annotated and filtered based on an acceptable number of amino
+  acid changes (please specify this number in the config under ‘random’)
 
 Once you’ve selected your design, read carefully what follows to know
 which files are needed and which config entries are necessary to edit.
@@ -42,37 +45,45 @@ Layout
 
 Please provide a csv-formatted layout of your samples. The file should
 be named ``layout.csv`` and be located in the project folder. Here is
-`an example <project_files/layout.csv>`__. The file should contain the
-following columns: - Sample_name: the unique identifier for each of your
-samples. - R1: base name of the fastq file for forward (R1) reads (can
-be gzipped), including extension - R2: base name of the fastq file for
-reverse (R2) reads (can be gzipped), including extension. Leave empty if
-you provide single-end sequencing data. - N_forward: the 5’-3’ DNA
-sequence corresponding to the fixed region upstream of the mutated
-sequence or anything that can be used as -g flag with cutadapt
-(including complex patterns such as ‘NNATG;optional…ATG’, in which case
-do not forget the single quotes). For single-end sequencing data, please
-specify both constant sequences upstream and downstream (on the same
-strand) separated by ‘…’, e.g. AAAAGCTG…GCGCTAAAT (no need for single
-quotes) - N_reverse: the 5’-3’ DNA sequence corresponding to the fixed
-region 5’ of the mutated sequence on the reverse strand or anything that
-can be used as -G flag with cutadapt (same requirements as above). Leave
-empty if you provide single-end sequencing data. - Mutated_seq: the
-unique identifier for the mutated DNA sequence, should be the same for
-all samples in which the same sequence was mutated - Pos_start: starting
-position in the protein sequence. If you’ve mutated several
-regions/fragments in a coding gene, this position should refer to the
-full-length protein sequence - Replicate: e.g. “R1” - Timepoint: “T0”,
-“T1”, “T2”, etc. Please provide at least 1 “T0” sample per group, other
-time points are optional. - Analyze: “y” (or a different truthy value)
-to process the sample. Leave empty or enter non-truthy value to exclude
-from analysis. Corresponding T0 samples and matching replicates are
-automatically rescued, regardless of the selection. In other words, you
-can select a single replicate for each group you want to analyze. -
-Report: “y” (or a different truthy value) to include the sample in the
-HTML report. Leave empty or enter non-truthy value to exclude from the
-report. Samples marked for reporting are rescued as describe above and
-will be automatically analyzed.
+an example:
+
+.. csv-table:: Sample layout
+   :header-rows: 1
+   :url: https://github.com/durr1602/gyoza/blob/main/config/project_files/layout.csv
+
+The file should contain the following columns:
+- Sample_name: the unique identifier for each of your samples.
+- R1: base name of the fastq file for forward (R1) reads (can
+  be gzipped), including extension - R2: base name of the fastq file for
+  reverse (R2) reads (can be gzipped), including extension. Leave empty if
+  you provide single-end sequencing data.
+- N_forward: the 5’-3’ DNA sequence corresponding to the fixed region upstream of the mutated
+  sequence or anything that can be used as -g flag with cutadapt
+  (including complex patterns such as ‘NNATG;optional…ATG’, in which case
+  do not forget the single quotes). For single-end sequencing data, please
+  specify both constant sequences upstream and downstream (on the same
+  strand) separated by ‘…’, e.g. AAAAGCTG…GCGCTAAAT (no need for single
+  quotes)
+- N_reverse: the 5’-3’ DNA sequence corresponding to the fixed
+  region 5’ of the mutated sequence on the reverse strand or anything that
+  can be used as -G flag with cutadapt (same requirements as above). Leave
+  empty if you provide single-end sequencing data.
+- Mutated_seq: the unique identifier for the mutated DNA sequence, should be the same for
+  all samples in which the same sequence was mutated
+- Pos_start: starting position in the protein sequence. If you’ve mutated several
+  regions/fragments in a coding gene, this position should refer to the
+  full-length protein sequence
+- Replicate: e.g. “R1”
+- - Timepoint: “T0”, “T1”, “T2”, etc. Please provide at least 1 “T0” sample per group, other
+  time points are optional.
+- Analyze: “y” (or a different truthy value) to process the sample. Leave empty or enter non-truthy value to exclude
+  from analysis. Corresponding T0 samples and matching replicates are
+  automatically rescued, regardless of the selection. In other words, you
+  can select a single replicate for each group you want to analyze.
+- Report: “y” (or a different truthy value) to include the sample in the
+  HTML report. Leave empty or enter non-truthy value to exclude from the
+  report. Samples marked for reporting are rescued as describe above and
+  will be automatically analyzed.
 
 Finally, additional columns can be added by the user to specify what
 makes this sample unique (other than ‘Replicate’ and ‘Timepoint’).
@@ -95,8 +106,7 @@ Genetic code
 To prevent any typing mistake, the genetic code is imported from a
 `CoCoPUTs <https://dnahive.fda.gov/dna.cgi?cmd=codon_usage&id=537&mode=cocoputs>`__
 table (which also features codon frequencies, although the workflow does
-not make use of this). `The one
-provided <project_files/codon_table.csv>`__ corresponds to
+not make use of this). The one provided corresponds to
 *Saccharomyces cerevisiae* TAXID 559292. Feel free to replace it if you
 ever need to specify a different genetic code. Any csv-formatted file
 with at least two columns (“codon” and “aminoacid”) should do. The file
