@@ -5,7 +5,7 @@
 project = 'durr106-gyoza'
 copyright = '2025, Durand'
 author = 'Durand'
-version = 0.1.0
+version = '1.1.6'
 
 # -- General configuration
 
