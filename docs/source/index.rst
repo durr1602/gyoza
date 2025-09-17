@@ -5,6 +5,6 @@
    :hidden:
 
    /installation
-   /guide
-   /api
+   /configuration
+   /usage
    Source code <https://github.com/durr1602/gyoza/>

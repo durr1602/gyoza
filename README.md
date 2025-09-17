@@ -5,9 +5,7 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 # gyōza: a Snakemake-based workflow to analyze DMS data
-<p align="left">
-  <img src="./gyoza.png" width="200">
-</p>
+<p align="left"><img src="./gyoza.png" width="200"></p>
 
 ## Installation
 
