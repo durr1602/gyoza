@@ -1,5 +1,7 @@
 # Configuration file for the Sphinx documentation builder.
 
+import glob
+
 # -- Project information
 
 project = 'durr106-gyoza'
@@ -20,7 +22,7 @@ extensions = [
 ]
 
 autodoc2_packages = [
-    "../../workflow/scripts",
+    glob.glob("../../workflow/scripts/*.py"),
 ]
 
 intersphinx_mapping = {
