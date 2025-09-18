@@ -14,7 +14,7 @@ author = 'Durand'
 version = get_version(root="../..", relative_to=__file__)
 
 if os.environ.get("READTHEDOCS") == "True":
-    version = ".".join(version.split(".")[:2])
+    version = ".".join(version.split(".")[:3])
 
 release = version
 
