@@ -3,8 +3,10 @@ Configuration of gyōza
 
 gyōza provides a toy dataset to test installation. Simply run ``snakemake``.
 
-To analyze your data, edit the main `config file <../../config/config.yaml>`__. and
-provide the necessary :ref:`project-specific files <project-specific-files>`.
+To analyze your data:
+
+1. Edit the main config file: ``config/config.yaml`` with the text editor of your choice
+2. Provide the necessary :ref:`project-specific files <project-specific-files>`.
 
 Experimental design
 -------------------
@@ -48,6 +50,7 @@ Please provide a csv-formatted layout of your samples. The file should be named
 
 .. csv-table:: Sample layout
     :header-rows: 1
+    :stub-columns: 1
     :file: ../../config/project_files/layout.csv
 
 The file should contain the following columns:
@@ -101,12 +104,11 @@ Genetic code
 
 To prevent any typing mistake, the genetic code is imported from a `CoCoPUTs
 <https://dnahive.fda.gov/dna.cgi?cmd=codon_usage&id=537&mode=cocoputs>`__ table (which
-also features codon frequencies, although the workflow does not make use of this). `The
-one provided <../../config/project_files/codon_table.csv>`__ corresponds to
-*Saccharomyces cerevisiae* TAXID 559292. Feel free to replace it if you ever need to
-specify a different genetic code. Any csv-formatted file with at least two columns
-(“codon” and “aminoacid”) should do. The file should be named ``codon_table.csv`` and be
-placed in the project folder.
+also features codon frequencies, although the workflow does not make use of this). The
+one provided corresponds to *Saccharomyces cerevisiae* TAXID 559292. Feel free to
+replace it if you ever need to specify a different genetic code. Any csv-formatted file
+with at least two columns (“codon” and “aminoacid”) should do. The file should be named
+``codon_table.csv`` and be placed in the project folder.
 
 WT DNA sequences
 ~~~~~~~~~~~~~~~~
@@ -115,8 +117,9 @@ If you’ve selected a ‘codon’ or ‘random’ design, please provide a csv-
 WT DNA sequences. The file should be named ``wt_seq.csv`` and be located in the project
 folder. Here is an example:
 
-.. csv-table:: Sample layout
+.. csv-table:: WT
     :header-rows: 1
+    :widths: 1,1,1
     :file: ../../config/project_files/wt_seq.csv
 
 The file should contain the following columns:
@@ -148,6 +151,7 @@ folder. Each file should contain at least three columns:
 - nt_seq: expected sequences (one per row)
 
 For barcoded designs, please provide the same files with at least one additional column:
+
 - barcode: barcode sequences (one per row, no duplicates!)
 
 Additional columns can be further added to label barcodes with “barcode attributes” (for
@@ -157,6 +161,8 @@ the workflow, barcode-level information will be preserved in
 ``results/df/all_scores.csv``, while fitness values will be calculated by aggregating on
 high-confidence variants (which does not preserve neither barcode-level nor codon-level
 information).
+
+.. _norm-gen:
 
 Normalization with the number of cellular generations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -181,25 +187,27 @@ matching row. Once the file is edited, re-run the workflow.
 Final checklist for the main config file
 ----------------------------------------
 
-Go over your `main config file <../../config/config.yaml>`__ one last time and check the
-following:
+Go over your main config file one last time and check the following:
 
-- [ ] list your sample attributes
-- [ ] replace all parameter values with the ones adapted for your project.
-      Note: a first pass might be necessary to establish what would be a good **read
-      count threshold** (specified under ‘reads’). Feel free to adjust it and re-run the
-      workflow (if nothing else has changed, only the last steps should run again). This
-      parameter is important because the “avg_scores” dataframe is built only upon “high
-      confidence” variants, i.e. variants with a read count above the set threshold in
-      all T0 replicates.
-- [ ] set the “perform_qc” parameter to True if you want to analyze your raw
-      FASTQ with FastQC (and generate a MultiQC report)
-- [ ] set the “process_read_counts” to True if you want to convert read counts to
-      functional impact scores (False if you simply want read counts, e.g. to assess
-      diversity in T0 libraries)
-- [ ] set the “normalize_with_gen” parameter to True if you want to normalize with the number of cellular
-      generations (only valid if you opted in for processing read counts)
-- [ ] edit the directory paths to project_files and reads if necessary.
+.. |check| unicode:: ☑
+
+- |check| list your sample attributes
+- |check| replace all parameter values with the ones adapted for your project. Note: a
+  first pass might be necessary to establish what would be a good **read count
+  threshold** (specified under ‘reads’). Feel free to adjust it and re-run the workflow
+  (if nothing else has changed, only the last steps should run again). This parameter is
+  important because the “avg_scores” dataframe is built only upon “high confidence”
+  variants, i.e. variants with a read count above the set threshold in all T0
+  replicates.
+- |check| set the “perform_qc” parameter to True if you want to analyze your raw FASTQ
+  with FastQC (and generate a MultiQC report)
+- |check| set the “process_read_counts” to True if you want to convert read counts to
+  functional impact scores (False if you simply want read counts, e.g. to assess
+  diversity in T0 libraries)
+- |check| set the “normalize_with_gen” parameter to True if you want to normalize with
+  the number of cellular generations (only valid if you opted in for processing read
+  counts)
+- |check| edit the directory paths to project_files and reads if necessary.
 
 Note on validation
 ------------------
@@ -215,11 +223,11 @@ Profiles for execution
 
 .. important::
 
-    By default, the simple command line ``snakemake`` will run gyōza with `the default
-    profile <../../profiles/default/config.v8+.yaml>`__ = local execution
+    By default, the simple command line ``snakemake`` will run gyōza with the default
+    profile (``profiles/default/config.v8+.yaml``) = local execution
 
-    To switch to the SLURM executor, edit `the slurm profile
-    <../../profiles/slurm/config.v8+.yaml>`__, including to indicate your email address
+    To switch to the SLURM executor, edit the slurm profile
+    (``profiles/slurm/config.v8+.yaml``) , including to indicate your email address
 
 Flags added to the snakemake command line will supersede the values specified in either
 profile.
