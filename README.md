@@ -7,25 +7,18 @@
 # gyōza: a Snakemake-based workflow to analyze DMS data
 <p align="left"><img src="./gyoza.png" width="200"></p>
 
-## Installation
-
-> [!TIP]
-> 
-> Follow [the full installation instructions](fulldoc/README.md).
-
 ## Usage
-
-### Prepare files and edit config
 
 > [!IMPORTANT]
 > 
-> 1. Read the [config documentation](config/README.md) and **edit [the main config](config/config.yaml)**.
-> 2. Choose the type of execution (local or SLURM), edit [the slurm profile](profiles/slurm/config.v8+.yaml) if needed.
+> 1. Read the [documentation](https://durr1602-gyoza.readthedocs.io) and **edit [the main config](config/config.yaml)**
+> 2. Choose the type of execution (local or SLURM)
 
 ### Check pipeline
-2. Perform a dry run using: `snakemake -n`
-
-This step is strongly recommended. It will make sure the prepared workflow does not contain any error and will display the rules (steps) that need to be run in order to run the workflow (built dynamically based on the config). If you're running the workflow for the first time and you toggled in normalization with growth data, you should see a warning prompting you to edit the generated template file (for more details, go back to step 1).
+3. Perform a dry run using: `snakemake -n`
 
 ### Run pipeline
-3. Run the workflow either locally: `snakemake` or send to SLURM: `snakemake --profile profiles/slurm`.
+4. Run the workflow either locally: `snakemake` or send to SLURM: `snakemake --profile profiles/slurm`.
+
+## Citation
+If you use gyōza, please cite: [doi:10.1093/genetics/iyaf199](https://doi.org/10.1093/genetics/iyaf199).
