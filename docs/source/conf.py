@@ -2,14 +2,17 @@
 
 import sys, os
 
+from setuptools_scm import get_version
+
 sys.path.insert(0, os.path.abspath("../../workflow/scripts/"))
 
 # -- Project information
 
-project = 'durr106-gyoza'
+project = 'gyōza'
 copyright = '2025, Durand'
 author = 'Durand'
-version = '1.1.6'
+version = get_version(root="..", relative_to=__file__)
+release = version
 
 # -- General configuration
 
