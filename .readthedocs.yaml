@@ -18,3 +18,6 @@ build:
 python:
   install:
     - requirements: docs/requirements.txt
+  
+vcs:
+  depth: 0   # fetch full git history so setuptools-scm can see tags
