@@ -11,7 +11,11 @@ sys.path.insert(0, os.path.abspath("../../workflow/scripts/"))
 project = 'gyōza'
 copyright = '2025, Durand'
 author = 'Durand'
-version = get_version(root="..", relative_to=__file__)
+version = get_version(root="../..", relative_to=__file__)
+
+if os.environ.get("READTHEDOCS") == "True":
+    version = ".".join(version.split(".")[:2])
+
 release = version
 
 # -- General configuration
