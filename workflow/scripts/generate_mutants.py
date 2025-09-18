@@ -1,6 +1,4 @@
-"""Module to generate per-codon mutants from wild-type DNA sequence.
-
-"""
+"""Module to generate per-codon mutants from wild-type DNA sequence."""
 
 from snakemake.script import snakemake
 import pandas as pd
@@ -10,13 +8,13 @@ import itertools
 
 def load_codon_dic(table):
     r"""Convert the CSV-formatted codon table to a dict.
-    
+
     Parameters
     ----------
     table : str
         Path to CSV-formatted codon table.
         Header must be on first line and include columns "codon" and "aminoacid"
-    
+
     Returns
     -------
     dict
@@ -29,7 +27,7 @@ def load_codon_dic(table):
 
 def get_alt_codons(seq, codon_dic, mode="NNN"):
     r"""Get acceptable alternative codons per position.
-    
+
     Parameters
     ----------
     seq : str
@@ -39,7 +37,7 @@ def get_alt_codons(seq, codon_dic, mode="NNN"):
         Codon table associating codons to amino acid residues.
     mode : {"NNN", "NNK"}
         Degenerate codon in IUPAC format.
-    
+
     Returns
     -------
     pos_l : list
@@ -75,7 +73,7 @@ def get_single_double(df, codon_dic):
         Should contain columns "Mutated_seq", "WT_seq" and "codon_mode".
     codon_dic : dict
         Codon table associating codons to amino acid residues.
-    
+
     Returns
     -------
     mutants_df : pandas.DataFrame
@@ -165,7 +163,7 @@ def get_single_double(df, codon_dic):
 
 def get_nt_seq(seq, mut_dic):
     r"""Get DNA sequence of mutant based on wild-type and dictionary of mutations.
-    
+
     Parameters
     ----------
     seq : str
@@ -175,7 +173,7 @@ def get_nt_seq(seq, mut_dic):
         Dictionary of mutations where keys correspond to positions in the protein
         sequence translated from `seq` and values correspond to the alternative
         codon.
-    
+
     Returns
     -------
     str
@@ -195,7 +193,7 @@ def get_nt_seq(seq, mut_dic):
 
 def generate_mutants(wtseq_path, outpath, mutated_seq, codon_table):
     r"""Generate mutants for a single locus identified by `mutated_seq`.
-    
+
     Parameters
     ----------
     wtseq_path : str

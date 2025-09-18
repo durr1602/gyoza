@@ -1,6 +1,4 @@
-"""Module to format functional impact scores for downstream heatmap plotting.
-
-"""
+"""Module to format functional impact scores for downstream heatmap plotting."""
 
 from snakemake.script import snakemake
 import pandas as pd
@@ -10,7 +8,7 @@ import pickle
 
 def get_heatmap_s_data(f, outpath, meta_out, pos_offset):
     r"""Reshape dataframe of functional impact scores, extract and save metadata.
-    
+
     Parameters
     ----------
     f : str

@@ -1,11 +1,11 @@
 .. include:: README.rst
 
 .. toctree::
-   :maxdepth: 0
-   :hidden:
+    :maxdepth: 0
+    :hidden:
 
-   /installation
-   /configuration
-   /usage
-   apidocs/index
-   GitHub <https://github.com/durr1602/gyoza/>
+    /installation
+    /configuration
+    /usage
+    apidocs/index
+    GitHub <https://github.com/durr1602/gyoza/>

@@ -1,6 +1,4 @@
-"""Module to filter mutants based on the number of amino acid changes.
-
-"""
+"""Module to filter mutants based on the number of amino acid changes."""
 
 from snakemake.script import snakemake
 import pandas as pd

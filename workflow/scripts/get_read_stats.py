@@ -1,6 +1,4 @@
-"""Module to retrieve read count statistics from log files.
-
-"""
+"""Module to retrieve read count statistics from log files."""
 
 import os
 from snakemake.script import snakemake
@@ -17,7 +15,7 @@ def generate_read_stats(
     is_paired,
 ):
     r"""Parse different types of log files and extract read count statistics.
-    
+
     Parameters
     ----------
     cutadapt_logfile : str
@@ -35,7 +33,7 @@ def generate_read_stats(
         Sample identifier
     is_paired : {True, False}
         True if reads are paired, False for single-end reads.
-    
+
     Notes
     ----------
     Statistics retrieved include:
@@ -43,7 +41,7 @@ def generate_read_stats(
     + the number of trimmed reads
     + the number of merged reads
     + the number of aggregated reads
-    + the number of reads lost at each step 
+    + the number of reads lost at each step
     """
     stats_dict = {}
 

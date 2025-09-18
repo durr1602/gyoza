@@ -1,6 +1,4 @@
-"""Module to discard indels.
-
-"""
+"""Module to discard indels."""
 
 from snakemake.script import snakemake
 import pandas as pd
@@ -8,7 +6,7 @@ import pandas as pd
 
 def inject_WT(f, wt, outpath, indel_outpath):
     r"""Inject WT sequence in dataframe of raw read counts, discard indel mutants.
-    
+
     Parameters
     ----------
     f : str

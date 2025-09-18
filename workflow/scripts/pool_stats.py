@@ -1,6 +1,4 @@
-"""Plotting module for aggregated read count statistics.
-
-"""
+"""Plotting module for aggregated read count statistics."""
 
 from snakemake.script import snakemake
 import pandas as pd
@@ -16,7 +14,7 @@ plt.rcParams["svg.fonttype"] = "none"
 
 def plot_stacked_barplot(df, outpath, exp_rc_per_sample, plot_formats):
     r"""Stacked bar plot of read count statistics.
-    
+
     Parameters
     ----------
     df : pandas.DataFrame
@@ -87,7 +85,7 @@ def plot_stacked_barplot(df, outpath, exp_rc_per_sample, plot_formats):
 
 def plot_unexp_plot(df, outpath, plot_formats):
     r"""Plots distributions of read counts for unexpected variants.
-    
+
     Parameters
     ----------
     df : pandas.DataFrame
@@ -132,7 +130,7 @@ def get_pooled_stats(
     plot_formats,
 ):
     r"""Aggregate and plot read count statistics.
-    
+
     Parameters
     ----------
     sample_stats : list of str

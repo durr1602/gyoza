@@ -17,13 +17,13 @@ import json
 
 def load_codon_dic(table):
     r"""Convert the CSV-formatted codon table to a dict.
-    
+
     Parameters
     ----------
     table : str
         Path to CSV-formatted codon table.
         Header must be on first line and include columns "codon" and "aminoacid"
-    
+
     Returns
     -------
     dict
@@ -36,7 +36,7 @@ def load_codon_dic(table):
 
 def get_mutations(seq, wt, codon_dic):
     r"""Collect differences between a mutated DNA sequence and the wild-type.
-    
+
     Parameters
     ----------
     seq : str
@@ -47,7 +47,7 @@ def get_mutations(seq, wt, codon_dic):
         Length should be the same as `seq` and be a multiple of 3.
     codon_dic : dict
         Codon table associating codons to amino acid residues.
-    
+
     Returns
     -------
     is_wt : bool
@@ -74,7 +74,7 @@ def get_mutations(seq, wt, codon_dic):
         Alternative residue translated from `mutation_alt_codon`
     mutation_type : list
         Either "silent", "missense" or "nonsense" based on `mutation_alt_aa`
-    
+
     Notes
     --------
     Mutations are formatted as # mutated codon / position / alternative codon /
@@ -187,19 +187,19 @@ def get_mutations(seq, wt, codon_dic):
 
 def annotate_mutants(df, codon_dic):
     r"""Annotate a dataframe of mutated DNA sequences with mutations.
-    
+
     Parameters
     ----------
     df : pandas.DataFrame
         DataFrame containing at least two columns: "nt_seq" and "WT_seq"
     codon_dic : dict
         Codon table associating codons to amino acid residues.
-    
+
     Returns
     -------
     pandas.DataFrame
         `df` with additional columns to describe mutations.
-    
+
     Notes
     ----------
     Uses custom function to collect mutations by comparing each sequence
@@ -254,7 +254,7 @@ def get_annotated_mutants(mut_path, outpath, position_offset, codon_table):
     codon_table : str
         Path to CSV-formatted codon table.
         Header must be on first line and include columns "codon" and "aminoacid"
-    
+
     Notes
     -------
     One column, "aa_pos" is obtained by adding the position offset to the

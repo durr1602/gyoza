@@ -1,6 +1,4 @@
-"""Module to convert fasta file to dataframe of read counts.
-
-"""
+"""Module to convert fasta file to dataframe of read counts."""
 
 from snakemake.script import snakemake
 import pandas as pd
@@ -10,7 +8,7 @@ def get_read_counts(
     fasta_file, outpath, log_file, mutated_seq, sample_name, readcount_level
 ):
     r"""Parse fasta file, convert to dataframe of read counts, filter and save.
-    
+
     Parameters
     ----------
     fasta_file : str

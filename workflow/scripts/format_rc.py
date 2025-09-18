@@ -1,6 +1,4 @@
-"""Module to format annotated read counts for downstream heatmap plotting.
-
-"""
+"""Module to format annotated read counts for downstream heatmap plotting."""
 
 from snakemake.script import snakemake
 import pandas as pd

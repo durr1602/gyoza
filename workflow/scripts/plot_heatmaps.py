@@ -1,6 +1,4 @@
-"""Module to plot heatmaps from mutants.
-
-"""
+"""Module to plot heatmaps from mutants."""
 
 from snakemake.script import snakemake
 import pandas as pd

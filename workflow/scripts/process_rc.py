@@ -1,6 +1,4 @@
-"""Module to convert read counts into functional impact scores.
-
-"""
+"""Module to convert read counts into functional impact scores."""
 
 from snakemake.script import snakemake
 import pandas as pd
@@ -23,14 +21,14 @@ CSCORE_COLORS = ["green", "orange", "red"]
 
 def get_confidence_score(g, threshold):
     r"""Get confidence score based on read count at T0.
-        
+
     Parameters
     ----------
     g : pandas.Series
         Read counts across replicates for a single sequence.
     threshold : int
         Read count threshold.
-    
+
     Returns
     ----------
     {1, 2, 3}
@@ -49,7 +47,7 @@ def get_confidence_score(g, threshold):
 
 def plot_rc_per_seq(df1, df2, outpath, sample_group, thresh, thresh_freq, plot_formats):
     r"""Plot side-by-side distributions of read counts/frequencies.
-        
+
     Parameters
     ----------
     df1 : pandas.DataFrame
@@ -89,7 +87,7 @@ def plot_rc_per_seq(df1, df2, outpath, sample_group, thresh, thresh_freq, plot_f
 
 def plot_upset_TR(df, conditions, outpath, sample_group, plot_formats):
     r"""Plot overlap of unique sequences found across time points and replicates.
-        
+
     Parameters
     ----------
     df : pandas.DataFrame
@@ -158,7 +156,7 @@ def plot_upset_TR(df, conditions, outpath, sample_group, plot_formats):
 
 def plot_timepoint_corr(df, outpath, sample_group, plot_formats):
     r"""Plot pairwise comparisons of functional impact scores between time points.
-        
+
     Parameters
     ----------
     df : pandas.DataFrame
@@ -217,7 +215,7 @@ def get_selcoeffs(
     plot_formats,
 ):
     r"""Convert read counts into functional impact scores for grouped samples.
-    
+
     Parameters
     ----------
     readcount_files : list of str
@@ -261,13 +259,13 @@ def get_selcoeffs(
         read count at T0 across replicates.
     plot_formats : list of str
         Formats other than SVG in which the plot should be saved.
-    
+
     Notes
     ----------
     Functional impact scores are obtained with a log ratio method:
 
     .. math:: s_v=\ \log_2{\left(\frac{c_{v,output}}{\sum\nolimits_{i} c_{i,\ output}}\right)}\ -\log_2{\left(\frac{c_{v,input}}{\sum\nolimits_{i} c_{i,\ input}}\right)}
-    
+
     with :math:`c_v` being the raw read count of a variant + 1,
     "input" being T0 and "output" designating any post-screening time point.
     """

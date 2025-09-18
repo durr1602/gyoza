@@ -1,6 +1,4 @@
-"""Module to filter **sequenced** expected mutants.
-
-"""
+"""Module to filter **sequenced** expected mutants."""
 
 from snakemake.script import snakemake
 import pandas as pd

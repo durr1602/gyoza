@@ -1,6 +1,4 @@
-"""Plotting module for aggregated data.
-
-"""
+"""Plotting module for aggregated data."""
 
 from snakemake.script import snakemake
 import pandas as pd
@@ -23,12 +21,12 @@ prot_seq_attributes = [
 
 def concatenate_df(df_files):
     r"""Opens and concatenates multiple dataframes.
-    
+
     Parameters
     ----------
     df_files : list of str
         List of paths to CSV-formatted dataframes.
-    
+
     Returns
     -------
     pandas.DataFrame
@@ -43,7 +41,7 @@ def concatenate_df(df_files):
 
 def plot_allele_freq(df, outpath, mean_exp_freq, plot_formats):
     r"""Plot distributions of allele frequencies for each sample group.
-    
+
     Parameters
     ----------
     df : pandas.DataFrame
@@ -99,7 +97,7 @@ def plot_allele_freq(df, outpath, mean_exp_freq, plot_formats):
 
 def get_allele_freq_plot(df_files, outpath, plot_formats):
     r"""Aggregate data and plot distributions of allele frequencies.
-    
+
     Parameters
     ----------
     df_files : list of str
@@ -119,7 +117,7 @@ def get_allele_freq_plot(df_files, outpath, plot_formats):
 
 def plot_scoeff_violin(df, outpath, plot_formats):
     r"""Plot distributions of functional impact scores for each sample group.
-    
+
     Parameters
     ----------
     df : pandas.DataFrame
@@ -171,7 +169,7 @@ def plot_scoeff_violin(df, outpath, plot_formats):
 
 def plot_impact_over_time(df, outpath, plot_formats):
     r"""Plot functional impact over time for each sample group.
-    
+
     Parameters
     ----------
     df : pandas.DataFrame
@@ -212,7 +210,7 @@ def plot_impact_over_time(df, outpath, plot_formats):
 
 def plot_spearman_heatmaps(df, replicates, outpath, plot_formats):
     r"""Plot Spearman correlation between replicates as heatmaps.
-    
+
     Parameters
     ----------
     df : pandas.DataFrame
@@ -277,7 +275,7 @@ def plot_spearman_heatmaps(df, replicates, outpath, plot_formats):
 
 def plot_replicate_scatter(df, replicates, outpath, plot_formats):
     r"""Plot correlation between first two replicates, for each sample group.
-    
+
     Parameters
     ----------
     df : pandas.DataFrame
@@ -321,7 +319,7 @@ def get_s_plots(
     plot_formats,
 ):
     r"""Aggregate data and plot functional impact scores.
-    
+
     Parameters
     ----------
     df_files : list of str
