@@ -24,15 +24,19 @@ extensions = [
     'sphinx.ext.duration',
     'sphinx.ext.doctest',
     'sphinx.ext.autodoc',
+    'sphinx.ext.napoleon',
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
-    'sphinx_tabs.tabs',
-    "autodoc2"
+    'sphinx_tabs.tabs'
 ]
 
-autodoc2_packages = [
-    "../../workflow/scripts",
-]
+# Napoleon settings for NumPy-style
+napoleon_google_docstring = False
+napoleon_numpy_docstring = True
+napoleon_include_private_with_doc = True
+napoleon_include_special_with_doc = True
+napoleon_use_param = True
+napoleon_use_rtype = True
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),

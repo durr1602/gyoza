@@ -21,21 +21,22 @@ CSCORE_COLORS = ["green", "orange", "red"]
 
 def get_confidence_score(g, threshold):
     r"""Get confidence score based on read count at T0.
-
+    
     Parameters
     ----------
     g : pandas.Series
         Read counts across replicates for a single sequence.
     threshold : int
         Read count threshold.
-
+    
     Returns
-    ----------
+    -------
     {1, 2, 3}
         Confidence score:
-        + 1: high, read count above threshold in all replicates
-        + 2: medium, read count above threshold in at least one replicate
-        + 3: low, read count below threshold in all replicates
+
+        * ``1``: high, read count above threshold in all replicates
+        * ``2``: medium, read count above threshold in at least one replicate
+        * ``3``: low, read count below threshold in all replicates
     """
     if (g >= threshold).all():
         return 1
@@ -47,7 +48,7 @@ def get_confidence_score(g, threshold):
 
 def plot_rc_per_seq(df1, df2, outpath, sample_group, thresh, thresh_freq, plot_formats):
     r"""Plot side-by-side distributions of read counts/frequencies.
-
+    
     Parameters
     ----------
     df1 : pandas.DataFrame
@@ -55,7 +56,7 @@ def plot_rc_per_seq(df1, df2, outpath, sample_group, thresh, thresh_freq, plot_f
     df2 : pandas.DataFrame
         Dataframe of allele frequencies (read counts normalized with sample depth).
     outpath : str
-        Path to save plot as SVG (should end with ".svg").
+        Path to save plot as SVG (should end with ``.svg``).
     sample_group : str
         Sample group identifier
     thresh : int
@@ -87,20 +88,22 @@ def plot_rc_per_seq(df1, df2, outpath, sample_group, thresh, thresh_freq, plot_f
 
 def plot_upset_TR(df, conditions, outpath, sample_group, plot_formats):
     r"""Plot overlap of unique sequences found across time points and replicates.
-
+    
     Parameters
     ----------
     df : pandas.DataFrame
         Dataframe of sequences found across time points and replicates.
         Should contain columns:
-        + `conditions` (bool, indicates if the sequence was in the combination of
-        time point / replicate)
-        + "confidence_score"
-        + "mean_input" (float, average read frequency at T0)
+
+        * `conditions` (**bool**, indicates if the sequence was in the combination of
+          time point / replicate)
+        * ``confidence_score``
+        * ``mean_input`` (**float**, average read frequency at T0)
+    
     conditions : list of str
         Columns in `df`, should refer to combinations of time point / replicate
     outpath : str
-        Path to save upset plot as SVG (should end with ".svg").
+        Path to save upset plot as SVG (should end with ``.svg``).
     plot_formats : list of str
         Formats other than SVG in which the plot should be saved.
     """
@@ -156,14 +159,14 @@ def plot_upset_TR(df, conditions, outpath, sample_group, plot_formats):
 
 def plot_timepoint_corr(df, outpath, sample_group, plot_formats):
     r"""Plot pairwise comparisons of functional impact scores between time points.
-
+    
     Parameters
     ----------
     df : pandas.DataFrame
         Dataframe of functional impact scores.
-        Should contain column "confidence_score".
+        Should contain column ``confidence_score``.
     outpath : str
-        Path to save plot as SVG (should end with ".svg").
+        Path to save plot as SVG (should end with ``.svg``).
     sample_group: str
         Sample group identifier
     plot_formats : list of str
@@ -215,7 +218,7 @@ def get_selcoeffs(
     plot_formats,
 ):
     r"""Convert read counts into functional impact scores for grouped samples.
-
+    
     Parameters
     ----------
     readcount_files : list of str
@@ -230,13 +233,13 @@ def get_selcoeffs(
         impact scores averaged over replicates for high confidence variants only).
     histplot_outpath : str
         Path to save plot with distributions of read counts/frequencies as SVG
-        (should end with ".svg").
+        (should end with ``.svg``).
     upsetplot_outpath : str
         Path to save upset plot showing overlap of unique sequences found across
-        time points and replicates, as SVG (should end with ".svg").
+        time points and replicates, as SVG (should end with ``.svg``).
     timepointsplot_outpath : str
         Path to save plot with comparisons between time points as SVG
-        (should end with ".svg").
+        (should end with ``.svg``).
     freq_outpath : str
         Path to save output dataframe of allele frequencies.
     aa_df_outpath : str
@@ -244,7 +247,7 @@ def get_selcoeffs(
         the protein level.
     sample_group : str
         Sample group identifier.
-        Should contain sample attributes concatenated with "__".
+        Should contain sample attributes concatenated with ``__``.
     layout_path : str
         Path to CSV-formatted sample layout.
     sample_attributes : list of str
@@ -259,13 +262,23 @@ def get_selcoeffs(
         read count at T0 across replicates.
     plot_formats : list of str
         Formats other than SVG in which the plot should be saved.
-
+    
+    Raises
+    ------
+    Exception
+        In case of null sample depth.
+    
+    Warns
+    -----
+    UserWarning
+        If too many low confidence variants.
+    
     Notes
-    ----------
+    -----
     Functional impact scores are obtained with a log ratio method:
-
+    
     .. math:: s_v=\ \log_2{\left(\frac{c_{v,output}}{\sum\nolimits_{i} c_{i,\ output}}\right)}\ -\log_2{\left(\frac{c_{v,input}}{\sum\nolimits_{i} c_{i,\ input}}\right)}
-
+    
     with :math:`c_v` being the raw read count of a variant + 1,
     "input" being T0 and "output" designating any post-screening time point.
     """
@@ -360,7 +373,7 @@ def get_selcoeffs(
             f"(i.e., sequenced fewer than {rc_threshold} times in all replicates). "
             "Consider reviewing the config file and adjusting the rc_threshold parameter."
         )
-        warnings.warn(cscore_statement)
+        warnings.warn(cscore_statement, UserWarning)
 
     # Calculate frequencies
     freq = upset.copy()
@@ -528,7 +541,8 @@ def get_selcoeffs(
         warnings.warn(
             f"Warning.. Group {sample_group} shows less than 75% of variants labeled with high confidence.\n"
             "Because only these variants are used to calculate a median score across replicates,"
-            "you may want to double check the config file and adjust the rc_threshold parameter."
+            "you may want to double check the config file and adjust the rc_threshold parameter.",
+            UserWarning,
         )
 
     # Note: I decided to keep low confidence variants in this plot

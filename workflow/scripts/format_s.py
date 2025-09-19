@@ -8,17 +8,23 @@ import pickle
 
 def get_heatmap_s_data(f, outpath, meta_out, pos_offset):
     r"""Reshape dataframe of functional impact scores, extract and save metadata.
-
+    
     Parameters
     ----------
     f : str
         Path to CSV-formatted dataframe of functional impact scores.
-        Should contain columns "Nham_aa", "aa_seq", "aa_pos", "alt_aa"
-        and at least one column starting with "fitness_"
+        Should contain columns:
+        
+        * ``Nham_aa``
+        * ``aa_seq``
+        * ``aa_pos``
+        * ``alt_aa``
+    
+        and at least one column starting with ``fitness_``
         (one such column for each time point).
     outpath : str
-        Path to save reshaped dataframe. Should end with "_{tp}_format_s.csv",
-        where tp refers to a single time point.
+        Path to save reshaped dataframe. Should end with ``_{tp}_format_s.csv``,
+        where ``tp`` refers to a single time point.
     meta_out : str
         Path to save serialized metadata.
     pos_offset : int

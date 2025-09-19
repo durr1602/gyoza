@@ -9,13 +9,22 @@ import matplotlib.pyplot as plt
 
 def get_heatmap_rc_data(f, outpath, meta_out, exp_rc):
     r"""Reshape dataframe of annotated read counts, extract and save metadata.
-
+    
     Parameters
     ----------
     f : str
         Path to CSV-formatted dataframe of annotated read counts.
-        Should contain columns "WT", "nt_seq", "aa_seq", "Nham_codons",
-        "mutation_aa_pos", "mutation_alt_codons", "mutation_alt_aa" and "readcount"
+        Should contain columns:
+        
+        * ``WT``
+        * ``nt_seq``
+        * ``aa_seq``
+        * ``Nham_codons``
+        * ``mutation_aa_pos``
+        * ``mutation_alt_codons``
+        * ``mutation_alt_aa``
+        * ``readcount``
+    
     outpath : str
         Path to save reshaped dataframe.
     meta_out : str

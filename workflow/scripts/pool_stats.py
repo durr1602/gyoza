@@ -14,20 +14,22 @@ plt.rcParams["svg.fonttype"] = "none"
 
 def plot_stacked_barplot(df, outpath, exp_rc_per_sample, plot_formats):
     r"""Stacked bar plot of read count statistics.
-
+    
     Parameters
     ----------
     df : pandas.DataFrame
         Dataframe of read count statistics. Should contain columns:
-        + "Sample_name" (str, sample identifier)
-        + "OK" (int, total number of reads that passed all filters)
-        + "Trimming" (int, number of reads discarded at trimming stage)
-        + "Merging" (int, number of reads discarded at merging step)
-        + "Aggregating" (int, number of singletons)
-        + "Unexpected" (int, number of reads for unexpected sequences)
-        + "Contain_Ns" (int, number of reads discarded for containing Ns)
+
+        * ``Sample_name`` (**str**, sample identifier)
+        * ``OK`` (**int**, total number of reads that passed all filters)
+        * ``Trimming`` (**int**, number of reads discarded at trimming stage)
+        * ``Merging`` (**int**, number of reads discarded at merging step)
+        * ``Aggregating`` (**int**, number of singletons)
+        * ``Unexpected`` (**int**, number of reads for unexpected sequences)
+        * ``Contain_Ns`` (**int**, number of reads discarded for containing Ns)
+    
     outpath : str
-        Path to save bar plot as SVG (should end with ".svg").
+        Path to save bar plot as SVG (should end with ``.svg``).
     exp_rc_per_sample : float
         Expected read count per sample.
     plot_formats : list of str
@@ -85,15 +87,17 @@ def plot_stacked_barplot(df, outpath, exp_rc_per_sample, plot_formats):
 
 def plot_unexp_plot(df, outpath, plot_formats):
     r"""Plots distributions of read counts for unexpected variants.
-
+    
     Parameters
     ----------
     df : pandas.DataFrame
         Dataframe of read counts for unexpected variants. Should contain columns:
-        + "Sample_name" (str, sample identifier)
-        + "readcount" (int)
+
+        * ``Sample_name`` (**str**, sample identifier)
+        * ``readcount`` (**int**)
+    
     outpath : str
-        Path to save plot as SVG (should end with ".svg").
+        Path to save plot as SVG (should end with ``.svg``).
     plot_formats : list of str
         Formats other than SVG in which the plot should be saved.
     """
@@ -130,7 +134,7 @@ def get_pooled_stats(
     plot_formats,
 ):
     r"""Aggregate and plot read count statistics.
-
+    
     Parameters
     ----------
     sample_stats : list of str
@@ -140,10 +144,10 @@ def get_pooled_stats(
     csv_outpath : str
         Path to save df with aggregated read count statistics for all samples.
     barplot_outpath : str
-        Path to save stacked bar plot as SVG (should end with ".svg").
+        Path to save stacked bar plot as SVG (should end with ``.svg``).
     unexpplot_outpath : str
         Path to save plot with distributions of read counts for unexpected
-        variants as SVG (should end with ".svg")
+        variants as SVG (should end with ``.svg``)
     reported_samples : list of str
         List of samples to include in plots.
     exp_rc_per_sample : float

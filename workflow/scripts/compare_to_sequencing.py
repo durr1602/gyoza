@@ -6,12 +6,12 @@ import pandas as pd
 
 def get_observed_mutants(expmut, readcounts, outpath, unexp_outpath, readcount_level):
     r"""Compare expected and sequenced mutants, filter accordingly.
-
+    
     Parameters
     ----------
     expmut : str
         Path to CSV-formatted dataframe of expected mutants.
-        Should contain columns "Mutated_seq" (locus ID), and `readcount_level`.
+        Should contain columns ``Mutated_seq`` (locus ID), and `readcount_level`.
     readcounts : str
         Path to CSV-formatted dataframe of sequenced mutants with read counts.
         Should contain column `readcount_level`.

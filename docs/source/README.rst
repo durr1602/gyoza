@@ -24,5 +24,22 @@ scanning (DMS) data .
 After `installation <installation.html>`__, prepare the `configuration
 <configuration.html>`__ and `run the workflow <usage.html>`__.
 
-gyōza was developed by Romain Durand during his postdoc in the `Landry lab
-<https://landrylab.ibis.ulaval.ca/>`__ at `Université Laval <https://www.ulaval.ca/>`__.
+DMS sequencing data are processed with the following existing software:
+
+- `FastQC <https://github.com/s-andrews/FastQC>`__
+- `Cutadapt <http://cutadapt.readthedocs.io>`__
+- `PANDAseq <https://github.com/neufeld/pandaseq>`__
+- `VSEARCH <https://github.com/torognes/vsearch>`__
+
+gyōza was developed by `Romain Durand <mailto:duran2101@gmail.com>`__
+|ORCID_icon|
+during his postdoc in the `Landry lab <https://landrylab.ibis.ulaval.ca/>`__
+at `Université Laval <https://www.ulaval.ca/>`__.
+
+Citation
+~~~~~~~~
+If you use gyōza, please cite: `doi:10.1093/genetics/iyaf199 <https://doi.org/10.1093/genetics/iyaf199>`__.
+
+.. |ORCID_icon| image:: _static/iD_icon.png
+   :target: https://orcid.org/0000-0002-7681-4727
+   :alt: ORCID profile

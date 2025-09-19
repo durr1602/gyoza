@@ -6,14 +6,14 @@ import pandas as pd
 
 def inject_WT(f, wt, outpath, indel_outpath):
     r"""Inject WT sequence in dataframe of raw read counts, discard indel mutants.
-
+    
     Parameters
     ----------
     f : str
         Path to CSV-formatted dataframe of raw read counts.
-        Should contain column "nt_seq".
+        Should contain column ``nt_seq``.
     wt : str
-        Wild-type DNA sequence (with bases either A, C, G or T).
+        Wild-type DNA sequence (with bases either ``A``, ``C``, ``G`` or ``T``).
     outpath : str
         Path to save output dataframe (non-indel mutants only),
         with column headers only if empty.

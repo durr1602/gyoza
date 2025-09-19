@@ -16,14 +16,14 @@ import json
 
 
 def load_codon_dic(table):
-    r"""Convert the CSV-formatted codon table to a dict.
-
+    r"""Convert the CSV-formatted codon table to a ``dict``.
+    
     Parameters
     ----------
     table : str
         Path to CSV-formatted codon table.
-        Header must be on first line and include columns "codon" and "aminoacid"
-
+        Header must be on first line and include columns ``codon`` and ``aminoacid``
+    
     Returns
     -------
     dict
@@ -36,22 +36,22 @@ def load_codon_dic(table):
 
 def get_mutations(seq, wt, codon_dic):
     r"""Collect differences between a mutated DNA sequence and the wild-type.
-
+    
     Parameters
     ----------
     seq : str
-        DNA sequence of the mutant (with bases either A, C, G or T).
+        DNA sequence of the mutant (with bases either ``A``, ``C``, ``G`` or ``T``).
         Length should be the same as `wt` and be a multiple of 3.
     wt : str
-        Wild-type DNA sequence (with bases either A, C, G or T).
+        Wild-type DNA sequence (with bases either ``A``, ``C``, ``G`` or ``T``).
         Length should be the same as `seq` and be a multiple of 3.
     codon_dic : dict
         Codon table associating codons to amino acid residues.
-
+    
     Returns
     -------
     is_wt : bool
-        True if `seq` is `wt`
+        ``True`` if `seq` is `wt`
     aa_seq : str
         Protein sequence translated from `seq`
     Nham_codons : int
@@ -73,18 +73,27 @@ def get_mutations(seq, wt, codon_dic):
     mutation_alt_aa : list
         Alternative residue translated from `mutation_alt_codon`
     mutation_type : list
-        Either "silent", "missense" or "nonsense" based on `mutation_alt_aa`
-
+        Either ``silent``, ``missense`` or ``nonsense`` based on ``mutation_alt_aa``
+    
+    Raises
+    ------
+    ValueError
+        If the length of `seq` is not a multiple of 3.
+    ValueError
+        If the lengths of `seq` and `wt` are not equal.
+    ValueError
+        If `seq` contains unrecognized characters.
+    
     Notes
-    --------
+    -----
     Mutations are formatted as # mutated codon / position / alternative codon /
     alternative amino acid, in lists with matching indexes to be able
     to quickly convert to 1 row per mutation per mutated codon.
-
+    
     The alternative and corresponding wild-type codons are translated into
     their corresponding amino acid using the `codon_dic`.
-
-    Sequence-level attributes include the Hamming distances (Nham),
+    
+    Sequence-level attributes include the Hamming distances (``Nham``),
     i.e. the number of codon, nucleotide and amino acid changes.
     """
     if len(seq) % 3 != 0:
@@ -187,21 +196,21 @@ def get_mutations(seq, wt, codon_dic):
 
 def annotate_mutants(df, codon_dic):
     r"""Annotate a dataframe of mutated DNA sequences with mutations.
-
+    
     Parameters
     ----------
     df : pandas.DataFrame
-        DataFrame containing at least two columns: "nt_seq" and "WT_seq"
+        DataFrame containing at least two columns: ``nt_seq`` and ``WT_seq``
     codon_dic : dict
         Codon table associating codons to amino acid residues.
-
+    
     Returns
     -------
     pandas.DataFrame
         `df` with additional columns to describe mutations.
-
+    
     Notes
-    ----------
+    -----
     Uses custom function to collect mutations by comparing each sequence
     to the corresponding wild-type on the matching row.
     """
@@ -240,7 +249,7 @@ def annotate_mutants(df, codon_dic):
 
 def get_annotated_mutants(mut_path, outpath, position_offset, codon_table):
     r"""Annotates non-empty dataframes of mutated DNA sequences (1 df per sample).
-
+    
     Parameters
     ----------
     mut_path : str
@@ -253,11 +262,11 @@ def get_annotated_mutants(mut_path, outpath, position_offset, codon_table):
         Starting position in the full protein sequence.
     codon_table : str
         Path to CSV-formatted codon table.
-        Header must be on first line and include columns "codon" and "aminoacid"
-
+        Header must be on first line and include columns ``codon`` and ``aminoacid``
+    
     Notes
-    -------
-    One column, "aa_pos" is obtained by adding the position offset to the
+    -----
+    One column, ``aa_pos``, is obtained by adding the position offset to the
     positions of every non-silent mutation at the protein level.
     This column is left "unexploded", such that each row contains a list.
     Special care is taken to ensure that these lists can be parsed later on

@@ -8,13 +8,13 @@ import itertools
 
 def load_codon_dic(table):
     r"""Convert the CSV-formatted codon table to a dict.
-
+    
     Parameters
     ----------
     table : str
         Path to CSV-formatted codon table.
-        Header must be on first line and include columns "codon" and "aminoacid"
-
+        Header must be on first line and include columns ``codon`` and ``aminoacid``
+    
     Returns
     -------
     dict
@@ -27,17 +27,17 @@ def load_codon_dic(table):
 
 def get_alt_codons(seq, codon_dic, mode="NNN"):
     r"""Get acceptable alternative codons per position.
-
+    
     Parameters
     ----------
     seq : str
-        Wild-type DNA sequence (with bases either A, C, G or T).
+        Wild-type DNA sequence (with bases either ``A``, ``C``, ``G`` or ``T``).
         Length should be a multiple of 3.
     codon_dic : dict
         Codon table associating codons to amino acid residues.
     mode : {"NNN", "NNK"}
         Degenerate codon in IUPAC format.
-
+    
     Returns
     -------
     pos_l : list
@@ -65,15 +65,15 @@ def get_alt_codons(seq, codon_dic, mode="NNN"):
 
 def get_single_double(df, codon_dic):
     r"""Generate all mutants from dataframe of wild-type sequences.
-
+    
     Parameters
     ----------
     df : pandas.DataFrame
         Dataframe containing wild-type sequences to mutate (one per locus).
-        Should contain columns "Mutated_seq", "WT_seq" and "codon_mode".
+        Should contain columns ``Mutated_seq``, ``WT_seq`` and ``codon_mode``.
     codon_dic : dict
         Codon table associating codons to amino acid residues.
-
+    
     Returns
     -------
     mutants_df : pandas.DataFrame
@@ -163,17 +163,17 @@ def get_single_double(df, codon_dic):
 
 def get_nt_seq(seq, mut_dic):
     r"""Get DNA sequence of mutant based on wild-type and dictionary of mutations.
-
+    
     Parameters
     ----------
     seq : str
-        Wild-type DNA sequence (with bases either A, C, G or T).
+        Wild-type DNA sequence (with bases either ``A``, ``C``, ``G`` or ``T``).
         Length should be a multiple of 3.
     mut_dic : dict
         Dictionary of mutations where keys correspond to positions in the protein
         sequence translated from `seq` and values correspond to the alternative
         codon.
-
+    
     Returns
     -------
     str
@@ -193,19 +193,19 @@ def get_nt_seq(seq, mut_dic):
 
 def generate_mutants(wtseq_path, outpath, mutated_seq, codon_table):
     r"""Generate mutants for a single locus identified by `mutated_seq`.
-
+    
     Parameters
     ----------
     wtseq_path : str
         Path to CSV-formatted dataframe of wild-type DNA sequences.
-        Should contain columns "Mutated_seq" and "WT_seq".
+        Should contain columns ``Mutated_seq`` and ``WT_seq``.
     outpath : str
         Path to save output dataframe of mutants (DNA sequences only).
     mutated_seq : str
         Locus identifier.
     codon_table : str
         Path to CSV-formatted codon table.
-        Header must be on first line and include columns "codon" and "aminoacid"
+        Header must be on first line and include columns ``codon`` and ``aminoacid``
     """
     # Load codon dictionary
     codon_dic = load_codon_dic(codon_table)

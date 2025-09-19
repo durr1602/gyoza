@@ -21,12 +21,12 @@ prot_seq_attributes = [
 
 def concatenate_df(df_files):
     r"""Opens and concatenates multiple dataframes.
-
+    
     Parameters
     ----------
     df_files : list of str
         List of paths to CSV-formatted dataframes.
-
+    
     Returns
     -------
     pandas.DataFrame
@@ -41,17 +41,19 @@ def concatenate_df(df_files):
 
 def plot_allele_freq(df, outpath, mean_exp_freq, plot_formats):
     r"""Plot distributions of allele frequencies for each sample group.
-
+    
     Parameters
     ----------
     df : pandas.DataFrame
         Dataframe of allele frequencies. Should contain columns:
-        + "Sample attributes" (str, sample group identifier)
-        + "frequency" (float)
-        + "Timepoint"
-        + "Replicate" (replicates are shown as split violins)
+
+        * ``Sample attributes`` (**str**, sample group identifier)
+        * ``frequency`` (**float**)
+        * ``Timepoint`` (**str**)
+        * ``Replicate`` (**str**, replicates are shown as split violins)
+    
     outpath : str
-        Path to save violin plot as SVG (should end with ".svg").
+        Path to save violin plot as SVG (should end with ``.svg``).
     mean_exp_freq : float
         Log10 of average expected allele frequency.
     plot_formats : list of str
@@ -97,13 +99,13 @@ def plot_allele_freq(df, outpath, mean_exp_freq, plot_formats):
 
 def get_allele_freq_plot(df_files, outpath, plot_formats):
     r"""Aggregate data and plot distributions of allele frequencies.
-
+    
     Parameters
     ----------
     df_files : list of str
         List of paths to CSV-formatted dataframes.
     outpath : str
-        Path to save violin plot as SVG (should end with ".svg").
+        Path to save violin plot as SVG (should end with ``.svg``).
     plot_formats : list of str
         Formats other than SVG in which the plot should be saved.
     """
@@ -117,17 +119,19 @@ def get_allele_freq_plot(df_files, outpath, plot_formats):
 
 def plot_scoeff_violin(df, outpath, plot_formats):
     r"""Plot distributions of functional impact scores for each sample group.
-
+    
     Parameters
     ----------
     df : pandas.DataFrame
         Dataframe of functional impact scores. Should contain columns:
-        + "Sample attributes" (str, sample group identifier)
-        + "s" (float, functional impact score)
-        + "Compared timepoints" (str)
-        + "Replicate" (replicates are shown as split violins)
+
+        * ``Sample attributes`` (**str**, sample group identifier)
+        * ``s`` (**float**, functional impact score)
+        * ``Compared timepoints`` (**str**)
+        * ``Replicate`` (**str**, replicates are shown as split violins)
+    
     outpath : str
-        Path to save violin plot as SVG (should end with ".svg").
+        Path to save violin plot as SVG (should end with ``.svg``).
     plot_formats : list of str
         Formats other than SVG in which the plot should be saved.
     """
@@ -169,18 +173,20 @@ def plot_scoeff_violin(df, outpath, plot_formats):
 
 def plot_impact_over_time(df, outpath, plot_formats):
     r"""Plot functional impact over time for each sample group.
-
+    
     Parameters
     ----------
     df : pandas.DataFrame
         Dataframe of functional impact scores. Should contain columns:
-        + "Sample attributes" (str, sample group identifier)
-        + "s" (float, functional impact score)
-        + "Compared timepoints" (str)
-        + "Replicate" (replicates are shown as different markers)
-        + "Nham_aa" (int, number of amino acid changes as different colors)
+
+        * ``Sample attributes`` (**str**, sample group identifier)
+        * ``s`` (**float**, functional impact score)
+        * ``Compared timepoints`` (**str**)
+        * ``Replicate`` (**str**, replicates are shown as different markers)
+        * ``Nham_aa`` (**int**, number of amino acid changes as different colors)
+    
     outpath : str
-        Path to save plot as SVG (should end with ".svg").
+        Path to save plot as SVG (should end with ``.svg``).
     plot_formats : list of str
         Formats other than SVG in which the plot should be saved.
     """
@@ -210,20 +216,22 @@ def plot_impact_over_time(df, outpath, plot_formats):
 
 def plot_spearman_heatmaps(df, replicates, outpath, plot_formats):
     r"""Plot Spearman correlation between replicates as heatmaps.
-
+    
     Parameters
     ----------
     df : pandas.DataFrame
         Dataframe of functional impact scores. Should contain columns:
-        + "Sample attributes" (str, sample group identifier)
-        + "Compared timepoints" (str)
-        + `replicates`
+
+        * ``Sample attributes`` (**str**, sample group identifier)
+        * ``Compared timepoints`` (**str**)
+        * `replicates`
+    
     replicates : list of str
         List of replicates that should feature as columns in `df`.
         Spearman correlation coefficients are obtained for each pairwise comparison
         between replicates, for each sample group.
     outpath : str
-        Path to save heatmap as SVG (should end with ".svg").
+        Path to save heatmap as SVG (should end with ``.svg``).
     plot_formats : list of str
         Formats other than SVG in which the plot should be saved.
     """
@@ -275,18 +283,20 @@ def plot_spearman_heatmaps(df, replicates, outpath, plot_formats):
 
 def plot_replicate_scatter(df, replicates, outpath, plot_formats):
     r"""Plot correlation between first two replicates, for each sample group.
-
+    
     Parameters
     ----------
     df : pandas.DataFrame
         Dataframe of functional impact scores. Should contain columns:
-        + "Sample attributes" (str, sample group identifier)
-        + "Compared timepoints" (str)
-        + `replicates`
+
+        * ``Sample attributes`` (**str**, sample group identifier)
+        * ``Compared timepoints`` (**str**)
+        * `replicates`
+    
     replicates : list of str
         List of replicates that should feature as columns in `df`.
     outpath : str
-        Path to save scatter plot as SVG (should end with ".svg").
+        Path to save scatter plot as SVG (should end with ``.svg``).
     plot_formats : list of str
         Formats other than SVG in which the plot should be saved.
     """
@@ -319,23 +329,23 @@ def get_s_plots(
     plot_formats,
 ):
     r"""Aggregate data and plot functional impact scores.
-
+    
     Parameters
     ----------
     df_files : list of str
         List of paths to CSV-formatted dataframes.
     scoeff_plot_outpath : str
         Path to save violin plot of distributions of scores as SVG (should end with
-        ".svg").
+        ``.svg``).
     s_time_plot_outpath : str
         Path to save plot of functional impact over time as SVG (should end with
-        ".svg").
+        ``.svg``).
     heatmaps_outpath : str
         Path to save heatmap of Spearman correlation coefficients for pairwise
-        comparisons of replicates as SVG (should end with ".svg").
+        comparisons of replicates as SVG (should end with ``.svg``).
     replicate_plot_outpath : str
         Path to save scatter plot of correlation between first two replicates (or
-        against same replicate if only one) as SVG (should end with ".svg")
+        against same replicate if only one) as SVG (should end with ``.svg``)
     plot_formats : list of str
         Formats other than SVG in which all plots should be saved.
     """

@@ -6,12 +6,12 @@ import pandas as pd
 
 def filter_random(df, pre_discarded, max_Nham_aa, filtered_out, discarded_out):
     r"""Discard mutants above specified number of amino acid changes.
-
+    
     Parameters
     ----------
     df : str
         Path to CSV-formatted dataframe of mutants to filter.
-        Should contain column "mutation_aa_pos" (casted as str) and "Nham_aa".
+        Should contain column ``mutation_aa_pos`` (casted as ``str``) and ``Nham_aa``.
     pre_discarded : str
         Path to CSV-formatted dataframe of previously discarded indel mutants.
     max_Nham_aa : int

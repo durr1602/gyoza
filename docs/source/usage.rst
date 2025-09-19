@@ -5,7 +5,7 @@ Prepare files and edit config
 -----------------------------
 
 1. Read the `config documentation <configuration.html>`__
-2. **Edit** the main config: ``config/config.yaml``
+2. **Edit** :ref:`main config <config-file>`: ``config/config.yaml``
 
 If you choose to execute gyōza locally, you may optionally edit the default profile:
 ``profiles/slurm/config.v8+.yaml>``
@@ -46,7 +46,7 @@ Abort pipeline / exit terminal
 
 If snakemake is launched directly from the command line, the process will be output to
 the terminal. Exiting with ``<Ctrl+C>`` is currently interpreted (as specified in the
-slurm profile as cancelling all submitted jobs (``scancel``). Exiting during a local
+slurm profile) as cancelling all submitted jobs (``scancel``). Exiting during a local
 execution will **also** abort the workflow. This means that while the workflow is
 running, the user cannot get the prompt back.
 
@@ -55,7 +55,8 @@ aborting the workflow:
 
 1. Open a new tab on your terminal (may require to log into the session again)
 2. Use ``nohup`` (e.g. ``nohup snakemake``). Closing the tab will not abort the
-   workflow. 3. Use the terminal multiplexer ``tmux`` `(more info)
+   workflow.
+3. Use the terminal multiplexer ``tmux`` `(more info)
    <https://github.com/tmux/tmux/wiki/Getting-Started>`__. This way you can get the
    prompt back right away, exit without aborting and even reconnect to the session from
    a different machine.
@@ -94,7 +95,7 @@ For example: ``snakemake --omit-from rule_to_omit``
 
     To account for intermediate runs, the report is built dynamically based on existing
     files (out of all files expected to be included in the report). To manually specify
-    what should be included in the report, use the dedicated snakemake command line.
+    what should be included in the report, use the dedicated ``snakemake`` command line.
 
 Default (same target as full workflow): ``snakemake --report results/report.html
 --report-stylesheet config/style/report-stylesheet.css``.
@@ -111,7 +112,7 @@ Apptainer support
     Apptainer is currently not supported… although it might be in the future!
 
 Run the workflow using: ``snakemake --profile profiles/slurm --sdm conda apptainer``.
-The container should be created first, then conda envs will be created for each rule
+The container should be created first, then ``conda`` envs will be created for each rule
 inside the container. This option is meant to be used on a system where you want to
 isolate the (many) files installed by ``conda``. This option is **not** suited for local
 execution.
@@ -123,7 +124,7 @@ Edit pipeline
 
     On can only modify the pipeline after cloning the repo, not upon snakedeployment.
 
-One can manually edit the Snakefile and/or the rules (.smk files in rules folder) to
+One can manually edit the ``Snakefile`` and/or the rules (``.smk`` files in rules folder) to
 edit the main steps of the pipeline. This should not be required to run the standard
 pipeline and should be done only when the core workflow itself needs to be modified.
 
