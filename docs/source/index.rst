@@ -7,5 +7,5 @@
     /installation
     /configuration
     /usage
-    apidocs/index
+    api/index
     GitHub <https://github.com/durr1602/gyoza/>

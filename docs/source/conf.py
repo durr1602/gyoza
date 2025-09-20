@@ -23,20 +23,34 @@ release = version
 extensions = [
     'sphinx.ext.duration',
     'sphinx.ext.doctest',
-    'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
-    'sphinx_tabs.tabs'
+    'sphinx_tabs.tabs',
+    'myst_parser',
+    'autodoc2'
 ]
+
+autodoc2_packages = [
+    "../../workflow/scripts",
+]
+
+autodoc2_output_dir = "api"
+autodoc2_render_plugin = "myst"
+
+
+# allow md docstring
+myst_enable_extensions = [
+    "fieldlist",
+]
+
+# fix duplicate object description issue for class attributes (e.g.: dataclass)
+napoleon_use_ivar = True
 
 # Napoleon settings for NumPy-style
 napoleon_google_docstring = False
 napoleon_numpy_docstring = True
-napoleon_include_private_with_doc = True
-napoleon_include_special_with_doc = True
-napoleon_use_param = True
-napoleon_use_rtype = True
+napoleon_use_admonition_for_notes = False
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),

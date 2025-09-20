@@ -10,4 +10,4 @@ logs/**
 .jupyter
 *.html
 docs/build
-docs/source/apidocs
+docs/source/api
