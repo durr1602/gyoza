@@ -14,7 +14,7 @@ cluster-generic-submit-cmd:
     --parsable
 
 default-resources:
-  - mail="<YOUR-EMAIL-ADRESS>"
+  - mail="<YOUR-EMAIL-ADDRESS>"
   - partition="small"
   - mem_gb=1
   - threads=10
@@ -55,7 +55,7 @@ set-resources:
 
 jobs: 500
 max-jobs-per-second: 10
-max-status-checks-per-second: 1
+max-status-checks-per-second: 1  # May need to be much lower depending on cluster guidelines
 local-cores: 1
 latency-wait: 60
 keep-going: True

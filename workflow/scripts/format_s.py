@@ -1,3 +1,5 @@
+"""Module to format functional impact scores for downstream heatmap plotting."""
+
 from snakemake.script import snakemake
 import pandas as pd
 import seaborn as sns
@@ -5,13 +7,29 @@ import pickle
 
 
 def get_heatmap_s_data(f, outpath, meta_out, pos_offset):
+    r"""Reshape dataframe of functional impact scores, extract and save metadata.
+    
+    Parameters
+    ----------
+    f : str
+        Path to CSV-formatted dataframe of functional impact scores.
+        Should contain columns:
+        
+        * ``Nham_aa``
+        * ``aa_seq``
+        * ``aa_pos``
+        * ``alt_aa``
+    
+        and at least one column starting with ``fitness_``
+        (one such column for each time point).
+    outpath : str
+        Path to save reshaped dataframe. Should end with ``_{tp}_format_s.csv``,
+        where ``tp`` refers to a single time point.
+    meta_out : str
+        Path to save serialized metadata.
+    pos_offset : int
+        Starting position in the full protein sequence.
     """
-    Takes dataframe of average functional impact scores as input.
-    Each input dataframe should correspond to a group of samples with all selected time points.
-    Formats df for each time point to be passed to the heatmap plotting module.
-    Metadata are pickled.
-    """
-
     AA_LIST = "*PGCQNTSEDKHRWYFMLIVA"
     AA_SORT = dict(zip(list(AA_LIST), list(range(0, len(AA_LIST)))))
 

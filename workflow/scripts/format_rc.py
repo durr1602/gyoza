@@ -1,3 +1,5 @@
+"""Module to format annotated read counts for downstream heatmap plotting."""
+
 from snakemake.script import snakemake
 import pandas as pd
 import numpy as np
@@ -6,12 +8,30 @@ import matplotlib.pyplot as plt
 
 
 def get_heatmap_rc_data(f, outpath, meta_out, exp_rc):
+    r"""Reshape dataframe of annotated read counts, extract and save metadata.
+    
+    Parameters
+    ----------
+    f : str
+        Path to CSV-formatted dataframe of annotated read counts.
+        Should contain columns:
+        
+        * ``WT``
+        * ``nt_seq``
+        * ``aa_seq``
+        * ``Nham_codons``
+        * ``mutation_aa_pos``
+        * ``mutation_alt_codons``
+        * ``mutation_alt_aa``
+        * ``readcount``
+    
+    outpath : str
+        Path to save reshaped dataframe.
+    meta_out : str
+        Path to save serialized metadata.
+    exp_rc : float
+        Expected read count per sample.
     """
-    Takes dataframe of annotated read counts (for 1 sample) as input.
-    Formats it and shapes it to be passed to the heatmap plotting module.
-    Metadata are pickled.
-    """
-
     AA_LIST = "*PGCQNTSEDKHRWYFMLIVA"
     AA_SORT = dict(zip(list(AA_LIST), list(range(0, len(AA_LIST)))))
 

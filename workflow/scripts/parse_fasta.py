@@ -1,3 +1,5 @@
+"""Module to convert fasta file to dataframe of read counts."""
+
 from snakemake.script import snakemake
 import pandas as pd
 
@@ -5,6 +7,24 @@ import pandas as pd
 def get_read_counts(
     fasta_file, outpath, log_file, mutated_seq, sample_name, readcount_level
 ):
+    r"""Parse fasta file, convert to dataframe of read counts, filter and save.
+    
+    Parameters
+    ----------
+    fasta_file : str
+        Path to fasta file. Sequence headers should contain ``size={readcount}``.
+    outpath : str
+        Path to save output dataframe of read counts (only sequences with no Ns).
+    log_file : str
+        Path to custom log file to save the number of sequences discarded because
+        they contained Ns.
+    mutated_seq : str
+        Locus identifier
+    sample_name : str
+        Sample identifier
+    readcount_level : {"nt_seq", "barcode"}
+        Level to which read counts are attributed.
+    """
     with open(fasta_file, "r") as file:
         entries = file.read().split(">")[1:]
 

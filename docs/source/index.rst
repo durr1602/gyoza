@@ -1,0 +1,11 @@
+.. include:: README.rst
+
+.. toctree::
+    :maxdepth: 0
+    :hidden:
+
+    /installation
+    /configuration
+    /usage
+    api/index
+    GitHub <https://github.com/durr1602/gyoza/>

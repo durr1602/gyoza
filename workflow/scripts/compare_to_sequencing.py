@@ -1,12 +1,26 @@
+"""Module to filter **sequenced** expected mutants."""
+
 from snakemake.script import snakemake
 import pandas as pd
 
 
 def get_observed_mutants(expmut, readcounts, outpath, unexp_outpath, readcount_level):
-    """
-    Compares the dataframe of mutants observed in the sequencing data (with respective read count)
-    to the list of expected mutants (either generated upstream or user-provided).
-    Outputs the overlap = 1 file per sample containing only the mutants both expected and observed
+    r"""Compare expected and sequenced mutants, filter accordingly.
+    
+    Parameters
+    ----------
+    expmut : str
+        Path to CSV-formatted dataframe of expected mutants.
+        Should contain columns ``Mutated_seq`` (locus ID), and `readcount_level`.
+    readcounts : str
+        Path to CSV-formatted dataframe of sequenced mutants with read counts.
+        Should contain column `readcount_level`.
+    outpath : str
+        Path to save output dataframe (mutants both expected and sequenced).
+    unexp_outpath : str
+        Path to save output dataframe (mutants sequenced but unexpected).
+    readcount_level : {"nt_seq", "barcode"}
+        Level to which read counts are attributed.
     """
     expmut_df = pd.read_csv(expmut)
     readcounts_df = pd.read_csv(readcounts)

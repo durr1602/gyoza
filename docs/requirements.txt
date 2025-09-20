@@ -1,0 +1,6 @@
+sphinx==8.2.3
+sphinx-rtd-theme==3.0.2
+sphinx-tabs
+git+https://github.com/durr1602/sphinx-autodoc2.git # sphinx-autodoc2==0.5.0
+setuptools_scm
+myst-parser
