@@ -9,8 +9,8 @@ rule process_read_counts:
         readcounts=lambda wildcards: readcounts_by_group.get(wildcards.group_key, []),
         nbgen=NBGEN_PATH,
     output:
-        selcoeffs="results/df/all_scores_{group_key}.csv",
-        avg_scores="results/df/avg_scores_{group_key}.csv",
+        selcoeffs=temp("results/df/all_scores_{group_key}.csv"),
+        avg_scores=temp("results/df/avg_scores_{group_key}.csv"),
         hist_plot=report(
             "results/graphs/hist_plot_{group_key}.svg",
             "../report/hist_plot.rst",
@@ -107,3 +107,26 @@ rule plot_scores:
         "../envs/main.yaml"
     script:
         "../scripts/plot_scores.py"
+
+
+rule aggregate_dfs:
+    input:
+        all_df=expand(
+            rules.process_read_counts.output.selcoeffs,
+            group_key=ATTR_GROUPS_WITH_OUTPUTS,
+        ),
+        avg_df=expand(
+            rules.process_read_counts.output.avg_scores,
+            group_key=ATTR_GROUPS_WITH_OUTPUTS,
+        ),
+    output:
+        selcoeffs="results/df/all_scores.csv",
+        avg_scores="results/df/avg_scores.csv",
+    message:
+        "Exporting final dataframes"
+    log:
+        "logs/8_scores/aggregate_dfs.log",
+    conda:
+        "../envs/main.yaml"
+    script:
+        "../scripts/aggregate_dfs.py"
