@@ -12,7 +12,11 @@ Install requirements
 
     .. tab:: Mac OSX
 
-       Open a terminal.
+       If your Mac is equipped with an Intel processor, simply open a terminal.
+
+       If your Mac is equipped with Apple silicon (M1/M2/M3), you may need to
+       `install Rosetta <https://support.apple.com/en-ca/102527>`__ first, then   
+       open a terminal.
 
     .. tab:: Windows
 
