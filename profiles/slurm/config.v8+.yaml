@@ -27,7 +27,7 @@ default-resources:
 set-resources:
   fastqc:
     mem_gb: min(10, max(int(0.01 * input.size_mb * attempt + 0.99), 1))
-    time: max(int(0.005 * input.size_mb * attempt + 0.99), 1)
+    time: max(int(0.01 * input.size_mb * attempt + 0.99), 1)
   compare_to_sequencing:
     mem_gb: min(10, max(int(0.15 * input.size_mb * attempt + 0.99), 2))
     time: max(int(0.15 * input.size_mb * attempt + 0.99), 2)
@@ -37,7 +37,7 @@ set-resources:
     time: max(int(0.01 * input.size_mb * attempt + 0.99), 1)
   pandaseq:
     threads: 4
-    time: max(int(0.002 * input.size_mb * attempt + 0.99), 1)
+    time: max(int(0.005 * input.size_mb * attempt + 0.99), 1)
   vsearch_fastx_uniques:
     threads: 1  # This command of vsearch is not multi-threaded
     time: max(int(0.0004 * input.size_mb * attempt + 0.99), 1)
