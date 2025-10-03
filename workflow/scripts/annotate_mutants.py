@@ -60,10 +60,13 @@ def get_mutations(seq, wt, codon_dic):
         Number of nucleotide changes
     Nham_aa : int
         Number of amino acid changes
-    protein_pos : list
+    nonsilent_pos : list
         Positions in the protein sequence of each non-silent mutation
-    protein_alt_aa : list
+    nonsilent_alt_aa : list
         Alternative residue in the protein sequence for each non-silent mutation
+    nonsilent_wt_aa : list
+        Wild-type residue in the protein sequence at the position of
+        each non-silent mutation
     mutated_codon : list
         1-based indexes for each mutated codon (nth mutated codon)
     mutation_pos : list
@@ -155,12 +158,13 @@ def get_mutations(seq, wt, codon_dic):
     aa_seq = "".join(full_aa_seq)
     wt_aa_seq = "".join(full_wt_aa)
 
-    protein_pos, protein_alt_aa = [], []
+    nonsilent_pos, nonsilent_alt_aa, nonsilent_wt_aa = [], [], []
 
     for i, (wt_aa, alt_aa) in enumerate(zip(wt_aa_seq, aa_seq)):
         if wt_aa != alt_aa:
-            protein_pos.append(int(i)),
-            protein_alt_aa.append(alt_aa)
+            nonsilent_pos.append(int(i)),
+            nonsilent_alt_aa.append(alt_aa)
+            nonsilent_wt_aa.append(wt_aa)
 
     Nham_codons = len(mutation_pos)
 
@@ -169,14 +173,16 @@ def get_mutations(seq, wt, codon_dic):
             range(1, Nham_codons + 1)
         )  # 1-based index of mutated codons
         if Nham_aa == 0:
-            protein_alt_aa = ["not-applicable"]
+            nonsilent_alt_aa = ["not-applicable"]
+            nonsilent_wt_aa = ["not-applicable"]
     else:  # Handle WT (no mutations)
         mutated_codon = [0]
         mutation_pos = ["not-applicable"]
         mutation_alt_codon = ["not-applicable"]
         mutation_alt_aa = ["not-applicable"]
         mutation_type = ["wt"]
-        protein_alt_aa = ["not-applicable"]
+        nonsilent_alt_aa = ["not-applicable"]
+        nonsilent_wt_aa = ["not-applicable"]
 
     return (
         is_wt,
@@ -184,8 +190,9 @@ def get_mutations(seq, wt, codon_dic):
         Nham_codons,
         Nham_nt,
         Nham_aa,
-        protein_pos,
-        protein_alt_aa,
+        nonsilent_pos,
+        nonsilent_alt_aa,
+        nonsilent_wt_aa,
         mutated_codon,
         mutation_pos,
         mutation_alt_codon,
@@ -222,6 +229,7 @@ def annotate_mutants(df, codon_dic):
         "Nham_aa",
         "pos",
         "alt_aa",
+        "wt_aa",
     ]
     per_mut_cols = [
         "mutated_codon",
@@ -298,6 +306,7 @@ def get_annotated_mutants(mut_path, outpath, position_offset, codon_table):
             )
         )
         annot_df["alt_aa"] = annot_df.alt_aa.apply(json.dumps)
+        annot_df["wt_aa"] = annot_df.wt_aa.apply(json.dumps)
         # Remove obsolete columns
         annot_df.drop(["mutation_pos", "pos"], axis=1, inplace=True)
     else:
@@ -313,6 +322,7 @@ def get_annotated_mutants(mut_path, outpath, position_offset, codon_table):
                 "Nham_aa",
                 "aa_pos",
                 "alt_aa",
+                "wt_aa",
                 "mutated_codon",
                 "mutation_aa_pos",
                 "mutation_alt_codons",

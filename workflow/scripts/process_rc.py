@@ -298,6 +298,7 @@ def get_selcoeffs(
         "Nham_codons",
         "aa_pos",
         "alt_aa",
+        "wt_aa",
     ]
 
     prot_seq_attributes = [
@@ -305,6 +306,7 @@ def get_selcoeffs(
         "aa_seq",
         "aa_pos",
         "alt_aa",
+        "wt_aa",
     ]
 
     # Get back tuple from str wildcard
@@ -329,6 +331,7 @@ def get_selcoeffs(
             converters={
                 "aa_pos": json.loads,  # List
                 "alt_aa": json.loads,  # List
+                "wt_aa": json.loads,  # List
             },
         )
         groupdf = groupdf.merge(
@@ -336,7 +339,7 @@ def get_selcoeffs(
             left_on="Sample_name",
             right_index=True,
         )
-        df_list.append(groupdf.explode(["aa_pos", "alt_aa"]))
+        df_list.append(groupdf.explode(["aa_pos", "alt_aa", "wt_aa"]))
 
     df = pd.concat(df_list, ignore_index=True)
 
