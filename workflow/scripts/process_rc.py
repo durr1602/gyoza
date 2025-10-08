@@ -508,7 +508,7 @@ def get_selcoeffs(
 
     # Export full dataframe
     s_wide[
-        sample_attributes + ["Replicate"] + sequence_attributes + mutation_attributes + selcoeff_cols
+        sample_attributes + ["Replicate"] + sequence_attributes + mutation_attributes + barcode_attributes + selcoeff_cols
     ].to_csv(outpath, index=False)
 
     # Calculate median functional impact score (over synonymous codons), for each replicate separately
