@@ -4,5 +4,15 @@ cores: 'all'
 keep-going: True
 rerun-incomplete: True
 restart-times: 1
-printshellcmds: True
+#printshellcmds: True
 use-conda: True
+
+set-threads:
+  fastp: 4
+  pandaseq : 4
+
+# Manually allocate more memory to specific rules
+# (uncomment following lines to do so)
+#set-resources:
+  #fastp:
+    #mem_gb: 4

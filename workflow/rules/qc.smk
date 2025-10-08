@@ -1,35 +1,26 @@
-#### Adapted from https://github.com/akcorut/kGWASflow/
-
-# =================================================================================================
-#     Generate QC Stats Using FastQC on Raw Reads
-# =================================================================================================
-
-
-rule fastqc:
+rule fastp:
     input:
-        lambda wildcards: f"{READS_PATH}/{sample_layout.loc[wildcards.sample, wildcards.RF]}",
+        sample=lambda w: [f"{READS_PATH}/{f}" for f in sample_layout.loc[w.sample, RF_VALS]]
     output:
-        html="results/0_qc/{sample}_{RF}_fastqc.html",
-        zip="results/0_qc/{sample}_{RF}_fastqc.zip",
+        html="results/0_qc/{sample}.fastp.html",
+        json="results/0_qc/{sample}.fastp.json",
     log:
-        "logs/0_qc/{sample}_{RF}_fastqc.log",
+        "logs/0_qc/{sample}_fastp.log",
+    params:
+        # --dont_eval_duplication rate (much faster, DMS data is duplicated data)
+        extra="--dont_eval_duplication"
     message:
-        "Performing quality control analysis using FastQC on the following file: {input}"
+        "Performing quality control analysis using Fastp on the following file: {input}"
     wrapper:
-        "v5.0.2/bio/fastqc"
+        "v7.7.0/bio/fastp"
 
 
-# =================================================================================================
-#     MultiQC
-# =================================================================================================
-
-
+# Using an older MultiQC/wrapper version -> lighter env
 rule multiqc:
     input:
         expand(
-            "results/0_qc/{sample}_{RF}_fastqc.zip",
+            "results/0_qc/{sample}.fastp.json",
             sample=REPORTED_SAMPLES,
-            RF=RF_VALS,
         ),
     output:
         report(
@@ -42,10 +33,8 @@ rule multiqc:
         "logs/0_qc/multiqc.log",
     params:
         extra="-v -d --interactive",
+        use_input_files_only=True,
     message:
-        "Aggregating FastQC results with MultiQC..."
+        "Aggregating Fastp results with MultiQC..."
     wrapper:
         "v5.0.2/bio/multiqc"
-
-
-# =================================================================================================
