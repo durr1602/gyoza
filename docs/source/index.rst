@@ -7,5 +7,6 @@
     /installation
     /configuration
     /usage
+    /results
     api/index
     GitHub <https://github.com/durr1602/gyoza/>
