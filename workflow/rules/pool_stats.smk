@@ -5,7 +5,7 @@ rule pool_stats:
             "results/df/unexpected_seqs/{sample}_unexpected.csv", sample=SAMPLES
         ),
     output:
-        all_stats="results/all_stats.csv",
+        all_stats="results/df/all_stats.csv",
         rc_filter_plot=report(
             "results/graphs/rc_filter_plot.svg",
             "../report/rc_filter_plot.rst",

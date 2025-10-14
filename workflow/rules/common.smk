@@ -407,7 +407,7 @@ def generate_report():
 
 
 def get_target():
-    targets = ["results/all_stats.csv"]
+    targets = ["results/df/all_stats.csv"]
     targets += expand("results/graphs/heatmap_readcount_{sample}.svg", sample=SAMPLES)
 
     if config["process_read_counts"]:
