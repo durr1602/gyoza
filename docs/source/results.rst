@@ -141,11 +141,46 @@ Dataframes can be found in the ``results/df``, including:
 - ``avg_scores.csv`` which contains fitness and error values for
   high-confidence variants
 
-To obtain this last dataframe, gyōza calculates the median functional
-impact score for each amino acid sequence (from high-confidence variants
-only), then calculates the median and error across replicates. The lower
-and upper error values (``lower_err`` and ``upper_err``, respectively)
-are obtained by subtracting the 2.5th or 97.5th percentile.
+``all_scores.csv`` contains the following columns (from coarse to fine):
+
+- one column per sample attribute
+- ``Replicate``
+- sequence attributes:
+  
+  - ``nt_seq``: nucleotide sequence of the variant
+  - ``aa_seq``: amino acid sequence of the variant
+  - ``Nham_nt``: number of nucleotide changes when comparing ``nt_seq`` to
+    the wild-type sequence
+  - ``Nham_aa``: number of amino acid changes when comparing ``aa_seq`` to
+    the wild-type sequence
+  - ``Nham_codons``: number of codon changes when comparing ``nt_seq`` to
+    the wild-type sequence
+  - ``aa_pos``: position in the protein sequence (at which the wild-type
+    residue, ``wt_aa``, is mutated to ``alt_aa``)
+  - ``alt_aa``: residue translated from the mutated codon at ``aa_pos``
+  - ``wt_aa``: wild-type residu at position ``aa_pos``
+  - ``confidence_score``: score reflecting the input read count of the
+    variant, can be either ``1`` (highest confidence, read count at T0
+    above ``rc_threshold``, as specified in the
+    `config <configuration.html>`__, in **all** replicates),
+    ``2`` (read count at T0 above ``rc_threshold`` in **at least one**
+    replicate) or ``3`` (lowest confidence, read count at T0 below
+    ``rc_threshold`` in **all** replicates)
+
+- mutation attributes:
+
+  - ``mutated_codon``: ``1`` for the first mutated codon, ``2`` for the
+    second mutated codon in the same ``nt_seq``, etc.
+  - ``mutation_aa_pos``: position in the protein sequence at which the
+    wild-type codon has been replaced by ``mutation_alt_codons``
+  - ``mutation_alt_codons``: mutated codon at position ``mutation_aa_pos``
+  - ``mutation_alt_aa``: residue translated from ``mutation_alt_codons``
+  - ``mutation_type``: either ``wt`` (no mutation), ``silent``
+    (``mutation_alt_aa`` corresponds to wild-type residue), ``nonsense``
+    (``mutation_alt_codons`` is a stop codon) or ``missense``
+
+- one column per barcode attribute
+- ``s_{Tx}_T0``: one column per output time point (``{Tx}``) containing scores
 
 .. note::
 
@@ -153,5 +188,22 @@ are obtained by subtracting the 2.5th or 97.5th percentile.
     when we sample ``n`` barcodes per mutation. In any case, these
     additional downstream steps should be manually performed from
     ``all_scores.csv``, which preserves barcode-level information.
+
+To obtain ``avg_scores.csv`` from ``all_scores.csv``,
+gyōza calculates the median functional impact score for each amino acid
+sequence (**from high-confidence variants only**, that is variants with a
+``confidence_score`` of ``1``), then calculates the
+median and error across replicates. The lower and upper error values
+(``lower_err`` and ``upper_err``, respectively)
+are obtained by subtracting the 2.5th or 97.5th percentile.
+
+Other columns in ``avg_scores.csv`` include the sample attributes and the
+protein sequence attributes, namely:
+
+- ``Nham_aa``
+- ``aa_seq``
+- ``aa_pos``
+- ``alt_aa``
+- ``wt_aa``
 
 Graphs can be found in the ``results/graphs`` folder.
