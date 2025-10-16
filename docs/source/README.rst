@@ -26,7 +26,7 @@ After `installation <installation.html>`__, prepare the `configuration
 
 DMS sequencing data are processed with the following existing software:
 
-- `FastQC <https://github.com/s-andrews/FastQC>`__
+- `Fastp <https://github.com/OpenGene/fastp>`__
 - `Cutadapt <http://cutadapt.readthedocs.io>`__
 - `PANDAseq <https://github.com/neufeld/pandaseq>`__
 - `VSEARCH <https://github.com/torognes/vsearch>`__

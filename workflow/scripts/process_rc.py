@@ -298,6 +298,7 @@ def get_selcoeffs(
         "Nham_codons",
         "aa_pos",
         "alt_aa",
+        "wt_aa",
     ]
 
     prot_seq_attributes = [
@@ -305,6 +306,7 @@ def get_selcoeffs(
         "aa_seq",
         "aa_pos",
         "alt_aa",
+        "wt_aa",
     ]
 
     # Get back tuple from str wildcard
@@ -329,6 +331,7 @@ def get_selcoeffs(
             converters={
                 "aa_pos": json.loads,  # List
                 "alt_aa": json.loads,  # List
+                "wt_aa": json.loads,  # List
             },
         )
         groupdf = groupdf.merge(
@@ -336,7 +339,7 @@ def get_selcoeffs(
             left_on="Sample_name",
             right_index=True,
         )
-        df_list.append(groupdf.explode(["aa_pos", "alt_aa"]))
+        df_list.append(groupdf.explode(["aa_pos", "alt_aa", "wt_aa"]))
 
     df = pd.concat(df_list, ignore_index=True)
 
@@ -500,11 +503,13 @@ def get_selcoeffs(
     for i, s in enumerate(selcoeff_cols):
         s_wide[s] = s_wide[lfc_cols[i]] - s_wide[med_cols[i]]
 
-    # Retrieve wild-type protein sequence
-    wtaa = s_wide.loc[s_wide.Nham_nt == 0, "aa_seq"].values[0]
+    # Save metadata in df for simplicity
+    s_wide[sample_attributes] = sample_group_tuple
 
     # Export full dataframe
-    s_wide.to_csv(outpath)
+    s_wide[
+        sample_attributes + ["Replicate"] + sequence_attributes + mutation_attributes + barcode_attributes + selcoeff_cols
+    ].to_csv(outpath, index=False)
 
     # Calculate median functional impact score (over synonymous codons), for each replicate separately
     median_df = (
@@ -611,8 +616,13 @@ def get_selcoeffs(
             tp = x.split("upper_err_")[1]
             avg_df[x] = avg_df[x] - avg_df[f"fitness_{tp}"]
 
+    # Save metadata in df for simplicity
+    avg_df[sample_attributes] = sample_group_tuple
+
     # Export dataframe with fitness and error values
-    avg_df.reset_index().to_csv(avg_outpath, index=False)
+    avg_df.reset_index()[
+        sample_attributes + prot_seq_attributes + new_names
+    ].to_csv(avg_outpath, index=False)
 
     return
 

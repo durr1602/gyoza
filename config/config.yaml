@@ -33,7 +33,7 @@ random:
     Nham_aa_max: 1
 
 perform_qc: True
-    # Set to True if you want to run FASTQC on all raw FASTQ files and generate a MultiQC report
+    # Set to True if you want to run Fastp on all raw FASTQ files and generate a MultiQC report
 
 process_read_counts: True
     # Set to True if you want to convert read counts into functional impact scores

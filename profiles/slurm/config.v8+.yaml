@@ -13,6 +13,7 @@ cluster-generic-submit-cmd:
     --mail-user={resources.mail}
     --parsable
 
+# IMPORTANT - EDIT WHAT FOLLOWS!
 default-resources:
   - mail="<YOUR-EMAIL-ADDRESS>"
   - partition="small"
@@ -25,9 +26,9 @@ default-resources:
 # The following was optimized from internal benchmarking
 # Resources allocated should prevent overallocation but might not be enough at first attempt
 set-resources:
-  fastqc:
-    mem_gb: min(10, max(int(0.01 * input.size_mb * attempt + 0.99), 1))
-    time: max(int(0.005 * input.size_mb * attempt + 0.99), 1)
+  fastp:
+    mem_gb: min(10, max(int(0.02 * input.size_mb * attempt + 0.99), 1))
+    time: max(int(0.01 * input.size_mb * attempt + 0.99), 1)
   compare_to_sequencing:
     mem_gb: min(10, max(int(0.15 * input.size_mb * attempt + 0.99), 2))
     time: max(int(0.15 * input.size_mb * attempt + 0.99), 2)
@@ -36,32 +37,32 @@ set-resources:
   cutadapt:
     time: max(int(0.01 * input.size_mb * attempt + 0.99), 1)
   pandaseq:
-    threads: 4
-    time: max(int(0.002 * input.size_mb * attempt + 0.99), 1)
+    time: max(int(0.005 * input.size_mb * attempt + 0.99), 1)
   vsearch_fastx_uniques:
-    threads: 1  # This command of vsearch is not multi-threaded
     time: max(int(0.0004 * input.size_mb * attempt + 0.99), 1)
   stats:
-    threads: 1
     time: max(int(0.001 * input.size_mb * attempt + 0.99), 1)
   parse_fasta:
-    threads: 1
     mem_gb: min(10, max(int(0.002 * input.size_mb * attempt + 0.99), 1))
     time: max(int(0.002 * input.size_mb * attempt + 0.99), 1)
   process_read_counts:
-    threads: 1
     mem_gb: min(10, max(int(0.2 * input.size_mb * attempt + 0.99), 1))
     time: max(int(0.5 * input.size_mb * attempt + 0.99), 1)
 
+set-threads:
+  fastp: 4
+  pandaseq: 4
+  vsearch: 1  # This command of vsearch is not multi-threaded
+
+local-cores: 10
 jobs: 500
 max-jobs-per-second: 10
 max-status-checks-per-second: 1  # May need to be much lower depending on cluster guidelines
-local-cores: 1
 latency-wait: 60
 keep-going: True
 rerun-incomplete: True
 restart-times: 3
-printshellcmds: True
+#printshellcmds: True
 scheduler: greedy
 use-conda: True
 cluster-generic-cancel-cmd: scancel

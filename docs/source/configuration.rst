@@ -20,6 +20,9 @@ Edit accordingly to analyze your own data.
    :language: yaml
    :caption: Config file for the toy dataset
 
+Make sure you select well your read count threshold (``rc_threshold``),
+because this will have an impact on how mutational effects are estimated.
+
 .. _design:
 
 Experimental design
@@ -53,8 +56,8 @@ Sequencing data
 
 Please provide the raw reads (forward and, optionally, reverse) of your DMS sequencing
 data in the ``config/reads`` folder (or specify a different path in the config under
-``reads``). The file names should be featured in the :ref:`layout <layout>`. Don’t forget
-to specify in the config if you have provided paired-end reads or not.
+``reads``). The file names should be featured in the :ref:`layout <layout>`. In the config,
+specify if you have provided paired-end reads or not (same type for all samples).
 
 .. _layout:
 
@@ -222,7 +225,7 @@ Go over your main config file one last time and check the following:
   variants, i.e. variants with a read count above the set threshold in all T0
   replicates.
 - |check| set the ``perform_qc`` parameter to ``True`` if you want to analyze your raw FASTQ
-  with FastQC (and generate a MultiQC report)
+  with Fastp (and generate a MultiQC report)
 - |check| set the ``process_read_counts`` to ``True`` if you want to convert read counts to
   functional impact scores (``False`` if you simply want read counts, e.g. to assess
   diversity in T0 libraries)

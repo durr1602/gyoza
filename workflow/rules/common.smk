@@ -407,13 +407,12 @@ def generate_report():
 
 
 def get_target():
-    targets = ["results/all_stats.csv"]
+    targets = ["results/df/all_stats.csv"]
     targets += expand("results/graphs/heatmap_readcount_{sample}.svg", sample=SAMPLES)
 
     if config["process_read_counts"]:
-        targets += expand(
-            "results/df/all_scores_{group_key}.csv",
-            group_key=ATTR_GROUPS_WITH_OUTPUTS,
+        targets.append(
+            "results/df/all_scores.csv"
         )
         targets += expand(
             "results/graphs/heatmap_fitness_{group_key}_{t}.svg",
