@@ -20,6 +20,9 @@ Edit accordingly to analyze your own data.
    :language: yaml
    :caption: Config file for the toy dataset
 
+Make sure you select well your read count threshold (``rc_threshold``),
+because this will have an impact on how mutational effects are estimated.
+
 .. _design:
 
 Experimental design
