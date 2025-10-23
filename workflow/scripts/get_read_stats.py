@@ -38,6 +38,9 @@ def generate_read_stats(
     ------
     Exception
         If any log file is not properly formatted.
+    ValueError
+        If the number of reads in trimming output does not correspond to
+        the number of reads in merging input
     
     Notes
     -----
@@ -59,9 +62,7 @@ def generate_read_stats(
 
     # Check that log is properly formatted
     if "This is cutadapt 5.1" not in lines[0]:
-        raise Exception(
-            f"Error.. {cutadapt_logfile} is not properly formatted. Double-check cutadapt's wrapper version."
-        )
+        raise Exception(f"Error.. {cutadapt_logfile} is not properly formatted.")
 
     stats_dict = {
         "Total_raw_reads": None,
@@ -142,9 +143,7 @@ def generate_read_stats(
 
         # Check log header
         if "INFO	VER	pandaseq 2.11" not in first_line:
-            raise Exception(
-                f"Error.. {pandaseq_logfile} is not properly formatted. Make sure you've added the --use-conda flag in the snakemake command line, which specifies the correct package versions to be used"
-            )
+            raise Exception(f"Error.. {pandaseq_logfile} is not properly formatted.")
 
         # Parse pandaseq stats
         logfile = pd.read_csv(
@@ -155,27 +154,30 @@ def generate_read_stats(
             engine="python",
             names=["id", "err_stat", "field", "value", "details"],
         )
-        stats = logfile[
+
+        reads_df = logfile[
             logfile.field.isin(["LOWQ", "NOALGN", "OK", "READS", "SLOW"])
-        ].iloc[-5:, :][["field", "value"]]
-        stats["value"] = stats.value.astype(int)
+        ].copy()
+        reads_df["value"] = reads_df.value.astype(int)
+        reads_gby_thread = (
+            reads_df.groupby(["id", "field"])[["value"]].max().reset_index()
+        )
+        stats = reads_gby_thread.groupby("field")[["value"]].sum()
 
         # Validation step - check that the number of processed reads corresponds from trim output to merge input
         if (
             fullstats.loc[fullstats.index == sample_name, "Total_trimmed_reads"].item()
-            != stats.loc[stats.field == "READS", "value"].item()
+            != stats.loc["READS", "value"]
         ):
-            print(
-                "---ERROR---\nNumber of written reads in trim output does not correspond to number of processed reads in merge input"
+            raise ValueError(
+                "Error.. Number of written reads in trim output does not correspond to number of processed reads in merge input"
             )
 
         # Add stats to dataframe
         fullstats.loc[
             fullstats.index == sample_name,
             ["Not_merged_LOWQ", "Not_merged_NOALGN", "Total_merged_reads"],
-        ] = (
-            stats.set_index("field").T[["LOWQ", "NOALGN", "OK"]].values
-        )
+        ] = stats.T[["LOWQ", "NOALGN", "OK"]].values
 
         # Cast type to remove ','
         fullstats = fullstats.astype(
@@ -207,9 +209,7 @@ def generate_read_stats(
 
     # Check that log is properly formatted
     if "vsearch v2.29.3" not in lines[0]:
-        raise Exception(
-            f"Error.. {vsearch_logfile} is not properly formatted. Make sure you've added the --use-conda flag in the snakemake command line, which specifies the correct package versions to be used"
-        )
+        raise Exception(f"Error.. {vsearch_logfile} is not properly formatted")
 
     # Add singletons total
     if "clusters discarded" in lines[-1]:
