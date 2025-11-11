@@ -164,7 +164,7 @@ def plot_timepoint_corr(df, outpath, sample_group, plot_formats):
     ----------
     df : pandas.DataFrame
         Dataframe of functional impact scores.
-        Should contain column ``confidence_score``.
+        Should contain column ``Replicate``.
     outpath : str
         Path to save plot as SVG (should end with ``.svg``).
     sample_group: str
@@ -173,16 +173,15 @@ def plot_timepoint_corr(df, outpath, sample_group, plot_formats):
         Formats other than SVG in which the plot should be saved.
     """
     # Check number of columns
-    if len([x for x in df.columns if x != "confidence_score"]) <= 1:
+    if len([x for x in df.columns if x != "Replicate"]) <= 1:
         f, ax = plt.subplots(figsize=(max(4, 0.1 * len(sample_group)), 4))
         ax.text(0.5, 0.5, "Not enough time points to plot", ha="center", va="center")
         ax.set_axis_off()  # hide axes
     else:
         g = sns.pairplot(
             df,
-            hue="confidence_score",
-            hue_order=CSCORES,
-            palette=dict(zip(CSCORES, CSCORE_COLORS)),
+            hue="Replicate",
+            palette="hls",
             plot_kws={"s": 8, "alpha": 0.2},
             height=1.5,
             corner=True,
@@ -271,7 +270,7 @@ def get_selcoeffs(
     Warns
     -----
     UserWarning
-        If too many low confidence variants.
+        If less than 75% high confidence variants.
     
     Notes
     -----
@@ -363,18 +362,19 @@ def get_selcoeffs(
     # Get total number of sequences
     tot_rc_level = upset[rc_level].nunique()
 
-    # Determine how many sequences are labeled with lowest confidence_score
-    low_conf_count = upset[upset["confidence_score"] == 3][rc_level].nunique()
+    # Determine how many "high confidence" variants
+    high_conf_count = upset[upset["confidence_score"] == 1][rc_level].nunique()
 
     # Compute proportion
-    low_conf_fraction = low_conf_count / tot_rc_level
+    high_conf_fraction = high_conf_count / tot_rc_level
 
-    # Warn if more than 25%
-    if low_conf_fraction > 0.25:
+    # Warn if less than 75%
+    if high_conf_fraction < 0.75:
         cscore_statement = (
-            f"Warning: More than 25% of your {rc_level}s are labeled with low confidence "
+            f"Warning: For group {sample_group}, less than 75% of your {rc_level}s are labeled with high confidence "
             f"(i.e., sequenced fewer than {rc_threshold} times in all replicates). "
-            "Consider reviewing the config file and adjusting the rc_threshold parameter."
+            "Because only these variants are used to calculate a median score across replicates,"
+            "consider reviewing the config file and adjusting the rc_threshold parameter."
         )
         warnings.warn(cscore_statement, UserWarning)
 
@@ -508,19 +508,25 @@ def get_selcoeffs(
 
     # Export full dataframe
     s_wide[
-        sample_attributes + ["Replicate"] + sequence_attributes + mutation_attributes + barcode_attributes + selcoeff_cols
+        sample_attributes
+        + ["Replicate"]
+        + sequence_attributes
+        + mutation_attributes
+        + barcode_attributes
+        + selcoeff_cols
     ].to_csv(outpath, index=False)
 
-    # Calculate median functional impact score (over synonymous codons), for each replicate separately
+    # Calculate median functional impact score (over synonymous codons),
+    # for each replicate separately,
+    # from high confidence variants ONLY
     median_df = (
-        s_wide.groupby(["Replicate"] + prot_seq_attributes)[
-            selcoeff_cols + ["confidence_score"]
-        ]
+        s_wide[s_wide.confidence_score == 1]
+        .groupby(["Replicate"] + prot_seq_attributes)[selcoeff_cols]
         .agg(
             dict(
                 zip(
-                    selcoeff_cols + ["confidence_score"],
-                    ["median"] * len(selcoeff_cols) + ["min"],
+                    selcoeff_cols,
+                    ["median"] * len(selcoeff_cols),
                 )
             )
         )
@@ -528,44 +534,21 @@ def get_selcoeffs(
     )
 
     # Plot correlation between time points
-    dataset1_r1 = median_df.index[0]  # select first replicate only
-    graphdf = median_df.loc[dataset1_r1].reset_index()[
-        selcoeff_cols + ["confidence_score"]
-    ]
-
-    # Warn if many low confidence variants
-    # Note: we do this here since there's the same number of variants for each replicate
-    has_score = graphdf[selcoeff_cols].notna().any(axis=1)
-    perc_counts = graphdf[has_score].groupby("confidence_score").size()
-    perc_by_score = (
-        perc_counts.div(perc_counts.sum()).to_frame("proportion").reset_index()
+    plot_timepoint_corr(
+        median_df.reset_index()[["Replicate"] + selcoeff_cols],
+        timepointsplot_outpath,
+        sample_group,
+        plot_formats,
     )
-    if (
-        perc_by_score.loc[(perc_by_score.confidence_score == 1, "proportion")] < 0.75
-    ).any():
-        warnings.warn(
-            f"Warning.. Group {sample_group} shows less than 75% of variants labeled with high confidence.\n"
-            "Because only these variants are used to calculate a median score across replicates,"
-            "you may want to double check the config file and adjust the rc_threshold parameter.",
-            UserWarning,
-        )
 
-    # Note: I decided to keep low confidence variants in this plot
-    # but we filter right after
-    plot_timepoint_corr(graphdf, timepointsplot_outpath, sample_group, plot_formats)
-
-    # Filter only high confidence variants + reshape
-    median_long = (
-        median_df[median_df.confidence_score == 1]
-        .melt(
-            id_vars=prot_seq_attributes,
-            value_vars=selcoeff_cols,
-            var_name="Compared timepoints",
-            value_name="s",
-            ignore_index=False,
-        )
-        .reset_index()
-    )
+    # Reshape
+    median_long = median_df.melt(
+        id_vars=prot_seq_attributes,
+        value_vars=selcoeff_cols,
+        var_name="Compared timepoints",
+        value_name="s",
+        ignore_index=False,
+    ).reset_index()
     # Rename column to keep only output time point (all are compared relative to T0)
     median_long["Compared timepoints"] = median_long["Compared timepoints"].apply(
         lambda x: x.split("_")[1]
@@ -577,20 +560,16 @@ def get_selcoeffs(
     median_long.to_csv(aa_df_outpath, index=False)
 
     # Calculate median across replicates for high confidence variants
-    avg_df = (
-        median_df[median_df.confidence_score == 1]
-        .groupby(prot_seq_attributes)[selcoeff_cols]
-        .agg(
-            [
-                "median",
-                lambda x: (
-                    np.percentile(x.dropna(), 2.5) if len(x.dropna()) > 0 else np.nan
-                ),
-                lambda x: (
-                    np.percentile(x.dropna(), 97.5) if len(x.dropna()) > 0 else np.nan
-                ),
-            ]
-        )
+    avg_df = median_df.groupby(prot_seq_attributes)[selcoeff_cols].agg(
+        [
+            "median",
+            lambda x: (
+                np.percentile(x.dropna(), 2.5) if len(x.dropna()) > 0 else np.nan
+            ),
+            lambda x: (
+                np.percentile(x.dropna(), 97.5) if len(x.dropna()) > 0 else np.nan
+            ),
+        ]
     )
 
     # Rename columns
@@ -620,9 +599,9 @@ def get_selcoeffs(
     avg_df[sample_attributes] = sample_group_tuple
 
     # Export dataframe with fitness and error values
-    avg_df.reset_index()[
-        sample_attributes + prot_seq_attributes + new_names
-    ].to_csv(avg_outpath, index=False)
+    avg_df.reset_index()[sample_attributes + prot_seq_attributes + new_names].to_csv(
+        avg_outpath, index=False
+    )
 
     return
 
