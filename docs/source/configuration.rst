@@ -100,7 +100,7 @@ The file should contain the following columns:
   non-truthy value to exclude from analysis. Corresponding T0 samples and matching
   replicates are automatically rescued, regardless of the selection. In other words, you
   can select a single replicate for each group you want to analyze.
-- Report: ``y`` (or a different truthy value) to include the sample in the HTML report.
+- ``Report``: ``y`` (or a different truthy value) to include the sample in the HTML report.
   Leave empty or enter non-truthy value to exclude from the report. Samples marked for
   reporting are rescued as describe above and will be automatically analyzed.
 
