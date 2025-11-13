@@ -7,7 +7,7 @@ rule annotate_mutants:
         position_offset=lambda wildcards: sample_layout.loc[
             wildcards.sample, "Pos_start"
         ],
-        genetic_code=GEN_CODE_PATH,
+        genetic_code=GEN_CODE,
     message:
         f"Annotating expected mutants (number of mutations, alternative codons, etc)"
     log:

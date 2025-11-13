@@ -7,7 +7,7 @@ rule format_read_counts:
     params:
         wt=lambda wc: {
             "nt": mutseq_to_wtseq[sample_to_mutseq[wc.sample]],
-            "aa": get_aa_seq(mutseq_to_wtseq[sample_to_mutseq[wc.sample]], codon_dic),
+            "aa": mutseq_to_wtaa[sample_to_mutseq[wc.sample]],
         },
         exp_rc=float(config["reads"]["exp_rc_per_sample"]),
     message:

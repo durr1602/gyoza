@@ -23,7 +23,7 @@ rule annotate_random:
         position_offset=lambda wildcards: sample_layout.loc[
             wildcards.sample, "Pos_start"
         ],
-        genetic_code=GEN_CODE_PATH,
+        genetic_code=GEN_CODE,
     message:
         f"Annotating mutants observed in sequencing data (number of mutations, alternative codons, etc)"
     log:

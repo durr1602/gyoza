@@ -208,6 +208,7 @@ mutseq_to_wtseq = {}
 if exists(WT_PATH):
     wtseqs = pd.read_csv(WT_PATH)
     validate(wtseqs, schema="../schemas/wt_seqs.schema.yaml")
+    wtseqs["WT_seq"] = wtseqs["WT_seq"].str.upper()
     mutseq_to_wtseq = dict(zip(wtseqs["Mutated_seq"], wtseqs["WT_seq"]))
     print("WT imported.")
 
@@ -237,7 +238,7 @@ codon_table = pd.read_csv(GEN_CODE_PATH, header=0)
 validate(codon_table, schema="../schemas/codon_table.schema.yaml")
 print("Codon table validated.")
 codon_table["codon"] = codon_table["codon"].str.upper()
-codon_dic = dict(zip(codon_table["codon"], codon_table["aminoacid"]))
+GEN_CODE = dict(zip(codon_table["codon"], codon_table["aminoacid"]))
 
 
 # Define function to translate any DNA sequence
@@ -270,10 +271,15 @@ def get_aa_seq(nt, codon_dict):
 
     return aa
 
+# Map WT amino acid sequence for each mutated locus
+mutseq_to_wtaa = {
+    mutseq: get_aa_seq(wtseq, GEN_CODE)
+    for mutseq, wtseq in mutseq_to_wtseq.items()
+}
 
 # Map WT amino acid sequence for each group
 group_to_wtaa = {
-    group_key: get_aa_seq(mutseq_to_wtseq[sample_to_mutseq[samples[0]]], codon_dic)
+    group_key: get_aa_seq(mutseq_to_wtseq[sample_to_mutseq[samples[0]]], GEN_CODE)
     for group_key, samples in final_groups_str.items()
 }
 

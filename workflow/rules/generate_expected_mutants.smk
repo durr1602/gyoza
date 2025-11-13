@@ -4,7 +4,7 @@ rule generate_mutants:
     output:
         temp(f"{EXPMUT_PATH}/{{mutseq}}.csv.gz"),
     params:
-        genetic_code=GEN_CODE_PATH,
+        genetic_code=GEN_CODE,
     resources:
         mem_gb=calc_mem,
         time=calc_time,

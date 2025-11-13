@@ -6,25 +6,6 @@ import numpy as np
 import itertools
 
 
-def load_codon_dic(table):
-    r"""Convert the CSV-formatted codon table to a dict.
-    
-    Parameters
-    ----------
-    table : str
-        Path to CSV-formatted codon table.
-        Header must be on first line and include columns ``codon`` and ``aminoacid``
-    
-    Returns
-    -------
-    dict
-    """
-    codon_table = pd.read_csv(table, header=0)
-    codon_table["codon"] = codon_table["codon"].str.upper()
-    codon_dic = dict(zip(codon_table["codon"], codon_table["aminoacid"]))
-    return codon_dic
-
-
 def get_alt_codons(seq, codon_dic, mode="NNN"):
     r"""Get acceptable alternative codons per position.
     
@@ -191,7 +172,7 @@ def get_nt_seq(seq, mut_dic):
     return "".join(list_codons)
 
 
-def generate_mutants(wtseq_path, outpath, mutated_seq, codon_table):
+def generate_mutants(wtseq_path, outpath, mutated_seq, codon_dic):
     r"""Generate mutants for a single locus identified by `mutated_seq`.
     
     Parameters
@@ -203,13 +184,9 @@ def generate_mutants(wtseq_path, outpath, mutated_seq, codon_table):
         Path to save output dataframe of mutants (DNA sequences only).
     mutated_seq : str
         Locus identifier.
-    codon_table : str
-        Path to CSV-formatted codon table.
-        Header must be on first line and include columns ``codon`` and ``aminoacid``
+    codon_dic : dict
+        Codon table associating codons to amino acid residues.
     """
-    # Load codon dictionary
-    codon_dic = load_codon_dic(codon_table)
-
     # Load dataframe with all wild-type sequences
     all_wt = pd.read_csv(wtseq_path)
     wt_df = all_wt[all_wt["Mutated_seq"] == mutated_seq].copy()
