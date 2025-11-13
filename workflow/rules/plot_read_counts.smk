@@ -5,6 +5,10 @@ rule format_read_counts:
         heatmap_df="results/df/formatted_readcounts/{sample}_format_rc.csv",
         heatmap_meta="results/heatmap_metadata/{sample}_rc.pkl",
     params:
+        wt=lambda wc: {
+            "nt": mutseq_to_wtseq[sample_to_mutseq[wc.sample]],
+            "aa": get_aa_seq(mutseq_to_wtseq[sample_to_mutseq[wc.sample]], codon_dic),
+        },
         exp_rc=float(config["reads"]["exp_rc_per_sample"]),
     message:
         f"Format read counts.."

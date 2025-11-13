@@ -5,6 +5,7 @@ rule format_scores:
         heatmap_df="results/df/formatted_scores/{group_key}_{t}_format_s.csv",
         heatmap_meta="results/heatmap_metadata/{group_key}_{t}_s.pkl",
     params:
+        wtaa=lambda wildcards: group_to_wtaa[wildcards.group_key],
         position_offset=lambda wildcards: pos_offset_by_group[wildcards.group_key],
     message:
         f"Format functional impact scores.."

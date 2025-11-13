@@ -236,6 +236,46 @@ for f in EXPMUT_PATH.glob("*.csv.gz"):
 codon_table = pd.read_csv(GEN_CODE_PATH, header=0)
 validate(codon_table, schema="../schemas/codon_table.schema.yaml")
 print("Codon table validated.")
+codon_table["codon"] = codon_table["codon"].str.upper()
+codon_dic = dict(zip(codon_table["codon"], codon_table["aminoacid"]))
+
+
+# Define function to translate any DNA sequence
+def get_aa_seq(nt, codon_dict):
+    r"""Translates nucleotide sequence to amino acid sequence from codon dict.
+
+    Parameters
+    ----------
+    nt : str
+        DNA sequence (length should be a multiple of 3).
+    codon_dict : dict
+        Codon table associating codons to amino acid residues.
+
+    Returns
+    -------
+    str
+
+    Raises
+    ------
+    ValueError
+        If the length of `nt` is not a multiple of 3.
+    """
+    if len(nt) % 3 != 0:
+        raise ValueError(
+            f"Error.. the length of the DNA sequence is not a multiple of 3."
+        )
+
+    nt_codons = [nt[i : i + 3] for i in range(0, len(nt), 3)]
+    aa = "".join([codon_dict.get(x) for x in nt_codons])
+
+    return aa
+
+
+# Map WT amino acid sequence for each group
+group_to_wtaa = {
+    group_key: get_aa_seq(mutseq_to_wtseq[sample_to_mutseq[samples[0]]], codon_dic)
+    for group_key, samples in final_groups_str.items()
+}
 
 ##### Generate template CSV file to write the number of cellular generations between time points #####
 # Note: At this time, this file is required to exist even if the user opts out of this normalization
@@ -411,9 +451,7 @@ def get_target():
     targets += expand("results/graphs/heatmap_readcount_{sample}.svg", sample=SAMPLES)
 
     if config["process_read_counts"]:
-        targets.append(
-            "results/df/all_scores.csv"
-        )
+        targets.append("results/df/all_scores.csv")
         targets += expand(
             "results/graphs/heatmap_fitness_{group_key}_{t}.svg",
             zip,

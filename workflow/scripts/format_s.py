@@ -6,7 +6,7 @@ import seaborn as sns
 import pickle
 
 
-def get_heatmap_s_data(f, outpath, meta_out, pos_offset):
+def get_heatmap_s_data(f, outpath, meta_out, wtaa, pos_offset):
     r"""Reshape dataframe of functional impact scores, extract and save metadata.
     
     Parameters
@@ -27,6 +27,8 @@ def get_heatmap_s_data(f, outpath, meta_out, pos_offset):
         where ``tp`` refers to a single time point.
     meta_out : str
         Path to save serialized metadata.
+    wtaa : str
+        Wild-type amino acid sequence.
     pos_offset : int
         Starting position in the full protein sequence.
     """
@@ -39,18 +41,18 @@ def get_heatmap_s_data(f, outpath, meta_out, pos_offset):
     vmax = max(1, int(df[[x for x in df.columns if "fitness_" in x]].max().max()) + 1)
     vmin = min(-1, int(df[[x for x in df.columns if "fitness_" in x]].min().min()))
 
-    # Retrieve wild-type
-    wtaa = df.loc[df.Nham_aa == 0, "aa_seq"].values[0]
-
     # Extract time point from outpath
     t = outpath.split("_format_s.csv")[0].split("_")[-1]
 
-    # Duplicate WT for each position
-    wt_fitness = df.loc[df.Nham_aa == 0, f"fitness_{t}"].values[0]
-    wtdf = pd.DataFrame(
-        [(int(i) + pos_offset, aa, wt_fitness) for i, aa in enumerate(wtaa)],
-        columns=["aa_pos", "alt_aa", f"fitness_{t}"],
-    )
+    # Duplicate WT for each position if found
+    if not df.loc[df.Nham_aa == 0].empty:
+        wt_fitness = df.loc[df.Nham_aa == 0, f"fitness_{t}"].values[0]
+        wtdf = pd.DataFrame(
+            [(int(i) + pos_offset, aa, wt_fitness) for i, aa in enumerate(wtaa)],
+            columns=["aa_pos", "alt_aa", f"fitness_{t}"],
+        )
+    else:
+        wtdf = pd.DataFrame(columns=["aa_pos", "alt_aa", f"fitness_{t}"])
 
     # Get single mutants
     singles = df[df.Nham_aa == 1][["aa_pos", "alt_aa", f"fitness_{t}"]].copy()
@@ -93,5 +95,6 @@ get_heatmap_s_data(
     snakemake.input[0],
     snakemake.output.heatmap_df,
     snakemake.output.heatmap_meta,
+    snakemake.params.wtaa,
     snakemake.params.position_offset,
 )

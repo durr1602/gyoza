@@ -7,7 +7,7 @@ import pickle
 import matplotlib.pyplot as plt
 
 
-def get_heatmap_rc_data(f, outpath, meta_out, exp_rc):
+def get_heatmap_rc_data(f, outpath, meta_out, wt, wtaa, exp_rc):
     r"""Reshape dataframe of annotated read counts, extract and save metadata.
     
     Parameters
@@ -16,7 +16,6 @@ def get_heatmap_rc_data(f, outpath, meta_out, exp_rc):
         Path to CSV-formatted dataframe of annotated read counts.
         Should contain columns:
         
-        * ``WT``
         * ``nt_seq``
         * ``aa_seq``
         * ``Nham_codons``
@@ -29,6 +28,10 @@ def get_heatmap_rc_data(f, outpath, meta_out, exp_rc):
         Path to save reshaped dataframe.
     meta_out : str
         Path to save serialized metadata.
+    wt : str
+        Wild-type nucleotide sequence.
+    wtaa : str
+        Wild-type amino acid sequence.
     exp_rc : float
         Expected read count per sample.
     """
@@ -38,8 +41,8 @@ def get_heatmap_rc_data(f, outpath, meta_out, exp_rc):
     df = pd.read_csv(f)
 
     # Retrieve wild-type
-    wtseq = df.loc[df.WT == True, "nt_seq"].values[0]
-    wtaa = df.loc[df.WT == True, "aa_seq"].values[0]
+    wtseq = wt
+    wtaa = wtaa
     wt_codons = [wtseq[i : i + 3] for i in range(0, len(wtseq), 3)]
 
     # Reshape dataframe
@@ -95,5 +98,7 @@ get_heatmap_rc_data(
     snakemake.input[0],
     snakemake.output.heatmap_df,
     snakemake.output.heatmap_meta,
+    snakemake.params.wt["nt"],
+    snakemake.params.wt["aa"],
     snakemake.params.exp_rc,
 )
