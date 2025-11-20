@@ -1,9 +1,11 @@
 rule generate_mutants:
     input:
         WT_PATH,
+        GEN_CODE_PATH,
     output:
         temp(f"{EXPMUT_PATH}/{{mutseq}}.csv.gz"),
     params:
+        wt=wtseqs,
         genetic_code=GEN_CODE,
     resources:
         mem_gb=calc_mem,

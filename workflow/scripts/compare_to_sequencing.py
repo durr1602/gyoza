@@ -6,7 +6,7 @@ import pandas as pd
 
 def get_observed_mutants(expmut, readcounts, outpath, unexp_outpath, readcount_level):
     r"""Compare expected and sequenced mutants, filter accordingly.
-    
+
     Parameters
     ----------
     expmut : str
@@ -22,8 +22,15 @@ def get_observed_mutants(expmut, readcounts, outpath, unexp_outpath, readcount_l
     readcount_level : {"nt_seq", "barcode"}
         Level to which read counts are attributed.
     """
-    expmut_df = pd.read_csv(expmut)
-    readcounts_df = pd.read_csv(readcounts)
+    # Import expected mutants
+    expmut_df = pd.read_csv(expmut, dtype={"Mutated_seq": str, readcount_level: str})
+    # Convert to upper case
+    expmut_df[readcount_level] = expmut_df[readcount_level].str.upper()
+
+    readcounts_df = pd.read_csv(
+        readcounts, dtype={"Mutated_seq": str, readcount_level: str}
+    )
+
     union_df = pd.merge(
         left=expmut_df,
         right=readcounts_df,

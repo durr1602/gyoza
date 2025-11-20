@@ -237,6 +237,7 @@ for f in EXPMUT_PATH.glob("*.csv.gz"):
 codon_table = pd.read_csv(GEN_CODE_PATH, header=0)
 validate(codon_table, schema="../schemas/codon_table.schema.yaml")
 print("Codon table validated.")
+codon_table["aminoacid"] = codon_table["aminoacid"].str.upper()
 codon_table["codon"] = codon_table["codon"].str.upper()
 GEN_CODE = dict(zip(codon_table["codon"], codon_table["aminoacid"]))
 
@@ -271,10 +272,10 @@ def get_aa_seq(nt, codon_dict):
 
     return aa
 
+
 # Map WT amino acid sequence for each mutated locus
 mutseq_to_wtaa = {
-    mutseq: get_aa_seq(wtseq, GEN_CODE)
-    for mutseq, wtseq in mutseq_to_wtseq.items()
+    mutseq: get_aa_seq(wtseq, GEN_CODE) for mutseq, wtseq in mutseq_to_wtseq.items()
 }
 
 # Map WT amino acid sequence for each group
