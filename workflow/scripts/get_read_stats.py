@@ -15,7 +15,7 @@ def generate_read_stats(
     is_paired,
 ):
     r"""Parse different types of log files and extract read count statistics.
-    
+
     Parameters
     ----------
     cutadapt_logfile : str
@@ -33,7 +33,7 @@ def generate_read_stats(
         Sample identifier
     is_paired : {True, False}
         ``True`` if reads are paired, ``False`` for single-end reads.
-    
+
     Raises
     ------
     Exception
@@ -41,7 +41,7 @@ def generate_read_stats(
     ValueError
         If the number of reads in trimming output does not correspond to
         the number of reads in merging input
-    
+
     Notes
     -----
     Statistics retrieved include:

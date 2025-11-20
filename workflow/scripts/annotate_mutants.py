@@ -17,7 +17,7 @@ import json
 
 def get_mutations(seq, wt, codon_dic):
     r"""Collect differences between a mutated DNA sequence and the wild-type.
-    
+
     Parameters
     ----------
     seq : str
@@ -28,7 +28,7 @@ def get_mutations(seq, wt, codon_dic):
         Length should be the same as `seq` and be a multiple of 3.
     codon_dic : dict
         Codon table associating codons to amino acid residues.
-    
+
     Returns
     -------
     is_wt : bool
@@ -58,7 +58,7 @@ def get_mutations(seq, wt, codon_dic):
         Alternative residue translated from `mutation_alt_codon`
     mutation_type : list
         Either ``silent``, ``missense`` or ``nonsense`` based on ``mutation_alt_aa``
-    
+
     Raises
     ------
     ValueError
@@ -67,16 +67,16 @@ def get_mutations(seq, wt, codon_dic):
         If the lengths of `seq` and `wt` are not equal.
     ValueError
         If `seq` contains unrecognized characters.
-    
+
     Notes
     -----
     Mutations are formatted as # mutated codon / position / alternative codon /
     alternative amino acid, in lists with matching indexes to be able
     to quickly convert to 1 row per mutation per mutated codon.
-    
+
     The alternative and corresponding wild-type codons are translated into
     their corresponding amino acid using the `codon_dic`.
-    
+
     Sequence-level attributes include the Hamming distances (``Nham``),
     i.e. the number of codon, nucleotide and amino acid changes.
     """
@@ -184,19 +184,19 @@ def get_mutations(seq, wt, codon_dic):
 
 def annotate_mutants(df, codon_dic):
     r"""Annotate a dataframe of mutated DNA sequences with mutations.
-    
+
     Parameters
     ----------
     df : pandas.DataFrame
         DataFrame containing at least two columns: ``nt_seq`` and ``WT_seq``
     codon_dic : dict
         Codon table associating codons to amino acid residues.
-    
+
     Returns
     -------
     pandas.DataFrame
         `df` with additional columns to describe mutations.
-    
+
     Notes
     -----
     Uses custom function to collect mutations by comparing each sequence
@@ -238,7 +238,7 @@ def annotate_mutants(df, codon_dic):
 
 def get_annotated_mutants(mut_path, outpath, position_offset, codon_dic):
     r"""Annotates non-empty dataframes of mutated DNA sequences (1 df per sample).
-    
+
     Parameters
     ----------
     mut_path : str
@@ -251,7 +251,7 @@ def get_annotated_mutants(mut_path, outpath, position_offset, codon_dic):
         Starting position in the full protein sequence.
     codon_dic : dict
         Codon table associating codons to amino acid residues.
-    
+
     Notes
     -----
     One column, ``aa_pos``, is obtained by adding the position offset to the

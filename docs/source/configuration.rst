@@ -187,6 +187,9 @@ the workflow, barcode-level information will be preserved in
 high-confidence variants (which does not preserve neither barcode-level nor codon-level
 information).
 
+Please do not include any index column in the file. Whether the file is actually compressed
+or not is not relevant, as long as the file is properly named (ending with ``.csv.gz``).
+
 .. _norm-gen:
 
 Normalization with the number of cellular generations

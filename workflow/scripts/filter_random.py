@@ -6,7 +6,7 @@ import pandas as pd
 
 def filter_random(df, pre_discarded, max_Nham_aa, filtered_out, discarded_out):
     r"""Discard mutants above specified number of amino acid changes.
-    
+
     Parameters
     ----------
     df : str

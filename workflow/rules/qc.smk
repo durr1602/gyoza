@@ -1,6 +1,8 @@
 rule fastp:
     input:
-        sample=lambda w: [f"{READS_PATH}/{f}" for f in sample_layout.loc[w.sample, RF_VALS]]
+        sample=lambda w: [
+            f"{READS_PATH}/{f}" for f in sample_layout.loc[w.sample, RF_VALS]
+        ],
     output:
         html="results/0_qc/{sample}.fastp.html",
         json="results/0_qc/{sample}.fastp.json",
@@ -8,7 +10,7 @@ rule fastp:
         "logs/0_qc/{sample}_fastp.log",
     params:
         # --dont_eval_duplication rate (much faster, DMS data is duplicated data)
-        extra="--dont_eval_duplication"
+        extra="--dont_eval_duplication",
     message:
         "Performing quality control analysis using Fastp on the following file: {input}"
     wrapper:
