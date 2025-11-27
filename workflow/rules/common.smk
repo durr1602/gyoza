@@ -185,27 +185,8 @@ pos_offset_by_group = {
     for group_key, samples in final_groups_str.items()
 }
 
-##### Determine groups with output timepoints #####
-
-groups_with_output_timepoints = {}
-for group, samples in final_groups.items():
-    timepoints = {sample_layout.loc[s, "Timepoint"] for s in samples}
-    if "T0" in timepoints and any(tp != "T0" for tp in timepoints):
-        groups_with_output_timepoints[group] = samples
-
-ATTR_GROUPS_WITH_OUTPUTS = [
-    serialize_key(group) for group in groups_with_output_timepoints
-]
-REPORTED_GROUPS_WITH_OUTPUTS = sorted(
-    [
-        serialize_key(group)
-        for group, samples in report_groups.items()
-        if any(sample_layout.loc[s, "Timepoint"] != "T0" for s in samples)
-    ]
-)
-
 ##### Get combinations of groups and output time points #####
-# Note: only here we keep input/output pairs with at least one matching replicate
+# Keep only input/output pairs with at least one matching replicate
 
 GT_WITH_OUTPUTS = []
 
@@ -230,6 +211,16 @@ for g, samples in final_groups.items():
     tp = sample_layout.loc[outputs_with_matching_t0[0], "Timepoint"]
 
     GT_WITH_OUTPUTS.append((serialize_key(g), tp))
+
+if not GT_WITH_OUTPUTS:
+    raise WorkflowError(
+        "Error.. Please select at least one pair of matching input/output replicates."
+    )
+
+ATTR_GROUPS_WITH_OUTPUTS = sorted({g for (g, tp) in GT_WITH_OUTPUTS})
+REPORTED_GROUPS_WITH_OUTPUTS = sorted(
+    {g for (g, tp) in GT_WITH_OUTPUTS if g in REPORTED_GROUPS}
+)
 
 ##### Validate CSV file containing WT DNA sequences #####
 # Required only for 'codon' and 'random' designs
@@ -506,14 +497,13 @@ def get_target():
     targets += expand("results/graphs/heatmap_readcount_{sample}.svg", sample=SAMPLES)
 
     if config["process_read_counts"]:
-        targets.append("results/df/all_scores.csv")
+        targets.append(["results/df/all_scores.csv", "results/graphs/rc_var_plot.svg"])
         targets += expand(
             "results/graphs/heatmap_fitness_{group_key}_{t}.svg",
             zip,
             group_key=[g for g, t in GT_WITH_OUTPUTS],
             t=[t for g, t in GT_WITH_OUTPUTS],
         )
-        targets.append("results/graphs/rc_var_plot.svg")
 
     if config["perform_qc"]:
         targets.append("results/0_qc/multiqc.html")
