@@ -237,42 +237,50 @@ def plot_spearman_heatmaps(df, replicates, outpath, plot_formats):
     """
     labels = df["Sample attributes"].unique()
     timepoints = sorted(df["Compared timepoints"].unique())
-    g = sns.FacetGrid(
-        df,
-        col="Sample attributes",
-        col_order=labels,
-        row="Compared timepoints",
-        row_order=timepoints,
-    )
-    g.set_titles(col_template="{col_name}", row_template="{row_name}")
 
-    for i, t in enumerate(timepoints):
-        for j, l in enumerate(labels):
-            yl = []
-            for y in replicates:
-                xl = []
-                for x in replicates:
-                    xval = df[
-                        (df["Sample attributes"] == l)
-                        & (df["Compared timepoints"] == t)
-                    ][x].values
-                    yval = df[
-                        (df["Sample attributes"] == l)
-                        & (df["Compared timepoints"] == t)
-                    ][y].values
-                    spearmanr, sp = stats.spearmanr(xval, yval)
-                    xl.append(spearmanr)
-                yl.append(xl)
-            spearmanwide = pd.DataFrame(yl, columns=replicates, index=replicates)
-            sns.heatmap(
-                spearmanwide,
-                vmin=0.5,
-                vmax=1,
-                cmap="viridis_r",
-                annot=True,
-                fmt=".2f",
-                ax=g.axes[i][j],
-            )
+    # Check if enough replicates
+    if len(replicates) <= 1:
+        f, ax = plt.subplots(figsize=(4, 4))
+        ax.text(0.5, 0.5, "Not enough replicates to plot", ha="center", va="center")
+        ax.set_axis_off()  # hide axes
+
+    else:
+        g = sns.FacetGrid(
+            df,
+            col="Sample attributes",
+            col_order=labels,
+            row="Compared timepoints",
+            row_order=timepoints,
+        )
+        g.set_titles(col_template="{col_name}", row_template="{row_name}")
+
+        for i, t in enumerate(timepoints):
+            for j, l in enumerate(labels):
+                yl = []
+                for y in replicates:
+                    xl = []
+                    for x in replicates:
+                        xval = df[
+                            (df["Sample attributes"] == l)
+                            & (df["Compared timepoints"] == t)
+                        ][x].values
+                        yval = df[
+                            (df["Sample attributes"] == l)
+                            & (df["Compared timepoints"] == t)
+                        ][y].values
+                        spearmanr, sp = stats.spearmanr(xval, yval)
+                        xl.append(spearmanr)
+                    yl.append(xl)
+                spearmanwide = pd.DataFrame(yl, columns=replicates, index=replicates)
+                sns.heatmap(
+                    spearmanwide,
+                    vmin=0.5,
+                    vmax=1,
+                    cmap="viridis_r",
+                    annot=True,
+                    fmt=".2f",
+                    ax=g.axes[i][j],
+                )
     plt.savefig(outpath, format="svg", dpi=300)
     [
         plt.savefig(f"{outpath.split('.svg')[0]}.{x}", format=x, dpi=300)
@@ -300,18 +308,25 @@ def plot_replicate_scatter(df, replicates, outpath, plot_formats):
     plot_formats : list of str
         Formats other than SVG in which the plot should be saved.
     """
-    g = sns.lmplot(
-        df,
-        x=replicates[0],
-        y=replicates[1],
-        col="Sample attributes",
-        col_wrap=3,
-        hue="Compared timepoints",
-        palette="mako",
-        height=1.5,
-        scatter_kws={"s": 8, "alpha": 0.2},
-    )
-    g.set_titles(col_template="{col_name}")
+    # Check if enough replicates
+    if len(replicates) <= 1:
+        f, ax = plt.subplots(figsize=(4, 4))
+        ax.text(0.5, 0.5, "Not enough replicates to plot", ha="center", va="center")
+        ax.set_axis_off()  # hide axes
+
+    else:
+        g = sns.lmplot(
+            df,
+            x=replicates[0],
+            y=replicates[1],
+            col="Sample attributes",
+            col_wrap=3,
+            hue="Compared timepoints",
+            palette="mako",
+            height=1.5,
+            scatter_kws={"s": 8, "alpha": 0.2},
+        )
+        g.set_titles(col_template="{col_name}")
     plt.savefig(outpath, format="svg", dpi=300)
     [
         plt.savefig(f"{outpath.split('.svg')[0]}.{x}", format=x, dpi=300)
@@ -351,27 +366,34 @@ def get_s_plots(
     """
     df = concatenate_df(df_files)
     df["Replicate"] = df["Replicate"].astype(str)
-    plot_scoeff_violin(df, scoeff_plot_outpath, plot_formats)
-    plot_impact_over_time(df, s_time_plot_outpath, plot_formats)
+    plot_scoeff_violin(df.dropna(subset=["s"]), scoeff_plot_outpath, plot_formats)
+    plot_impact_over_time(df.dropna(subset=["s"]), s_time_plot_outpath, plot_formats)
 
     # Save list of replicates
-    replicates = sorted(df.Replicate.unique())
-    if len(replicates) == 1:
-        firstTwoReplicates = replicates * 2
-    else:
-        firstTwoReplicates = replicates[:2]
+    replicates = sorted(df.dropna(subset=["s"]).Replicate.unique())
 
     # Reshape dataframe
-    repwide = df.pivot(
-        index=prot_seq_attributes + ["Sample attributes", "Compared timepoints"],
-        columns="Replicate",
-        values="s",
-    ).reset_index()
-
-    plot_spearman_heatmaps(repwide, replicates, heatmaps_outpath, plot_formats)
-    plot_replicate_scatter(
-        repwide, firstTwoReplicates, replicate_plot_outpath, plot_formats
+    repwide = (
+        df.dropna(subset=["s"])
+        .pivot(
+            index=prot_seq_attributes + ["Sample attributes", "Compared timepoints"],
+            columns="Replicate",
+            values="s",
+        )
+        .reset_index()
     )
+
+    # Need to plot even if not enough replicates in order to generate expected files
+    plot_spearman_heatmaps(repwide, replicates, heatmaps_outpath, plot_formats)
+    if len(replicates) == 1:
+        plot_replicate_scatter(
+            repwide, replicates, replicate_plot_outpath, plot_formats
+        )
+    else:
+        plot_replicate_scatter(
+            repwide, replicates[:2], replicate_plot_outpath, plot_formats
+        )
+
     return
 
 

@@ -78,10 +78,14 @@ properties:
         default: 1
     required:
       - Nham_aa_max
+  
+  process_all_samples:
+    type: boolean
+    description: Set to True to override sample selection with Analyze/Report columns of the layout
 
   perform_qc:
     type: boolean
-    description: Set to True to run FASTQC and MultiQC
+    description: Set to True to run Fastp and MultiQC
     default: False
 
   process_read_counts:
@@ -108,6 +112,7 @@ required:
   - reads
   - barcode
   - random
+  - process_all_samples
   - perform_qc
   - process_read_counts
   - normalize_with_gen

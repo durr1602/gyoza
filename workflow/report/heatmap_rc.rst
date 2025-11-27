@@ -1,6 +1,6 @@
 **Important note:** make sure you click on the eye icon above to refresh the view and load the correct image.
 
-For every sample (based on samples marked for reporting in the sample layout), raw read counts are plotted as a heatmap.
+For every sample, raw read counts are plotted as a heatmap.
 The x axis corresponds to positions in the mutated protein sequence.
 The y axis corresponds to the introduced amino acid residues.
 The wild-type nucleotide sequence is excluded from this visualization but its abundance is often much higher compared to variants.

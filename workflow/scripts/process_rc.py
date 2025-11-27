@@ -21,14 +21,14 @@ CSCORE_COLORS = ["green", "orange", "red"]
 
 def get_confidence_score(g, threshold):
     r"""Get confidence score based on read count at T0.
-    
+
     Parameters
     ----------
     g : pandas.Series
         Read counts across replicates for a single sequence.
     threshold : int
         Read count threshold.
-    
+
     Returns
     -------
     {1, 2, 3}
@@ -48,7 +48,7 @@ def get_confidence_score(g, threshold):
 
 def plot_rc_per_seq(df1, df2, outpath, sample_group, thresh, thresh_freq, plot_formats):
     r"""Plot side-by-side distributions of read counts/frequencies.
-    
+
     Parameters
     ----------
     df1 : pandas.DataFrame
@@ -77,7 +77,7 @@ def plot_rc_per_seq(df1, df2, outpath, sample_group, thresh, thresh_freq, plot_f
     ax2.set(xlabel="Frequency")
 
     plt.subplots_adjust(top=0.9)
-    plt.suptitle(f"Samples attributes: {sample_group}")
+    plt.suptitle(f"{sample_group}")
     plt.savefig(outpath, format="svg", dpi=300)
     [
         plt.savefig(f"{outpath.split('.svg')[0]}.{x}", format=x, dpi=300)
@@ -88,7 +88,7 @@ def plot_rc_per_seq(df1, df2, outpath, sample_group, thresh, thresh_freq, plot_f
 
 def plot_upset_TR(df, conditions, outpath, sample_group, plot_formats):
     r"""Plot overlap of unique sequences found across time points and replicates.
-    
+
     Parameters
     ----------
     df : pandas.DataFrame
@@ -99,7 +99,7 @@ def plot_upset_TR(df, conditions, outpath, sample_group, plot_formats):
           time point / replicate)
         * ``confidence_score``
         * ``mean_input`` (**float**, average read frequency at T0)
-    
+
     conditions : list of str
         Columns in `df`, should refer to combinations of time point / replicate
     outpath : str
@@ -147,7 +147,7 @@ def plot_upset_TR(df, conditions, outpath, sample_group, plot_formats):
     ax1.set_ylabel("Mean\nT0 freq.")
 
     plt.subplots_adjust(top=0.95)
-    plt.suptitle(f"Samples attributes: {sample_group}")
+    plt.suptitle(f"{sample_group}")
 
     plt.savefig(outpath, format="svg", dpi=300)
     [
@@ -159,7 +159,7 @@ def plot_upset_TR(df, conditions, outpath, sample_group, plot_formats):
 
 def plot_timepoint_corr(df, outpath, sample_group, plot_formats):
     r"""Plot pairwise comparisons of functional impact scores between time points.
-    
+
     Parameters
     ----------
     df : pandas.DataFrame
@@ -188,7 +188,7 @@ def plot_timepoint_corr(df, outpath, sample_group, plot_formats):
         )
         g.tight_layout()
         plt.subplots_adjust(top=0.9)
-    plt.suptitle(f"Samples attributes: {sample_group}")
+    plt.suptitle(f"{sample_group}")
 
     plt.savefig(outpath, format="svg", dpi=300)
     [
@@ -209,15 +209,15 @@ def get_selcoeffs(
     freq_outpath,
     aa_df_outpath,
     sample_group,
-    layout_path,
-    sample_attributes,
+    layout,
+    all_attributes,
     rc_level,
     barcode_attributes,
     rc_threshold,
     plot_formats,
 ):
     r"""Convert read counts into functional impact scores for grouped samples.
-    
+
     Parameters
     ----------
     readcount_files : list of str
@@ -246,11 +246,11 @@ def get_selcoeffs(
         the protein level.
     sample_group : str
         Sample group identifier.
-        Should contain sample attributes concatenated with ``__``.
-    layout_path : str
-        Path to CSV-formatted sample layout.
-    sample_attributes : list of str
-        List of sample attributes.
+        Should contain sample and screening attributes concatenated with ``__``.
+    layout : pandas.DataFrame
+        Dataframe of sample layout.
+    all_attributes : list of str
+        List of sample and screening attributes.
         The corresponding values should feature in `sample_group`.
     rc_level : {"nt_seq", "barcode"}
         Level to which read counts are attributed.
@@ -261,23 +261,23 @@ def get_selcoeffs(
         read count at T0 across replicates.
     plot_formats : list of str
         Formats other than SVG in which the plot should be saved.
-    
+
     Raises
     ------
     Exception
         In case of null sample depth.
-    
+
     Warns
     -----
     UserWarning
         If less than 75% high confidence variants.
-    
+
     Notes
     -----
     Functional impact scores are obtained with a log ratio method:
-    
+
     .. math:: s_v=\ \log_2{\left(\frac{c_{v,output}}{\sum\nolimits_{i} c_{i,\ output}}\right)}\ -\log_2{\left(\frac{c_{v,input}}{\sum\nolimits_{i} c_{i,\ input}}\right)}
-    
+
     with :math:`c_v` being the raw read count of a variant + 1,
     "input" being T0 and "output" designating any post-screening time point.
     """
@@ -310,13 +310,6 @@ def get_selcoeffs(
 
     # Get back tuple from str wildcard
     sample_group_tuple = tuple(sample_group.split("__"))
-
-    layout = pd.read_csv(
-        layout_path,
-        dtype={
-            "Replicate": str,
-        },
-    ).set_index("Sample_name")
 
     df_list = []
 
@@ -472,7 +465,7 @@ def get_selcoeffs(
     nbgen_df = pd.read_csv(nbgen_path, dtype={"Replicate": str})
     # Select correct group
     nbgen_group = nbgen_df[
-        nbgen_df[sample_attributes].apply(tuple, axis=1) == sample_group_tuple
+        nbgen_df[all_attributes].apply(tuple, axis=1) == sample_group_tuple
     ]
     nbgen_wide = nbgen_group.pivot(
         index="Replicate", columns="Timepoint", values="Nb_gen"
@@ -504,11 +497,11 @@ def get_selcoeffs(
         s_wide[s] = s_wide[lfc_cols[i]] - s_wide[med_cols[i]]
 
     # Save metadata in df for simplicity
-    s_wide[sample_attributes] = sample_group_tuple
+    s_wide[all_attributes] = sample_group_tuple
 
     # Export full dataframe
     s_wide[
-        sample_attributes
+        all_attributes
         + ["Replicate"]
         + sequence_attributes
         + mutation_attributes
@@ -596,10 +589,10 @@ def get_selcoeffs(
             avg_df[x] = avg_df[x] - avg_df[f"fitness_{tp}"]
 
     # Save metadata in df for simplicity
-    avg_df[sample_attributes] = sample_group_tuple
+    avg_df[all_attributes] = sample_group_tuple
 
     # Export dataframe with fitness and error values
-    avg_df.reset_index()[sample_attributes + prot_seq_attributes + new_names].to_csv(
+    avg_df.reset_index()[all_attributes + prot_seq_attributes + new_names].to_csv(
         avg_outpath, index=False
     )
 
@@ -618,7 +611,7 @@ get_selcoeffs(
     snakemake.output.aa_df,
     snakemake.wildcards.group_key,
     snakemake.params.layout,
-    snakemake.params.sample_attributes,
+    snakemake.params.all_attributes,
     snakemake.params.readcount_level,
     snakemake.params.barcode_attributes,
     snakemake.params.rc_threshold,

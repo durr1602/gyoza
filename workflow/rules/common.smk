@@ -27,6 +27,7 @@ EXPMUT_PATH = PROJECT_DIR / "expected_mut/"
 NBGEN_PATH = PROJECT_DIR / "nbgen.csv"
 
 SAMPLE_ATTR = config["project"]["sample_attributes"]
+SCREEN_ATTR = config["project"]["screening_attributes"]
 
 ##### Import and validate sample layout #####
 
@@ -69,8 +70,10 @@ print("Sample layout validated.")
 ##### Validate sample attributes and group samples #####
 
 for x in layout_add_cols:
-    if x not in SAMPLE_ATTR:
-        warnings.warn(f"Column {x} is not listed in your sample attributes.")
+    if x not in SAMPLE_ATTR + SCREEN_ATTR:
+        warnings.warn(
+            f"Column {x} is not listed in your sample or screening attributes."
+        )
 
 if not SAMPLE_ATTR:
     raise ValueError(
@@ -81,39 +84,47 @@ else:
         if attr not in layout_csv.columns:
             raise Exception(f"Missing sample attribute column in the layout: {attr}.")
 
-    TR_layout = layout_csv[["Sample_name"] + SAMPLE_ATTR]
+    print("Sample attributes imported.")
+
     # Initial sample grouping based on layout
     all_groups = defaultdict(list)
-    for _, row in TR_layout.iterrows():
-        key = tuple(row[col] for col in SAMPLE_ATTR)
-        all_groups[key].append(row["Sample_name"])
-    print("Sample attributes imported.")
+
+    # Map groups <-> samples by separating input (T0) and output
+    # For each df, we need to convert the index to a tuple in case there's a single attribute
+    tn = layout_csv.groupby(SAMPLE_ATTR + SCREEN_ATTR)["Sample_name"].agg(list)
+    tn.index = tn.index.map(lambda x: (x,) if not isinstance(x, tuple) else x)
+    t0 = (
+        layout_csv[layout_csv.Timepoint == "T0"]
+        .groupby(SAMPLE_ATTR)["Sample_name"]
+        .agg(list)
+    )
+    t0.index = t0.index.map(lambda x: (x,) if not isinstance(x, tuple) else x)
+
+    allg_df = tn.copy()
+
+    for idx in allg_df.index:
+        sample_key = idx[: len(SAMPLE_ATTR)]
+        if sample_key in t0.index:
+            allg_df[idx] = allg_df[idx] + t0[sample_key]
+    all_groups = dict(allg_df)
 
 
 ##### Select samples to analyze/report #####
 
 
-# Helper function to rescue T0 + matching output timepoint replicates
+# Helper function to restrict to samples selected by the user
 def select_samples(selection_column, sample_layout, all_groups):
-    selected_samples = sample_layout[sample_layout[selection_column]].index.tolist()
+    # Which sample_names are selected?
+    selected_samples = set(sample_layout.index[sample_layout[selection_column]])
+
     groups = {}
-    for group, samples in all_groups.items():
+    for group_key, samples in all_groups.items():
+        # Keep only samples belonging to this group AND selected by the user
         selected_in_group = [s for s in samples if s in selected_samples]
-        if not selected_in_group:
-            continue
-        selected_timepoints = {
-            sample_layout.loc[s, "Timepoint"]
-            for s in selected_in_group
-            if sample_layout.loc[s, "Timepoint"] != "T0"
-        }
-        groups[group] = sorted(
-            [
-                s
-                for s in samples
-                if sample_layout.loc[s, "Timepoint"] == "T0"
-                or sample_layout.loc[s, "Timepoint"] in selected_timepoints
-            ]
-        )
+
+        if selected_in_group:
+            groups[group_key] = selected_in_group
+
     return groups
 
 
@@ -122,12 +133,29 @@ report_groups = select_samples("Report", sample_layout, all_groups)
 
 ##### Merge all groups #####
 
-final_groups = defaultdict(list)
-for group, samples in analyze_groups.items():
-    final_groups[group].extend(samples)
-for group, samples in report_groups.items():
-    final_groups[group].extend(samples)
-final_groups = {group: sorted(set(samples)) for group, samples in final_groups.items()}
+if config["process_all_samples"]:
+    report_groups = all_groups
+    final_groups = all_groups
+else:
+    final_groups = {
+        g: sorted(set(analyze_groups.get(g, []) + report_groups.get(g, [])))
+        for g in set(analyze_groups) | set(report_groups)
+    }
+
+##### Final list of samples #####
+
+SAMPLES = sorted({s for samples in final_groups.values() for s in samples})
+REPORTED_SAMPLES = sorted({s for samples in report_groups.values() for s in samples})
+MUTATED_SEQS = sorted(set(sample_to_mutseq[s] for s in SAMPLES))
+
+T0_SAMPLES = [s for s in SAMPLES if sample_layout.loc[s, "Timepoint"] == "T0"]
+
+if not T0_SAMPLES:
+    raise WorkflowError(
+        "Please select at least 1 T0 sample by writing Y in the Analyze column or in the Report column of the layout."
+    )
+
+print(f"{len(SAMPLES)} sample(s) selected for analysis.")
 
 
 ##### Convert sample grouping wilcard <-> string #####
@@ -168,36 +196,40 @@ for group, samples in final_groups.items():
 ATTR_GROUPS_WITH_OUTPUTS = [
     serialize_key(group) for group in groups_with_output_timepoints
 ]
-REPORTED_GROUPS_WITH_OUTPUTS = [
-    g for g in ATTR_GROUPS_WITH_OUTPUTS if g in REPORTED_GROUPS
-]
+REPORTED_GROUPS_WITH_OUTPUTS = sorted(
+    [
+        serialize_key(group)
+        for group, samples in report_groups.items()
+        if any(sample_layout.loc[s, "Timepoint"] != "T0" for s in samples)
+    ]
+)
 
 ##### Get combinations of groups and output time points #####
+# Note: only here we keep input/output pairs with at least one matching replicate
 
 GT_WITH_OUTPUTS = []
-for group, samples in groups_with_output_timepoints.items():
-    gkey = serialize_key(group)
-    timepoints = sorted(
-        {
-            sample_layout.loc[s, "Timepoint"]
-            for s in samples
-            if sample_layout.loc[s, "Timepoint"] != "T0"
-        }
-    )
-    GT_WITH_OUTPUTS.extend([(gkey, t) for t in timepoints])
 
-GT_REPORTED = [(g, t) for (g, t) in GT_WITH_OUTPUTS if g in REPORTED_GROUPS]
+for g, samples in final_groups.items():
+    # Collect output samples
+    outputs = [s for s in samples if sample_layout.loc[s, "Timepoint"] != "T0"]
+    if not outputs:
+        continue
 
-##### Final list of samples #####
+    # Collect T0 replicates for matching
+    t0_reps = {sample_layout.loc[s, "Replicate"] for s in T0_SAMPLES}
 
-SAMPLES = sorted({s for samples in final_groups.values() for s in samples})
-REPORTED_SAMPLES = sorted({s for samples in report_groups.values() for s in samples})
-MUTATED_SEQS = sorted(set(sample_to_mutseq[s] for s in SAMPLES))
+    # Collect if there's a matching T0 replicate
+    outputs_with_matching_t0 = [
+        s for s in outputs if sample_layout.loc[s, "Replicate"] in t0_reps
+    ]
 
-if not SAMPLES:
-    raise Exception("No samples marked for analysis in the layout.")
+    if not outputs_with_matching_t0:
+        continue
 
-print(f"{len(SAMPLES)} sample(s) selected for analysis.")
+    # Get corresponding time point
+    tp = sample_layout.loc[outputs_with_matching_t0[0], "Timepoint"]
+
+    GT_WITH_OUTPUTS.append((serialize_key(g), tp))
 
 ##### Validate CSV file containing WT DNA sequences #####
 # Required only for 'codon' and 'random' designs
@@ -208,6 +240,12 @@ mutseq_to_wtseq = {}
 if exists(WT_PATH):
     wtseqs = pd.read_csv(WT_PATH)
     validate(wtseqs, schema="../schemas/wt_seqs.schema.yaml")
+
+    if set(wtseqs.Mutated_seq.unique()).isdisjoint(set(MUTATED_SEQS)):
+        raise WorkflowError(
+            f"Error.. None of the Mutated_seq values in {WT_PATH} match those in {LAYOUT_PATH}"
+        )
+
     wtseqs["WT_seq"] = wtseqs["WT_seq"].str.upper()
     mutseq_to_wtseq = dict(zip(wtseqs["Mutated_seq"], wtseqs["WT_seq"]))
     print("WT imported.")
@@ -216,12 +254,15 @@ if exists(WT_PATH):
 # Note: WT CSV is not required for 'provided' design
 # For 'provided' and 'random' designs, we get the WT from the list of expected mutants
 
+expmut_mutseqs = []
+
 for f in EXPMUT_PATH.glob("*.csv.gz"):
     expmut = pd.read_csv(f)
     validate(expmut, schema="../schemas/exp_mut.schema.yaml")
     if expmut["Mutated_seq"].nunique() != 1:
         raise ValueError(f"Error.. Multiple 'Mutated_seq' values in {f.name}")
     mutseq = expmut.at[0, "Mutated_seq"]
+    expmut_mutseqs.append(mutseq)
     if expmut["WT_seq"].nunique() != 1:
         raise ValueError(f"Error.. Multiple 'WT_seq' values in {f.name}")
     wtseq = expmut.at[0, "WT_seq"].upper()
@@ -231,6 +272,13 @@ for f in EXPMUT_PATH.glob("*.csv.gz"):
             f"Not all 'nt_seq's have the same length as 'WT_seq' in {f.name}"
         )
     print(f"Imported expectant mutants of {mutseq}.")
+else:
+    expmut_mutseqs = MUTATED_SEQS
+
+if set(expmut_mutseqs).isdisjoint(set(MUTATED_SEQS)):
+    raise WorkflowError(
+        f"Error.. None of the Mutated_seq values imported from files in {EXPMUT_PATH} match those in {LAYOUT_PATH}"
+    )
 
 ##### Validate codon table #####
 
@@ -293,7 +341,7 @@ group_to_wtaa = {
 
 required_rows = layout_csv[
     layout_csv["Sample_name"].isin(SAMPLES) & (layout_csv["Timepoint"] != "T0")
-][SAMPLE_ATTR + ["Replicate", "Timepoint"]].drop_duplicates()
+][SAMPLE_ATTR + SCREEN_ATTR + ["Replicate", "Timepoint"]].drop_duplicates()
 
 if exists(NBGEN_PATH):
     nbgen = pd.read_csv(NBGEN_PATH, dtype={"Replicate": str})
@@ -307,7 +355,7 @@ if exists(NBGEN_PATH):
         # Find missing rows from existing file
         merged = required_rows.merge(
             nbgen,
-            on=SAMPLE_ATTR + ["Replicate", "Timepoint"],
+            on=SAMPLE_ATTR + SCREEN_ATTR + ["Replicate", "Timepoint"],
             how="left",
             indicator=True,
         )
@@ -324,7 +372,7 @@ if exists(NBGEN_PATH):
         # This is done to prevent bothering the user with filling data for non currently selected samples
         selected_rows = nbgen.merge(
             required_rows,
-            on=SAMPLE_ATTR + ["Replicate", "Timepoint"],
+            on=SAMPLE_ATTR + SCREEN_ATTR + ["Replicate", "Timepoint"],
             how="inner",
         )
 
@@ -405,7 +453,7 @@ def collect_graphs():
             [f"hist_plot_{k}.svg" for k in REPORTED_GROUPS]
             + [f"upset_plot_{k}.svg" for k in REPORTED_GROUPS]
             + [f"timepoints_plot_{k}.svg" for k in REPORTED_GROUPS]
-            + [f"heatmap_fitness_{k}_{t}.svg" for (k, t) in GT_REPORTED]
+            + [f"heatmap_fitness_{k}_{t}.svg" for (k, t) in GT_WITH_OUTPUTS]
         )
 
     return [

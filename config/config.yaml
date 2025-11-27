@@ -9,8 +9,12 @@ project:
     design: 'codon'
     # Specify path to folder containing project-specific files
     folder: 'config/project_files/'
-    # Specify what makes each sample unique (other than Timepoint and Replicate)
+    # Specify what makes each sample unique for any unscreened library
+    # (other than Replicate)
     sample_attributes: ['Species', 'Mating_type', 'Fragment']
+    # Specify what makes each screening condition unique
+    # (other than Timepoint)
+    screening_attributes: []
 
 reads:
     # Specify if reads are paired-end (True) or single-end (False)
@@ -31,6 +35,10 @@ random:
     # For 'random' designs only
     # Acceptable number of amino acid changes relative to wild-type
     Nham_aa_max: 1
+
+process_all_samples: False
+    # Set to True to override sample selection specified in the Analyze/Report columns of the layout
+    # This will include all samples from the layout for both processing and reporting
 
 perform_qc: True
     # Set to True if you want to run Fastp on all raw FASTQ files and generate a MultiQC report

@@ -94,29 +94,34 @@ The file should contain the following columns:
   regions/fragments in a coding gene, this position should refer to the full-length
   protein sequence
 - ``Replicate``: e.g. ``R1``
-- ``Timepoint``: ``T0``, ``T1``, ``T2``, etc. Please provide at least one T0 sample per group,
-  other time points are optional.
+- ``Timepoint``: ``T0``, ``T1``, ``T2``, etc. Please provide at least one T0 sample,
+  other time points are optional. **T0 samples should not be duplicated for each group**.
 - ``Analyze``: ``y`` (or a different truthy value) to process the sample. Leave empty or enter
-  non-truthy value to exclude from analysis. Corresponding T0 samples and matching
-  replicates are automatically rescued, regardless of the selection. In other words, you
-  can select a single replicate for each group you want to analyze.
+  non-truthy value to exclude from analysis. Column ignored when ``process_all_samples``
+  is enabled in the config.
 - ``Report``: ``y`` (or a different truthy value) to include the sample in the HTML report.
   Leave empty or enter non-truthy value to exclude from the report. Samples marked for
-  reporting are rescued as describe above and will be automatically analyzed.
+  reporting are automatically analyzed. Column ignored when ``process_all_samples``
+  is enabled in the config.
 
 Finally, additional columns can be added by the user to specify what makes this sample
 unique (other than ``Replicate`` and ``Timepoint``).
 
-List the minimal set of columns in the layout that make samples unique as the **sample
-attributes** in the config under ``project``. Sample attributes may include ``Mutated_seq``
-or a combination of attributes that recapitulate ``Mutated_seq`` (as illustrated by the
-toy dataset). Sample attributes also typically include the selective pressure (``Drug``)
-and any other important qualifier for which there can be different values depending on
-the sample.
+Several or all of these additional columns should correspond to what we refer to as:
+
+- sample attributes: what makes an unscreened library unique (minimally ``Mutated_seq``)
+- screening attributes: what makes a screened library unique
+
+Please specify both by listing the corresponding columns in the config under ``project``.
+
+Sample attributes may include ``Mutated_seq`` or a combination of attributes that recapitulate
+``Mutated_seq`` (as illustrated by the toy dataset). Screening attributes on the other hand
+typically include the selective pressure (e.g. ``Drug``). In the sample layout, for the columns
+that corresponding to screening attributes, please leave empty for all T0 samples.
 
 In summary, a “sample” is any unique combination of ``Replicate`` + ``Timepoint`` + ``sample
-attributes`` and should be associated to 1 or 2 fastq files, for the forward and reverse
-reads, respectively.
+attributes`` + ``screening attributes`` and should be associated to 1 or 2 fastq files,
+for the forward and reverse reads, respectively.
 
 .. _codon-table:
 
@@ -210,7 +215,7 @@ matching row. Once the file is edited, re-run the workflow.
     useful to spot any error related to setting up the sample layout.
 
     Check that the expected groups are listed based on your current selection, with the
-    appropriate values for each of your sample attributes.
+    appropriate values for each of your sample and screening attributes.
 
 Final checklist for the main config file
 ----------------------------------------
@@ -219,7 +224,7 @@ Go over your main config file one last time and check the following:
 
 .. |check| unicode:: ☑
 
-- |check| list your ``sample attributes``
+- |check| list your ``sample attributes`` and ``screening attributes``
 - |check| replace all parameter values with the ones adapted for your project. Note: a
   first pass might be necessary to establish what would be a good **read count
   threshold** (specified under ``reads``). Feel free to adjust it and re-run the workflow
@@ -227,6 +232,8 @@ Go over your main config file one last time and check the following:
   important because the ``avg_scores`` dataframe is built only upon “high confidence”
   variants, i.e. variants with a read count above the set threshold in all T0
   replicates.
+- |check| set the ``process_all_samples`` to ``True`` if you want to include all samples for
+  processing and reporting
 - |check| set the ``perform_qc`` parameter to ``True`` if you want to analyze your raw FASTQ
   with Fastp (and generate a MultiQC report)
 - |check| set the ``process_read_counts`` to ``True`` if you want to convert read counts to
@@ -251,6 +258,13 @@ improper format, etc.):
 - :ref:`files with expected sequences <exp-mut-file>`
 - :ref:`codon table <codon-table>`
 - :ref:`file with the number of cellular generations <norm-gen>`
+
+These validations **do not cover** the following:
+
+- if CSV files are actually formatted as TSV
+- if there's a problem with specific row(s) of a CSV file
+
+In some cases, the error message displayed might still help you troubleshoot.
 
 Profiles for execution
 ----------------------

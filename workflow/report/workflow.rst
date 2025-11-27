@@ -7,6 +7,8 @@ Config
 
 ``>`` You specified the following sample attributes : ``{{ snakemake.config["project"]["sample_attributes"] }}``
 
+``>`` You specified the following screening attributes : ``{{ snakemake.config["project"]["screening_attributes"] }}``
+
 Read processing
 ---------------
 

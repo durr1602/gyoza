@@ -97,7 +97,7 @@ Read processing
 The "Read processing" section appears only when you've enabled
 ``process_read_counts`` in the config. It contains:
 
-- one entry per unique combination of :ref:`sample attributes <layout>`:
+- one entry per unique combination of :ref:`attributes <layout>`:
 
   - Raw read count per variant
   - Overlap across time points and replicates
@@ -144,6 +144,7 @@ Dataframes can be found in the ``results/df``, including:
 ``all_scores.csv`` contains the following columns (from coarse to fine):
 
 - one column per sample attribute
+- one column per screening attribute
 - ``Replicate``
 - sequence attributes:
   
@@ -197,7 +198,7 @@ median and error across replicates. The lower and upper error values
 (``lower_err`` and ``upper_err``, respectively)
 are obtained by subtracting the 2.5th or 97.5th percentile.
 
-Other columns in ``avg_scores.csv`` include the sample attributes and the
+Other columns in ``avg_scores.csv`` include the sample, screening and
 protein sequence attributes, namely:
 
 - ``Nham_aa``
