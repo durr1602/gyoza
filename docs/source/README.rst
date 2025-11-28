@@ -2,7 +2,7 @@
     :target: https://github.com/conda/conda
     :alt:
 
-.. image:: https://img.shields.io/badge/snakemake-≥9.4.0-brightgreen.svg
+.. image:: https://img.shields.io/badge/snakemake-brightgreen.svg
     :target: https://snakemake.github.io
     :alt:
 
