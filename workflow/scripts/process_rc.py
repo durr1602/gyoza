@@ -19,6 +19,26 @@ CSCORES = [1, 2, 3]
 CSCORE_COLORS = ["green", "orange", "red"]
 
 
+def aggregate_multiple_attr(g):
+    r"""Returns not-applicable if more than 1 value, else returns value.
+
+    Parameters
+    ----------
+    g : pandas.Series
+        e.g. missense_aa_attributes
+
+    Returns
+    -------
+    str
+        Either "not-applicable" or unique value from ``g``
+    """
+    unique = g.unique()
+    if len(unique) > 1:
+        return "not-applicable"
+    else:
+        return unique[0]
+
+
 def get_confidence_score(g, threshold):
     r"""Get confidence score based on read count at T0.
 
@@ -303,6 +323,9 @@ def get_selcoeffs(
     prot_seq_attributes = [
         "Nham_aa",
         "aa_seq",
+    ]
+
+    missense_aa_attributes = [
         "aa_pos",
         "alt_aa",
         "wt_aa",
@@ -512,17 +535,20 @@ def get_selcoeffs(
     # Calculate median functional impact score (over synonymous codons),
     # for each replicate separately,
     # from high confidence variants ONLY
+    scoeff_agg = dict(zip(selcoeff_cols, ["median"] * len(selcoeff_cols)))
+    missense_agg = dict(
+        zip(
+            missense_aa_attributes,
+            [aggregate_multiple_attr] * len(missense_aa_attributes),
+        )
+    )
+    agg_dict = {**scoeff_agg, **missense_agg}
     median_df = (
         s_wide[s_wide.confidence_score == 1]
-        .groupby(["Replicate"] + prot_seq_attributes)[selcoeff_cols]
-        .agg(
-            dict(
-                zip(
-                    selcoeff_cols,
-                    ["median"] * len(selcoeff_cols),
-                )
-            )
-        )
+        .groupby(["Replicate"] + prot_seq_attributes)[
+            selcoeff_cols + missense_aa_attributes
+        ]
+        .agg(agg_dict)
         .reset_index(level=prot_seq_attributes)
     )
 
@@ -536,7 +562,7 @@ def get_selcoeffs(
 
     # Reshape
     median_long = median_df.melt(
-        id_vars=prot_seq_attributes,
+        id_vars=prot_seq_attributes + missense_aa_attributes,
         value_vars=selcoeff_cols,
         var_name="Compared timepoints",
         value_name="s",
@@ -553,7 +579,9 @@ def get_selcoeffs(
     median_long.to_csv(aa_df_outpath, index=False)
 
     # Calculate median across replicates for high confidence variants
-    avg_df = median_df.groupby(prot_seq_attributes)[selcoeff_cols].agg(
+    avg_df = median_df.groupby(prot_seq_attributes + missense_aa_attributes)[
+        selcoeff_cols
+    ].agg(
         [
             "median",
             lambda x: (
@@ -566,7 +594,11 @@ def get_selcoeffs(
     )
 
     # Rename columns
-    cols_to_rename = [x for x in avg_df.columns if x not in prot_seq_attributes]
+    cols_to_rename = [
+        x
+        for x in avg_df.columns
+        if x not in prot_seq_attributes + missense_aa_attributes
+    ]
     new_names = []
     for c in cols_to_rename:
         if c[1] == "median":
@@ -592,9 +624,9 @@ def get_selcoeffs(
     avg_df[all_attributes] = sample_group_tuple
 
     # Export dataframe with fitness and error values
-    avg_df.reset_index()[all_attributes + prot_seq_attributes + new_names].to_csv(
-        avg_outpath, index=False
-    )
+    avg_df.reset_index()[
+        all_attributes + prot_seq_attributes + missense_aa_attributes + new_names
+    ].to_csv(avg_outpath, index=False)
 
     return
 
