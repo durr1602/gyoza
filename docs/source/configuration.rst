@@ -59,6 +59,14 @@ data in the ``config/reads`` folder (or specify a different path in the config u
 ``reads``). The file names should be featured in the :ref:`layout <layout>`. In the config,
 specify if you have provided paired-end reads or not (same type for all samples).
 
+.. tip::
+
+    For paired-end reads, if the mutated DNA sequence can be found in both forward and
+    reverse reads, it might be more suitable to analyze only R1 (this is particularly
+    recommended for very short mutated sequences). Simply disable the ``paired`` parameter
+    under ``reads`` in the config. In the layout, provide linked adapters for
+    ``N_forward`` as indicated in the next section.
+
 .. _layout:
 
 Layout
@@ -80,14 +88,18 @@ The file should contain the following columns:
 - ``R2``: base name of the fastq file for reverse (R2) reads (can be gzipped), including
   extension. Leave empty if you provide single-end sequencing data.
 - ``N_forward``: the 5’-3’ DNA sequence corresponding to the fixed region upstream of the
-  mutated sequence or anything that can be used as ``-g`` flag with cutadapt (including
+  mutated sequence or anything that can be used as ``-g`` flag with ``cutadapt`` (including
   complex patterns such as ``‘NNATG;optional…ATG’``, in which case do not forget the single
-  quotes). For single-end sequencing data, please specify both constant sequences
+  quotes). For single-end sequencing data (or if you've intentionally specified to analyze
+  only R1, as mentioned in the tip above), please specify both constant sequences
   upstream and downstream (on the same strand) separated by ``…``, e.g. ``AAAAGCTG…GCGCTAAAT``
-  (no need for single quotes)
+  (no need for single quotes). Note that the use of ``…`` instructs both 5' and 3' trimming
+  with linked adapters, which may interfere with the merging step downstream. Therefore this
+  option is usually reserved when only R1 is trimmed (in which case, there is no merging).
 - ``N_reverse``: the 5’-3’ DNA sequence corresponding to the fixed region 5’ of the mutated
   sequence on the reverse strand or anything that can be used as ``-G`` flag with cutadapt
-  (same requirements as above). Leave empty if you provide single-end sequencing data.
+  (same requirements as above). Leave empty if you provide single-end sequencing data or
+  if you're only analyzing R1.
 - ``Mutated_seq``: the unique identifier for the mutated DNA sequence, should be the same
   for all samples in which the same sequence was mutated
 - ``Pos_start``: starting position in the protein sequence. If you’ve mutated several

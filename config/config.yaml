@@ -18,6 +18,7 @@ project:
 
 reads:
     # Specify if reads are paired-end (True) or single-end (False)
+    # Set to False to only analyze R1 from paired-end
     paired: True
     # Specify path to directory containing sequencing data
     path: 'config/reads/'

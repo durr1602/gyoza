@@ -15,7 +15,7 @@ rule pandaseq:
         "pandaseq/2.11",
     shell:
         ## Flags for pandaseq
-        # -O max overlap, important, related to Aviti sequencing tech
+        # -O max overlap, important because reads often highly overlap
         # -k number of k-mers
         # -B allow input sequences to lack a barcode/tag
         # -t minimum threshold for alignment score (0-1)
