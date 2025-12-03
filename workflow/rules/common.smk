@@ -212,9 +212,10 @@ for g, samples in final_groups.items():
 
     GT_WITH_OUTPUTS.append((serialize_key(g), tp))
 
-if not GT_WITH_OUTPUTS:
+if (not GT_WITH_OUTPUTS) & (config["process_read_counts"]):
     raise WorkflowError(
-        "Error.. Please select at least one pair of matching input/output replicates."
+        "Error.. Please select at least one pair of matching input/output replicates.\n"
+        "(or disable process_read_counts to analyze input samples only)."
     )
 
 ATTR_GROUPS_WITH_OUTPUTS = sorted({g for (g, tp) in GT_WITH_OUTPUTS})
