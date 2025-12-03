@@ -1,3 +1,4 @@
+config/project_files/nbgen.csv
 results/**
 resources/**
 workflow/scripts/__pycache__/**
