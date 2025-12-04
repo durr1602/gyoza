@@ -248,12 +248,11 @@ Go over your main config file one last time and check the following:
   processing and reporting
 - |check| set the ``perform_qc`` parameter to ``True`` if you want to analyze your raw FASTQ
   with Fastp (and generate a MultiQC report)
-- |check| set the ``process_read_counts`` to ``True`` if you want to convert read counts to
-  functional impact scores (``False`` if you simply want read counts, e.g. to assess
-  diversity in T0 libraries)
+- |check| set the ``process_frequencies`` to ``True`` if you want to convert allele frequencies
+  into functional impact scores (``False`` if you simply want heatmaps of raw read counts and
+  frequencies, e.g. to assess diversity in unscreened libraries)
 - |check| set the ``normalize_with_gen`` parameter to ``True`` if you want to normalize with
-  the number of cellular generations (only valid if you opted in for processing read
-  counts)
+  the number of cellular generations (only valid if you opted in for processing frequencies)
 - |check| edit the directory paths to :ref:`project-specific files <project-specific-files>`
   and :ref:`reads <sequencing-data>` if necessary.
 

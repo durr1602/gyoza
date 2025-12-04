@@ -29,7 +29,9 @@ Read filtering
 ``>`` Variants with more than {{ snakemake.config["random"]["Nham_aa_max"] }} amino acid changes were labeled as "Unexpected" and discarded.
 {% endif %}
 
-{% if snakemake.config["process_read_counts"] %}
+``>`` Read counts were converted into allele frequencies.
+
+{% if snakemake.config["process_frequencies"] %}
 Estimate mutational effects
 ---------------------------
 

@@ -2,4 +2,6 @@
 
 For every combination attributes, the distribution of allele frequencies is shown as a split violin to compare replicates. Rows correspond to time points.
 
-Click `here <scoeff_violin_plot.svg_>`_ to access the same plot with functional impact scores.
+{% if snakemake.config["process_frequencies"] %}
+Click `here <scoeff_violin_plot.svg_>`_ to access the equivalent plot with functional impact scores.
+{% endif %}

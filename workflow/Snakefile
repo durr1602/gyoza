@@ -49,9 +49,10 @@ else:
 include: "rules/stats.smk"
 include: "rules/pool_stats.smk"
 include: "rules/plot_read_counts.smk"
+include: "rules/process_read_counts.smk"
 
-if config["process_read_counts"]:
-    include: "rules/process_read_counts.smk"
+if config["process_frequencies"]:
+    include: "rules/functional_impact.smk"
     include: "rules/plot_final_heatmaps.smk"
 
 ##### Target(s) #####

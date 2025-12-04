@@ -10,7 +10,7 @@ rule format_scores:
     message:
         f"Format functional impact scores.."
     log:
-        "logs/9_heatmaps/format_s_{group_key}_{t}",
+        "logs/10_heatmaps/format_s_{group_key}_{t}",
     conda:
         "../envs/main.yaml"
     script:
@@ -34,7 +34,7 @@ rule plot_heatmaps:
     message:
         f"Plotting heatmaps of raw read counts.."
     log:
-        "logs/9_heatmaps/plot_heatmaps_{group_key}_{t}.log",
+        "logs/10_heatmaps/plot_heatmaps_{group_key}_{t}.log",
     conda:
         "../envs/main.yaml"
     script:

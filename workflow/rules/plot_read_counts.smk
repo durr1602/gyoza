@@ -28,7 +28,7 @@ rule plot_read_counts:
         report(
             "results/graphs/heatmap_readcount_{sample}.svg",
             "../report/heatmap_rc.rst",
-            category="1. Read filtering",
+            category="1. Read processing",
             subcategory="1.2. Heatmaps of raw read counts",
             labels={"figure": "{sample}"},
         ),

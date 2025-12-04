@@ -212,10 +212,10 @@ for g, samples in final_groups.items():
 
     GT_WITH_OUTPUTS.append((serialize_key(g), tp))
 
-if (not GT_WITH_OUTPUTS) & (config["process_read_counts"]):
+if (not GT_WITH_OUTPUTS) & (config["process_frequencies"]):
     raise WorkflowError(
         "Error.. Please select at least one pair of matching input/output replicates.\n"
-        "(or disable process_read_counts to analyze input samples only)."
+        "(or disable process_frequencies to analyze input samples only)."
     )
 
 ATTR_GROUPS_WITH_OUTPUTS = sorted({g for (g, tp) in GT_WITH_OUTPUTS})
@@ -430,12 +430,11 @@ def calc_time(wildcards, input, attempt):
 def collect_graphs():
     graph_dir = Path("results/graphs")
 
-    agg_graphs = ["rc_filter_plot.svg", "unexp_rc_plot.svg"]
+    agg_graphs = ["rc_filter_plot.svg", "unexp_rc_plot.svg", "rc_var_plot.svg"]
     group_specific_graphs = [f"heatmap_readcount_{s}.svg" for s in REPORTED_SAMPLES]
 
-    if config["process_read_counts"]:
+    if config["process_frequencies"]:
         agg_graphs += [
-            "rc_var_plot.svg",
             "scoeff_violin_plot.svg",
             "replicates_heatmap_plot.svg",
             "replicates_plot.svg",
@@ -494,11 +493,11 @@ def generate_report():
 
 
 def get_target():
-    targets = ["results/df/all_stats.csv"]
+    targets = ["results/df/all_stats.csv", "results/graphs/rc_var_plot.svg"]
     targets += expand("results/graphs/heatmap_readcount_{sample}.svg", sample=SAMPLES)
 
-    if config["process_read_counts"]:
-        targets.append(["results/df/all_scores.csv", "results/graphs/rc_var_plot.svg"])
+    if config["process_frequencies"]:
+        targets += ["results/df/all_scores.csv", "results/graphs/scoeff_violin_plot.svg"]
         targets += expand(
             "results/graphs/heatmap_fitness_{group_key}_{t}.svg",
             zip,

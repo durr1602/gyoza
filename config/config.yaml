@@ -44,8 +44,9 @@ process_all_samples: False
 perform_qc: True
     # Set to True if you want to run Fastp on all raw FASTQ files and generate a MultiQC report
 
-process_read_counts: True
-    # Set to True if you want to convert read counts into functional impact scores
+process_frequencies: True
+    # Set to True if you want to convert allele frequencies into functional impact scores
+    # Set to False to analyze unscreened libraries or output samples with no matching input replicate
 
 normalize_with_gen: False
     # Set to True if you want to normalize impact scores with the number of cellular generations
