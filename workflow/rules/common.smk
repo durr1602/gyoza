@@ -220,7 +220,19 @@ if (not GT_WITH_OUTPUTS) & (config["process_frequencies"]):
 
 ATTR_GROUPS_WITH_OUTPUTS = sorted({g for (g, tp) in GT_WITH_OUTPUTS})
 REPORTED_GROUPS_WITH_OUTPUTS = sorted(
-    {g for (g, tp) in GT_WITH_OUTPUTS if g in REPORTED_GROUPS}
+    [
+        serialize_key(group)
+        for group, samples in final_groups.items()
+        if group in report_groups
+        and any(
+            sample_layout.loc[s, "Timepoint"] != "T0" for s in report_groups[group]
+        )  # at least one reported non-T0
+        and serialize_key(group)
+        in ATTR_GROUPS_WITH_OUTPUTS  # valid processed output (GT)
+    ]
+)
+REPORTED_GT = sorted(
+    (g, tp) for (g, tp) in GT_WITH_OUTPUTS if g in REPORTED_GROUPS_WITH_OUTPUTS
 )
 
 ##### Validate CSV file containing WT DNA sequences #####
@@ -331,65 +343,72 @@ group_to_wtaa = {
 # If the user opts in, a warning will notify the user that the template needs to be filled
 # Once the column contains other values than 1 for every row, we'll use the data for normalization
 
-required_rows = layout_csv[
-    layout_csv["Sample_name"].isin(SAMPLES) & (layout_csv["Timepoint"] != "T0")
-][SAMPLE_ATTR + SCREEN_ATTR + ["Replicate", "Timepoint"]].drop_duplicates()
+if not config["process_frequencies"]:
+    print("Skipping processing allele frequencies.")
 
-if exists(NBGEN_PATH):
-    nbgen = pd.read_csv(NBGEN_PATH, dtype={"Replicate": str})
-    validate(nbgen, schema="../schemas/nbgen.schema.yaml")
-    if (config["normalize_with_gen"]) & ((nbgen.Nb_gen == 1).any()):
-        raise Exception(
-            f">>Please fill in the file {NBGEN_PATH} with the number of cellular generations<<\n"
-            ">>(or deactivate this normalization in the main config file)<<"
-        )
-    elif config["normalize_with_gen"]:
-        # Find missing rows from existing file
-        merged = required_rows.merge(
-            nbgen,
-            on=SAMPLE_ATTR + SCREEN_ATTR + ["Replicate", "Timepoint"],
-            how="left",
-            indicator=True,
-        )
-        missing_rows = merged[merged["_merge"] == "left_only"].drop(columns=["_merge"])
-        missing_rows["Nb_gen"] = 1
+else:
+    print("Ready to process allele frequencies.")
+    required_rows = layout_csv[
+        layout_csv["Sample_name"].isin(SAMPLES) & (layout_csv["Timepoint"] != "T0")
+    ][SAMPLE_ATTR + SCREEN_ATTR + ["Replicate", "Timepoint"]].drop_duplicates()
 
-        # Append to existing file
-        if not missing_rows.empty:
-            print(f"Adding {len(missing_rows)} missing row(s) to {NBGEN_PATH}")
-            nbgen = pd.concat([nbgen, missing_rows], ignore_index=True)
-            nbgen.to_csv(NBGEN_PATH, index=False)
-
-        # Additional check to make sure all rows from selection are filled properly
-        # This is done to prevent bothering the user with filling data for non currently selected samples
-        selected_rows = nbgen.merge(
-            required_rows,
-            on=SAMPLE_ATTR + SCREEN_ATTR + ["Replicate", "Timepoint"],
-            how="inner",
-        )
-
-        if (selected_rows["Nb_gen"] == 1).any():
+    if exists(NBGEN_PATH):
+        nbgen = pd.read_csv(NBGEN_PATH, dtype={"Replicate": str})
+        validate(nbgen, schema="../schemas/nbgen.schema.yaml")
+        if (config["normalize_with_gen"]) & ((nbgen.Nb_gen == 1).any()):
             raise Exception(
-                f">> Please fill in the file {NBGEN_PATH} with the number of cellular generations <<\n"
+                f">>Please fill in the file {NBGEN_PATH} with the number of cellular generations<<\n"
                 ">>(or deactivate this normalization in the main config file)<<"
             )
-        else:
-            print(
-                "Ready to normalize with the provided numbers of cellular generations."
+        elif config["normalize_with_gen"]:
+            # Find missing rows from existing file
+            merged = required_rows.merge(
+                nbgen,
+                on=SAMPLE_ATTR + SCREEN_ATTR + ["Replicate", "Timepoint"],
+                how="left",
+                indicator=True,
             )
+            missing_rows = merged[merged["_merge"] == "left_only"].drop(
+                columns=["_merge"]
+            )
+            missing_rows["Nb_gen"] = 1
+
+            # Append to existing file
+            if not missing_rows.empty:
+                print(f"Adding {len(missing_rows)} missing row(s) to {NBGEN_PATH}")
+                nbgen = pd.concat([nbgen, missing_rows], ignore_index=True)
+                nbgen.to_csv(NBGEN_PATH, index=False)
+
+            # Additional check to make sure all rows from selection are filled properly
+            # This is done to prevent bothering the user with filling data for non currently selected samples
+            selected_rows = nbgen.merge(
+                required_rows,
+                on=SAMPLE_ATTR + SCREEN_ATTR + ["Replicate", "Timepoint"],
+                how="inner",
+            )
+
+            if (selected_rows["Nb_gen"] == 1).any():
+                raise Exception(
+                    f">> Please fill in the file {NBGEN_PATH} with the number of cellular generations <<\n"
+                    ">>(or deactivate this normalization in the main config file)<<"
+                )
+            else:
+                print(
+                    "Ready to normalize with the provided numbers of cellular generations."
+                )
+        else:
+            print("No normalization with cellular generations")
     else:
-        print("No normalization with cellular generations")
-else:
-    nbgen_temp = required_rows
-    nbgen_temp["Nb_gen"] = 1
-    nbgen_temp.to_csv(NBGEN_PATH, index=None)
-    if config["normalize_with_gen"]:
-        raise Exception(
-            f">> Please fill in {NBGEN_PATH} with the number of cellular generations <<\n"
-            ">> Or disable this normalization in the config <<"
-        )
-    else:
-        print("No normalization with cellular generations")
+        nbgen_temp = required_rows
+        nbgen_temp["Nb_gen"] = 1
+        nbgen_temp.to_csv(NBGEN_PATH, index=None)
+        if config["normalize_with_gen"]:
+            raise Exception(
+                f">> Please fill in {NBGEN_PATH} with the number of cellular generations <<\n"
+                ">> Or disable this normalization in the config <<"
+            )
+        else:
+            print("No normalization with cellular generations")
 
 
 ##### Helper functions for dynamic allocation of resources #####
@@ -443,8 +462,8 @@ def collect_graphs():
         group_specific_graphs += (
             [f"hist_plot_{k}.svg" for k in REPORTED_GROUPS]
             + [f"upset_plot_{k}.svg" for k in REPORTED_GROUPS]
-            + [f"timepoints_plot_{k}.svg" for k in REPORTED_GROUPS]
-            + [f"heatmap_fitness_{k}_{t}.svg" for (k, t) in GT_WITH_OUTPUTS]
+            + [f"timepoints_plot_{k}.svg" for k in REPORTED_GROUPS_WITH_OUTPUTS]
+            + [f"heatmap_fitness_{k}_{t}.svg" for (k, t) in REPORTED_GT]
         )
 
     return [
@@ -497,7 +516,10 @@ def get_target():
     targets += expand("results/graphs/heatmap_readcount_{sample}.svg", sample=SAMPLES)
 
     if config["process_frequencies"]:
-        targets += ["results/df/all_scores.csv", "results/graphs/scoeff_violin_plot.svg"]
+        targets += [
+            "results/df/all_scores.csv",
+            "results/graphs/scoeff_violin_plot.svg",
+        ]
         targets += expand(
             "results/graphs/heatmap_fitness_{group_key}_{t}.svg",
             zip,

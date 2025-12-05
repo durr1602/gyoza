@@ -6,8 +6,8 @@ readcounts_by_group = {
 
 rule process_read_counts:
     input:
-        readcounts=lambda wildcards: readcounts_by_group.get(wildcards.group_key, []),
         LAYOUT_PATH,
+        readcounts=lambda wildcards: readcounts_by_group.get(wildcards.group_key, []),
     output:
         freq_df="results/df/distribution_freq/freq_{group_key}.csv",
         hist_plot=report(
@@ -26,6 +26,7 @@ rule process_read_counts:
         ),
     params:
         layout=sample_layout,
+        reported_samples=REPORTED_SAMPLES,
         readcount_level=RC_LEVEL,
         barcode_attributes=BC_ATTR,
         rc_threshold=config["reads"]["rc_threshold"],
@@ -42,9 +43,7 @@ rule process_read_counts:
 
 rule plot_freq:
     input:
-        freq_df=expand(
-            rules.process_read_counts.output.freq_df, group_key=REPORTED_GROUPS
-        ),
+        freq_df=expand(rules.process_read_counts.output.freq_df, group_key=ATTR_GROUPS),
     output:
         rc_var_plot=report(
             "results/graphs/rc_var_plot.svg",
@@ -54,6 +53,7 @@ rule plot_freq:
             labels={"figure": "2.2.a. Distribution of allele frequencies"},
         ),
     params:
+        reported_samples=REPORTED_SAMPLES,
         readcount_level=RC_LEVEL,
         plot_formats=[x for x in config["plot_formats"] if x != "svg"],
     message:

@@ -90,7 +90,7 @@ def plot_allele_freq(df, outpath, plot_formats):
     return
 
 
-def get_allele_freq_plot(df_files, outpath, plot_formats, rc_level):
+def get_allele_freq_plot(df_files, outpath, rc_level, reported_samples, plot_formats):
     r"""Aggregate data and plot distributions of allele frequencies.
 
     Parameters
@@ -99,14 +99,17 @@ def get_allele_freq_plot(df_files, outpath, plot_formats, rc_level):
         List of paths to CSV-formatted dataframes.
     outpath : str
         Path to save violin plot as SVG (should end with ``.svg``).
-    plot_formats : list of str
-        Formats other than SVG in which the plot should be saved.
     rc_level : {"nt_seq", "barcode"}
         Level to which read counts are attributed.
+    reported_samples : list of str
+        List of samples to include in plot.
+    plot_formats : list of str
+        Formats other than SVG in which the plot should be saved.
     """
     df = concatenate_df(df_files)
     freq_per_seq = (
-        df.groupby(
+        df[df.Sample_name.isin(reported_samples)]
+        .groupby(
             ["Sample attributes", rc_level, "Timepoint", "Replicate", "Mean_exp_freq"]
         )[["frequency"]]
         .first()
@@ -119,6 +122,7 @@ def get_allele_freq_plot(df_files, outpath, plot_formats, rc_level):
 get_allele_freq_plot(
     snakemake.input.freq_df,
     snakemake.output.rc_var_plot,
-    snakemake.params.plot_formats,
     snakemake.params.readcount_level,
+    snakemake.params.reported_samples,
+    snakemake.params.plot_formats,
 )

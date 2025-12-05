@@ -16,6 +16,7 @@ rule estimate_functional_impact:
     params:
         all_attributes=SAMPLE_ATTR + SCREEN_ATTR,
         barcode_attributes=BC_ATTR,
+        reported_groups=REPORTED_GROUPS_WITH_OUTPUTS,
         plot_formats=[x for x in config["plot_formats"] if x != "svg"],
     message:
         "Processing allele frequencies... converting to functional impact scores"

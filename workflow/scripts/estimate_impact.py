@@ -76,12 +76,12 @@ def plot_timepoint_corr(df, outpath, plot_formats):
         Formats other than SVG in which the plot should be saved.
     """
     # Check number of columns
+    sample_group = df["Sample attributes"].values[0]
     if len([x for x in df.columns if x not in ["Sample attributes", "Replicate"]]) <= 1:
-        f, ax = plt.subplots(figsize=(4, 4))
+        f, ax = plt.subplots(figsize=(max(4, 0.1 * len(sample_group)), 4))
         ax.text(0.5, 0.5, "Not enough time points to plot", ha="center", va="center")
         ax.set_axis_off()  # hide axes
     else:
-        sample_group = df["Sample attributes"].values[0]
         g = sns.pairplot(
             df,
             hue="Replicate",
@@ -111,6 +111,7 @@ def get_selcoeffs(
     aa_df_outpath,
     all_attributes,
     barcode_attributes,
+    reported_groups,
     plot_formats,
 ):
     r"""Convert allele frequencies into functional impact scores for matched samples.
@@ -177,6 +178,9 @@ def get_selcoeffs(
         of `data`.
     barcode_attributes : list of str
         List of barcode attributes (includes `rc_level`).
+    reported_groups : list of str
+        List of groups to include in plot (values must be found in column
+        ``Sample_attributes`` of `data`.)
     plot_formats : list of str
         Formats other than SVG in which the plot should be saved.
 
@@ -195,7 +199,7 @@ def get_selcoeffs(
     "input" being T0 and "output" designating any post-screening time point.
     """
     # Import data
-    longfreq = pd.read_csv(data_path)
+    longfreq = pd.read_csv(data_path, dtype={"Replicate": str})
 
     # Retrieve sample group (both serialized and deserialized)
     sample_group = longfreq["Sample attributes"].values[0]
@@ -292,13 +296,29 @@ def get_selcoeffs(
         .reset_index(level=PROT_SEQ_ATTRIBUTES + ["Sample attributes"])
     )
 
-    # Plot correlation between time points
-    plot_timepoint_corr(
-        median_df.reset_index()[["Sample attributes", "Replicate"] + selcoeff_cols],
-        timepointsplot_outpath,
-        plot_formats,
-    )
-
+    graphdf = median_df.reset_index()[
+        ["Sample attributes", "Replicate"] + selcoeff_cols
+    ].copy()
+    if sample_group in reported_groups:
+        # Plot correlation between time points
+        plot_timepoint_corr(
+            graphdf,
+            timepointsplot_outpath,
+            plot_formats,
+        )
+    else:
+        # Empty plot with distinct message (group not marked for reporting)
+        f, ax = plt.subplots(figsize=(max(4, 0.1 * len(sample_group)), 4))
+        ax.text(0.5, 0.5, "Group not marked for reporting", ha="center", va="center")
+        ax.set_axis_off()  # hide axes
+        plt.suptitle(f"{sample_group}")
+        plt.savefig(timepointsplot_outpath, format="svg", dpi=300)
+        [
+            plt.savefig(
+                f"{timepointsplot_outpath.split('.svg')[0]}.{x}", format=x, dpi=300
+            )
+            for x in plot_formats
+        ]
     # Reshape
     median_long = median_df.melt(
         id_vars=["Sample attributes"] + PROT_SEQ_ATTRIBUTES + MISSENSE_AA_ATTRIBUTES,
@@ -377,5 +397,6 @@ get_selcoeffs(
     snakemake.output.aa_df,
     snakemake.params.all_attributes,
     snakemake.params.barcode_attributes,
+    snakemake.params.reported_groups,
     snakemake.params.plot_formats,
 )

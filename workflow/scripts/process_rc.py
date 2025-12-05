@@ -140,8 +140,9 @@ def build_variant_matrix(df, sample_group, rc_level, barcode_attributes, rc_thre
     -------
     df : pandas.DataFrame
         Matrix of variants
-    conditions : list of str
-        List of serialized unique combinations of time points and replicates.
+    TR_sample_dict : dict
+        Dictionary mapping each combination of time points and replicates
+        with the corresponding ``Sample_name`` value as in `df`.
 
     Warns
     -----
@@ -149,11 +150,17 @@ def build_variant_matrix(df, sample_group, rc_level, barcode_attributes, rc_thre
         If less than 75% high confidence variants.
 
     """
-    # Add rows corresponding to variants not present in all replicates/time points
+    # Build mapping conditions <> samples
     df["TR"] = df["Timepoint"] + "_" + df["Replicate"]
-    conditions = df.TR.unique()
-    T0_conditions = [x for x in conditions if "T0" in x]
+    TR_sample_dict = (
+        df[["TR", "Sample_name"]]
+        .drop_duplicates()
+        .set_index("TR")["Sample_name"]
+        .to_dict()
+    )
+    T0_conditions = [x for x in TR_sample_dict.keys() if "T0" in x]
 
+    # Add rows corresponding to variants not present in all replicates/time points
     upset = df.pivot_table(
         index=MUTATION_ATTRIBUTES + SEQUENCE_ATTRIBUTES + barcode_attributes,
         columns="TR",
@@ -184,7 +191,7 @@ def build_variant_matrix(df, sample_group, rc_level, barcode_attributes, rc_thre
         )
         warnings.warn(cscore_statement, UserWarning)
 
-    return upset, conditions
+    return upset, TR_sample_dict
 
 
 def plot_rc_per_seq(df1, df2, outpath, sample_group, thresh, thresh_freq, plot_formats):
@@ -248,46 +255,60 @@ def plot_upset_TR(df, conditions, outpath, sample_group, plot_formats):
     plot_formats : list of str
         Formats other than SVG in which the plot should be saved.
     """
-    fig = plt.figure(figsize=(6, 6))
-    upset_obj = UpSet(
-        from_indicators(conditions, data=df),
-        # show_percentages=True,
-        show_counts=True,
-        min_subset_size="1%",
-        sort_by="cardinality",
-        element_size=None,
-        intersection_plot_elements=0,  # height of intersection barplot in matrix elements
-        totals_plot_elements=2,  # width of totals barplot in matrix elements
-    )
+    # Check number of conditions
+    if len(conditions) < 2:
+        f, ax = plt.subplots(figsize=(max(4, 0.1 * len(sample_group)), 4))
+        ax.text(
+            0.5, 0.5, "Not enough conditions\nto plot overlap", ha="center", va="center"
+        )
+        ax.set_axis_off()  # hide axes
 
-    upset_obj.add_stacked_bars(
-        by="confidence_score", colors=dict(zip(CSCORES, CSCORE_COLORS)), elements=3
-    )
+    else:
+        fig = plt.figure(figsize=(6, 6))
+        upset_obj = UpSet(
+            from_indicators(conditions, data=df),
+            # show_percentages=True,
+            show_counts=True,
+            min_subset_size="1%",
+            sort_by="cardinality",
+            element_size=None,
+            intersection_plot_elements=0,  # height of intersection barplot in matrix elements
+            totals_plot_elements=2,  # width of totals barplot in matrix elements
+        )
 
-    upset_obj.add_catplot(
-        value="mean_input",
-        kind="violin",
-        cut=0,
-        density_norm="count",
-        log_scale=10,
-        linewidth=0.5,
-        elements=3,  # height in number of matrix elements
-    )
+        upset_obj.add_stacked_bars(
+            by="confidence_score", colors=dict(zip(CSCORES, CSCORE_COLORS)), elements=3
+        )
 
-    d = upset_obj.plot(
-        fig=fig
-    )  # Assigns all plots to a dictionary containing axes subplots - same keys as gridspec returned by upset_obj.make_grid()
-    ax0 = d[
-        "extra0"  # Key corresponding to 1st stacked barplot - confidence score ('intersections' = intersection barplot)
-    ]
-    ax1 = d["extra1"]  # Key corresponding to 1st catplot - read count for input samples
+        if df["mean_input"].values[0] != "not-applicable":
+            upset_obj.add_catplot(
+                value="mean_input",
+                kind="violin",
+                cut=0,
+                density_norm="count",
+                log_scale=10,
+                linewidth=0.5,
+                elements=3,  # height in number of matrix elements
+            )
 
-    ax0.set_ylabel("# Variants")
-    ax0.legend(title="Confidence score")
+        d = upset_obj.plot(
+            fig=fig
+        )  # Assigns all plots to a dictionary containing axes subplots - same keys as gridspec returned by upset_obj.make_grid()
+        ax0 = d[
+            "extra0"  # Key corresponding to 1st stacked barplot - confidence score ('intersections' = intersection barplot)
+        ]
 
-    ax1.set_ylabel("Mean\nT0 freq.")
+        ax0.set_ylabel("# Variants")
+        ax0.legend(title="Confidence score")
 
-    plt.subplots_adjust(top=0.95)
+        if "extra1" in d.keys():
+            ax1 = d[
+                "extra1"
+            ]  # Key corresponding to 1st catplot - read count for input samples
+            ax1.set_ylabel("Mean\nT0 freq.")
+
+        plt.subplots_adjust(top=0.95)
+
     plt.suptitle(f"{sample_group}")
 
     plt.savefig(outpath, format="svg", dpi=300)
@@ -300,13 +321,14 @@ def plot_upset_TR(df, conditions, outpath, sample_group, plot_formats):
 
 def get_frequencies(
     freq,
-    conditions,
+    TR_sample_dict,
     sample_group,
     barcode_attributes,
     rc_threshold,
     freq_outpath,
     histplot_outpath,
     upsetplot_outpath,
+    reported_samples,
     plot_formats,
 ):
     """Calculate read frequencies for grouped samples.
@@ -315,8 +337,9 @@ def get_frequencies(
     ----------
     freq : pandas.DataFrame
         Matrix of variants.
-    conditions : list of str
-        List of serialized unique combinations of time points and replicates.
+    TR_sample_dict : dict
+        Dictionary mapping each combination of time points and replicates
+        with the corresponding ``Sample_name`` value as in `df`.
     sample_group : str
         Sample group identifier.
         Should contain sample and screening attributes concatenated with ``__``.
@@ -334,13 +357,20 @@ def get_frequencies(
     upsetplot_outpath : str
         Path to save upset plot showing overlap of unique sequences found across
         time points and replicates, as SVG (should end with ``.svg``).
+    reported_samples : list of str
+        List of samples to include in plot.
     plot_formats : list of str
         Formats other than SVG in which the plot should be saved.
 
     """
-    # Calculate frequencies
+    # Retrieve conditions
+    conditions = list(TR_sample_dict)
     freq_conditions = [f"{x}_freq" for x in conditions]
-    T0_freq = [x for x in freq_conditions if "T0" in x]
+
+    # Get conditions from samples marked for reporting
+    reported_conditions = [
+        k for k, v in TR_sample_dict.items() if v in reported_samples
+    ]
 
     if (freq[conditions].sum() == 0).any(axis=None):
         raise Exception(
@@ -348,6 +378,7 @@ def get_frequencies(
             f"Make sure your sample layout is OK. Unique combination of attributes should each have their T0 samples referencing the same FASTQ files."
         )
 
+    # Calculate frequencies
     freq[freq_conditions] = freq[conditions].add(1) / freq[conditions].sum()
 
     # Retrieve overall mean frequency corresponding to the specified read count threshold
@@ -356,8 +387,10 @@ def get_frequencies(
     ).mean(axis=None)
 
     # Plot read count per sequence
-    graph1df = freq.groupby("nt_seq")[conditions].first()
-    graph2df = freq.groupby("nt_seq")[freq_conditions].first()
+    graph1df = freq.groupby("nt_seq")[reported_conditions].first()
+    graph2df = freq.groupby("nt_seq")[
+        [f"{x}_freq" for x in reported_conditions]
+    ].first()
     plot_rc_per_seq(
         graph1df,
         graph2df,
@@ -370,17 +403,23 @@ def get_frequencies(
 
     # Plot overlap across time points and replicates
     upset_freq = freq.copy()
-    upset_freq["mean_input"] = upset_freq[T0_freq].mean(axis=1)
-    bool_conditions = [f"{x}_indicator" for x in conditions]
-    upset_freq[bool_conditions] = upset_freq[conditions].astype(bool)
+    T0_reported_conditions = [f"{x}_freq" for x in reported_conditions if "T0" in x]
+    if T0_reported_conditions:
+        upset_freq["mean_input"] = upset_freq[T0_reported_conditions].mean(axis=1)
+    else:
+        upset_freq["mean_input"] = "not-applicable"
+    bool_conditions = [f"{x}_indicator" for x in reported_conditions]
+    upset_freq[bool_conditions] = upset_freq[reported_conditions].astype(bool)
     upset_sub = (
         upset_freq.groupby("nt_seq")[
             bool_conditions + ["mean_input", "confidence_score"]
         ]
         .first()
-        .rename(columns=dict(zip(bool_conditions, conditions)))
+        .rename(columns=dict(zip(bool_conditions, reported_conditions)))
     )
-    plot_upset_TR(upset_sub, conditions, upsetplot_outpath, sample_group, plot_formats)
+    plot_upset_TR(
+        upset_sub, reported_conditions, upsetplot_outpath, sample_group, plot_formats
+    )
 
     # Reshape dataframe
     longfreq = freq.melt(
@@ -397,6 +436,9 @@ def get_frequencies(
     longfreq["Replicate"] = longfreq.TR_freq.apply(lambda x: x.split("_")[1])
     longfreq["Mean_exp_freq"] = mean_thresh_freq
     longfreq["Sample attributes"] = sample_group
+    longfreq["Sample_name"] = longfreq.TR_freq.apply(
+        lambda x: TR_sample_dict.get(x.split("_freq")[0])
+    )
     longfreq.to_csv(freq_outpath, index=False)
 
     return
@@ -409,6 +451,7 @@ def main(
     freq_outpath,
     histplot_outpath,
     upsetplot_outpath,
+    reported_samples,
     plot_formats,
     rc_level,
     barcode_attributes,
@@ -434,6 +477,8 @@ def main(
     upsetplot_outpath : str
         Path to save upset plot showing overlap of unique sequences found across
         time points and replicates, as SVG (should end with ``.svg``).
+    reported_samples : list of str
+        List of samples to include in plot.
     plot_formats : list of str
         Formats other than SVG in which the plot should be saved.
     rc_level : {"nt_seq", "barcode"}
@@ -446,18 +491,19 @@ def main(
 
     """
     df = load_read_counts(readcount_files, layout)
-    freq, conditions = build_variant_matrix(
+    freq, TR_sample_dict = build_variant_matrix(
         df, sample_group, rc_level, barcode_attributes, rc_threshold
     )
     get_frequencies(
         freq,
-        conditions,
+        TR_sample_dict,
         sample_group,
         barcode_attributes,
         rc_threshold,
         freq_outpath,
         histplot_outpath,
         upsetplot_outpath,
+        reported_samples,
         plot_formats,
     )
 
@@ -470,6 +516,7 @@ if __name__ == "__main__":
         snakemake.output.freq_df,
         snakemake.output.hist_plot,
         snakemake.output.upset_plot,
+        snakemake.params.reported_samples,
         snakemake.params.plot_formats,
         snakemake.params.readcount_level,
         snakemake.params.barcode_attributes,
