@@ -116,6 +116,21 @@ The file should contain the following columns:
   reporting are automatically analyzed. Column ignored when ``process_all_samples``
   is enabled in the config.
 
+.. tip::
+    
+    The ``Analyze`` column is meant to select a set of conditions for a small-scale analysis.
+    Choose a set for which you expect signal, then run the workflow locally. Once you've made
+    sure there is no issue, you can enable ``process_all_samples`` in the config and run the
+    workflow with the :ref:`SLURM profile <profiles>`.
+
+    The ``Report`` column is meant to specify which samples should be included in the report.
+    A small portable report containing only "interesting" conditions may be easier to share
+    and read. For technical reasons, the generated report may include empty plots if the
+    corresponding samples have been processed but have been excluded from reporting.
+
+    For both these columns, make sure you select all replicates (unless you have good reason
+    to exclude one or some) for **every group of interest**.
+
 Finally, additional columns can be added by the user to specify what makes this sample
 unique (other than ``Replicate`` and ``Timepoint``).
 
@@ -277,6 +292,8 @@ These validations **do not cover** the following:
 
 In some cases, the error message displayed might still help you troubleshoot.
 
+.. _profiles:
+
 Profiles for execution
 ----------------------
 
@@ -296,3 +313,5 @@ profile.
     By default, an email will be sent every time a job fails. This is useful to catch
     ``TIMEOUT`` and ``MEM_OUT`` errors, but we recommend automatically redirecting emails to
     prevent inbox overflow.
+
+More details on execution profiles can be found :ref:`here <run-pipeline>`
