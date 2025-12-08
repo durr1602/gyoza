@@ -450,7 +450,11 @@ def collect_graphs():
     graph_dir = Path("results/graphs")
 
     agg_graphs = ["rc_filter_plot.svg", "unexp_rc_plot.svg", "rc_var_plot.svg"]
-    group_specific_graphs = [f"heatmap_readcount_{s}.svg" for s in REPORTED_SAMPLES]
+    group_specific_graphs = (
+        [f"heatmap_readcount_{s}.svg" for s in REPORTED_SAMPLES]
+        + [f"hist_plot_{k}.svg" for k in REPORTED_GROUPS]
+        + [f"upset_plot_{k}.svg" for k in REPORTED_GROUPS]
+    )
 
     if config["process_frequencies"]:
         agg_graphs += [
@@ -459,12 +463,9 @@ def collect_graphs():
             "replicates_plot.svg",
             "s_through_time_plot.svg",
         ]
-        group_specific_graphs += (
-            [f"hist_plot_{k}.svg" for k in REPORTED_GROUPS]
-            + [f"upset_plot_{k}.svg" for k in REPORTED_GROUPS]
-            + [f"timepoints_plot_{k}.svg" for k in REPORTED_GROUPS_WITH_OUTPUTS]
-            + [f"heatmap_fitness_{k}_{t}.svg" for (k, t) in REPORTED_GT]
-        )
+        group_specific_graphs += [
+            f"timepoints_plot_{k}.svg" for k in REPORTED_GROUPS_WITH_OUTPUTS
+        ] + [f"heatmap_fitness_{k}_{t}.svg" for (k, t) in REPORTED_GT]
 
     return [
         str(graph_dir / f)

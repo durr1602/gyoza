@@ -320,22 +320,18 @@ def plot_upset_TR(df, conditions, outpath, sample_group, plot_formats):
 
 
 def get_frequencies(
-    freq,
+    upset,
     TR_sample_dict,
     sample_group,
     barcode_attributes,
     rc_threshold,
     freq_outpath,
-    histplot_outpath,
-    upsetplot_outpath,
-    reported_samples,
-    plot_formats,
 ):
     """Calculate read frequencies for grouped samples.
 
     Parameters
     ----------
-    freq : pandas.DataFrame
+    upset : pandas.DataFrame
         Matrix of variants.
     TR_sample_dict : dict
         Dictionary mapping each combination of time points and replicates
@@ -351,82 +347,38 @@ def get_frequencies(
     freq_outpath : str
         Path to save output dataframe of allele frequencies for downstream
         processing (plots + calculation of functional impact scores).
-    histplot_outpath : str
-        Path to save plot with distributions of read counts/frequencies as SVG
-        (should end with ``.svg``).
-    upsetplot_outpath : str
-        Path to save upset plot showing overlap of unique sequences found across
-        time points and replicates, as SVG (should end with ``.svg``).
-    reported_samples : list of str
-        List of samples to include in plot.
-    plot_formats : list of str
-        Formats other than SVG in which the plot should be saved.
 
+    Returns
+    -------
+    freq : pandas.DataFrame
+        Unmelted version of dataframe saved at `freq_outpath`.
     """
     # Retrieve conditions
     conditions = list(TR_sample_dict)
     freq_conditions = [f"{x}_freq" for x in conditions]
 
-    # Get conditions from samples marked for reporting
-    reported_conditions = [
-        k for k, v in TR_sample_dict.items() if v in reported_samples
-    ]
-
-    if (freq[conditions].sum() == 0).any(axis=None):
+    if (upset[conditions].sum() == 0).any(axis=None):
         raise Exception(
             f"Oops.. at least one of your condition (and/or combination of time point and replicate) shows a null sample depth (no reads at all!)\n"
             f"Make sure your sample layout is OK. Unique combination of attributes should each have their T0 samples referencing the same FASTQ files."
         )
 
     # Calculate frequencies
+    freq = upset.copy()
     freq[freq_conditions] = freq[conditions].add(1) / freq[conditions].sum()
 
     # Retrieve overall mean frequency corresponding to the specified read count threshold
     mean_thresh_freq = (
         np.log10((rc_threshold + 1) / freq.groupby("nt_seq")[conditions].first().sum())
     ).mean(axis=None)
-
-    # Plot read count per sequence
-    graph1df = freq.groupby("nt_seq")[reported_conditions].first()
-    graph2df = freq.groupby("nt_seq")[
-        [f"{x}_freq" for x in reported_conditions]
-    ].first()
-    plot_rc_per_seq(
-        graph1df,
-        graph2df,
-        histplot_outpath,
-        sample_group,
-        rc_threshold,
-        mean_thresh_freq,
-        plot_formats,
-    )
-
-    # Plot overlap across time points and replicates
-    upset_freq = freq.copy()
-    T0_reported_conditions = [f"{x}_freq" for x in reported_conditions if "T0" in x]
-    if T0_reported_conditions:
-        upset_freq["mean_input"] = upset_freq[T0_reported_conditions].mean(axis=1)
-    else:
-        upset_freq["mean_input"] = "not-applicable"
-    bool_conditions = [f"{x}_indicator" for x in reported_conditions]
-    upset_freq[bool_conditions] = upset_freq[reported_conditions].astype(bool)
-    upset_sub = (
-        upset_freq.groupby("nt_seq")[
-            bool_conditions + ["mean_input", "confidence_score"]
-        ]
-        .first()
-        .rename(columns=dict(zip(bool_conditions, reported_conditions)))
-    )
-    plot_upset_TR(
-        upset_sub, reported_conditions, upsetplot_outpath, sample_group, plot_formats
-    )
+    freq["Mean_exp_freq"] = mean_thresh_freq
 
     # Reshape dataframe
     longfreq = freq.melt(
         id_vars=MUTATION_ATTRIBUTES
         + SEQUENCE_ATTRIBUTES
         + barcode_attributes
-        + ["confidence_score"],
+        + ["confidence_score", "Mean_exp_freq"],
         value_vars=freq_conditions,
         var_name="TR_freq",
         value_name="frequency",
@@ -434,14 +386,13 @@ def get_frequencies(
     ).reset_index(drop=True)
     longfreq["Timepoint"] = longfreq.TR_freq.apply(lambda x: x.split("_")[0])
     longfreq["Replicate"] = longfreq.TR_freq.apply(lambda x: x.split("_")[1])
-    longfreq["Mean_exp_freq"] = mean_thresh_freq
     longfreq["Sample attributes"] = sample_group
     longfreq["Sample_name"] = longfreq.TR_freq.apply(
         lambda x: TR_sample_dict.get(x.split("_freq")[0])
     )
     longfreq.to_csv(freq_outpath, index=False)
 
-    return
+    return freq
 
 
 def main(
@@ -491,21 +442,78 @@ def main(
 
     """
     df = load_read_counts(readcount_files, layout)
-    freq, TR_sample_dict = build_variant_matrix(
+    upset, TR_sample_dict = build_variant_matrix(
         df, sample_group, rc_level, barcode_attributes, rc_threshold
     )
-    get_frequencies(
-        freq,
+    freq = get_frequencies(
+        upset,
         TR_sample_dict,
         sample_group,
         barcode_attributes,
         rc_threshold,
         freq_outpath,
-        histplot_outpath,
-        upsetplot_outpath,
-        reported_samples,
-        plot_formats,
     )
+
+    # Get conditions from samples marked for reporting
+    reported_conditions = [
+        k for k, v in TR_sample_dict.items() if v in reported_samples
+    ]
+
+    if reported_conditions:
+        # Retrieve mean expected frequency based on read count threshold
+        mean_thresh_freq = freq["Mean_exp_freq"].values[0]
+
+        # Plot read count per sequence
+        graph1df = freq.groupby("nt_seq")[reported_conditions].first()
+        graph2df = freq.groupby("nt_seq")[
+            [f"{x}_freq" for x in reported_conditions]
+        ].first()
+
+        plot_rc_per_seq(
+            graph1df,
+            graph2df,
+            histplot_outpath,
+            sample_group,
+            rc_threshold,
+            mean_thresh_freq,
+            plot_formats,
+        )
+
+        # Plot overlap across time points and replicates
+        upset_freq = freq.copy()
+        T0_reported_conditions = [f"{x}_freq" for x in reported_conditions if "T0" in x]
+        if T0_reported_conditions:
+            upset_freq["mean_input"] = upset_freq[T0_reported_conditions].mean(axis=1)
+        else:
+            upset_freq["mean_input"] = "not-applicable"
+        bool_conditions = [f"{x}_indicator" for x in reported_conditions]
+        upset_freq[bool_conditions] = upset_freq[reported_conditions].astype(bool)
+        upset_sub = (
+            upset_freq.groupby("nt_seq")[
+                bool_conditions + ["mean_input", "confidence_score"]
+            ]
+            .first()
+            .rename(columns=dict(zip(bool_conditions, reported_conditions)))
+        )
+        plot_upset_TR(
+            upset_sub,
+            reported_conditions,
+            upsetplot_outpath,
+            sample_group,
+            plot_formats,
+        )
+
+    else:
+        # Empty plots with distinct message (samples not marked for reporting)
+        f, ax = plt.subplots(figsize=(max(4, 0.1 * len(sample_group)), 4))
+        ax.text(0.5, 0.5, "Samples not marked for reporting", ha="center", va="center")
+        ax.set_axis_off()  # hide axes
+        plt.suptitle(f"{sample_group}")
+        plt.savefig(histplot_outpath, format="svg", dpi=300)
+        plt.savefig(upsetplot_outpath, format="svg", dpi=300)
+        for x in plot_formats:
+            plt.savefig(f"{histplot_outpath.split('.svg')[0]}.{x}", format=x, dpi=300)
+            plt.savefig(f"{upsetplot_outpath.split('.svg')[0]}.{x}", format=x, dpi=300)
 
 
 if __name__ == "__main__":
