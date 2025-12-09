@@ -20,7 +20,14 @@ properties:
         pattern: '^[\\\/\-\_\.A-Za-z0-9]+(\\|\/){1}$'
       sample_attributes:
         type: array
-        description: List of sample attributes = columns in the sample layout other than Timepoint and Replicate
+        description: List of sample attributes = qualifiers for unscreened libraries other than Replicate (minimally, "Mutated_seq")
+        uniqueItems: true
+        default: ["Mutated_seq"]
+        items:
+          type: string
+      screening_attributes:
+        type: array
+        description: List of screening attributes = qualifiers for screened libraries other than Timepoint (e.g. drug)
         uniqueItems: true
         default: []
         items:
@@ -29,6 +36,7 @@ properties:
       - design
       - folder
       - sample_attributes
+      - screening_attributes
 
   reads:
     type: object
@@ -88,9 +96,9 @@ properties:
     description: Set to True to run Fastp and MultiQC
     default: False
 
-  process_read_counts:
+  process_frequencies:
     type: boolean
-    description: Set to True if you want to convert read counts into functional impact scores
+    description: Set to True if you want to convert allele frequencies into functional impact scores
     default: False
 
   normalize_with_gen:
