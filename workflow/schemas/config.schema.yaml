@@ -122,6 +122,6 @@ required:
   - random
   - process_all_samples
   - perform_qc
-  - process_read_counts
+  - process_frequencies
   - normalize_with_gen
   - plot_formats
