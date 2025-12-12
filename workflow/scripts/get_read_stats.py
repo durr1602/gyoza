@@ -146,11 +146,6 @@ def parse_bbmerge_stats(bbmerge_logfile, trimmed_reads):
     return stats_dict
 
 
-parse_bbmerge_stats(
-    "/home/rodur28/gyoza/logs/2_merge/bbmerge-sample=CN_alp_r1_F1_T0.stats", 29887
-)
-
-
 def parse_vsearch_stats(vsearch_logfile, merged_reads):
     """Parse vsearch log file to extract read statistics.
 
