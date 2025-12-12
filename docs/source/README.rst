@@ -28,7 +28,7 @@ DMS sequencing data are processed with the following existing software:
 
 - `Fastp <https://github.com/OpenGene/fastp>`__
 - `Cutadapt <http://cutadapt.readthedocs.io>`__
-- `PANDAseq <https://github.com/neufeld/pandaseq>`__
+- `BBMerge <https://github.com/bbushnell/BBTools>`__
 - `VSEARCH <https://github.com/torognes/vsearch>`__
 
 gyōza was developed by `Romain Durand <mailto:duran2101@gmail.com>`__

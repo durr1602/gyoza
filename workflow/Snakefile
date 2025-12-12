@@ -13,7 +13,7 @@ include: "rules/common.smk"
 if config["reads"]["paired"]:
     RF_VALS.append("R2")
     include: "rules/cutadapt.smk"
-    include: "rules/pandaseq.smk"
+    include: "rules/bbmerge.smk"
     include: "rules/vsearch.smk"
 else:
     include: "rules/cutadapt-se.smk"

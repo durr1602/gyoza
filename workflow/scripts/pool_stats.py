@@ -157,8 +157,23 @@ def get_pooled_stats(
     """
     list_df = []
     for f in sample_stats:
+        sample_df = pd.read_csv(f)
+
+        # Calculate number of reads discarded at the trimming stage
+        sample_df["Trimming"] = (
+            sample_df["Total_raw_reads"] - sample_df["Total_trimmed_reads"]
+        )
+
+        # Calculate number of reads discarded at the merging step
+        sample_df["Merging"] = (
+            sample_df["Total_trimmed_reads"] - sample_df["Total_merged_reads"]
+        )
+
+        # Calculate number of reads discarded at the aggregating step (= number of singletons)
+        sample_df["Aggregating"] = sample_df["Nb_singletons"]
+
         list_df.append(
-            pd.read_csv(f)[
+            sample_df[
                 [
                     "Sample_name",
                     "Total_raw_reads",
