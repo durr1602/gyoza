@@ -67,7 +67,7 @@ def get_heatmap_s_data(f, outpath, meta_out, wtaa, pos_start):
     wide = filtered.pivot(index="alt_aa", columns="aa_pos", values=f"fitness_{t}")
 
     # Reindex to add all residues and all positions (already sorted)
-    wide = wide.reindex(index=sorted(AA_SORT), columns=positions)
+    wide = wide.reindex(index=AA_SORT, columns=positions)
 
     # Export dataframe
     wide.to_csv(outpath)
