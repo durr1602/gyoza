@@ -6,7 +6,7 @@ import pandas as pd
 
 def inject_WT(f, wt, outpath, indel_outpath):
     r"""Inject WT sequence in dataframe of raw read counts, discard indel mutants.
-    
+
     Parameters
     ----------
     f : str

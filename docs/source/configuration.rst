@@ -59,6 +59,14 @@ data in the ``config/reads`` folder (or specify a different path in the config u
 ``reads``). The file names should be featured in the :ref:`layout <layout>`. In the config,
 specify if you have provided paired-end reads or not (same type for all samples).
 
+.. tip::
+
+    For paired-end reads, if the mutated DNA sequence can be found in both forward and
+    reverse reads, it might be more suitable to analyze only R1 (this is particularly
+    recommended for very short mutated sequences). Simply disable the ``paired`` parameter
+    under ``reads`` in the config. In the layout, provide linked adapters for
+    ``N_forward`` as indicated in the next section.
+
 .. _layout:
 
 Layout
@@ -80,43 +88,67 @@ The file should contain the following columns:
 - ``R2``: base name of the fastq file for reverse (R2) reads (can be gzipped), including
   extension. Leave empty if you provide single-end sequencing data.
 - ``N_forward``: the 5’-3’ DNA sequence corresponding to the fixed region upstream of the
-  mutated sequence or anything that can be used as ``-g`` flag with cutadapt (including
+  mutated sequence or anything that can be used as ``-g`` flag with ``cutadapt`` (including
   complex patterns such as ``‘NNATG;optional…ATG’``, in which case do not forget the single
-  quotes). For single-end sequencing data, please specify both constant sequences
+  quotes). For single-end sequencing data (or if you've intentionally specified to analyze
+  only R1, as mentioned in the tip above), please specify both constant sequences
   upstream and downstream (on the same strand) separated by ``…``, e.g. ``AAAAGCTG…GCGCTAAAT``
-  (no need for single quotes)
+  (no need for single quotes). Note that the use of ``…`` instructs both 5' and 3' trimming
+  with linked adapters, which may interfere with the merging step downstream. Therefore this
+  option is usually reserved when only R1 is trimmed (in which case, there is no merging).
 - ``N_reverse``: the 5’-3’ DNA sequence corresponding to the fixed region 5’ of the mutated
   sequence on the reverse strand or anything that can be used as ``-G`` flag with cutadapt
-  (same requirements as above). Leave empty if you provide single-end sequencing data.
+  (same requirements as above). Leave empty if you provide single-end sequencing data or
+  if you're only analyzing R1.
 - ``Mutated_seq``: the unique identifier for the mutated DNA sequence, should be the same
   for all samples in which the same sequence was mutated
 - ``Pos_start``: starting position in the protein sequence. If you’ve mutated several
   regions/fragments in a coding gene, this position should refer to the full-length
   protein sequence
 - ``Replicate``: e.g. ``R1``
-- ``Timepoint``: ``T0``, ``T1``, ``T2``, etc. Please provide at least one T0 sample per group,
-  other time points are optional.
+- ``Timepoint``: ``T0``, ``T1``, ``T2``, etc. Please provide at least one T0 sample,
+  other time points are optional. **T0 samples should not be duplicated for each group**.
 - ``Analyze``: ``y`` (or a different truthy value) to process the sample. Leave empty or enter
-  non-truthy value to exclude from analysis. Corresponding T0 samples and matching
-  replicates are automatically rescued, regardless of the selection. In other words, you
-  can select a single replicate for each group you want to analyze.
-- Report: ``y`` (or a different truthy value) to include the sample in the HTML report.
+  non-truthy value to exclude from analysis. Column ignored when ``process_all_samples``
+  is enabled in the config.
+- ``Report``: ``y`` (or a different truthy value) to include the sample in the HTML report.
   Leave empty or enter non-truthy value to exclude from the report. Samples marked for
-  reporting are rescued as describe above and will be automatically analyzed.
+  reporting are automatically analyzed. Column ignored when ``process_all_samples``
+  is enabled in the config.
+
+.. tip::
+    
+    The ``Analyze`` column is meant to select a set of conditions for a small-scale analysis.
+    Choose a set for which you expect signal, then run the workflow locally. Once you've made
+    sure there is no issue, you can enable ``process_all_samples`` in the config and run the
+    workflow with the :ref:`SLURM profile <profiles>`.
+
+    The ``Report`` column is meant to specify which samples should be included in the report.
+    A small portable report containing only "interesting" conditions may be easier to share
+    and read. For technical reasons, the generated report may include empty plots if the
+    corresponding samples have been processed but have been excluded from reporting.
+
+    For both these columns, make sure you select all replicates (unless you have good reason
+    to exclude one or some) for **every group of interest**.
 
 Finally, additional columns can be added by the user to specify what makes this sample
 unique (other than ``Replicate`` and ``Timepoint``).
 
-List the minimal set of columns in the layout that make samples unique as the **sample
-attributes** in the config under ``project``. Sample attributes may include ``Mutated_seq``
-or a combination of attributes that recapitulate ``Mutated_seq`` (as illustrated by the
-toy dataset). Sample attributes also typically include the selective pressure (``Drug``)
-and any other important qualifier for which there can be different values depending on
-the sample.
+Several or all of these additional columns should correspond to what we refer to as:
+
+- sample attributes: what makes an unscreened library unique (minimally ``Mutated_seq``)
+- screening attributes: what makes a screened library unique
+
+Please specify both by listing the corresponding columns in the config under ``project``.
+
+Sample attributes may include ``Mutated_seq`` or a combination of attributes that recapitulate
+``Mutated_seq`` (as illustrated by the toy dataset). Screening attributes on the other hand
+typically include the selective pressure (e.g. ``Drug``). In the sample layout, for the columns
+that corresponding to screening attributes, please leave empty for all T0 samples.
 
 In summary, a “sample” is any unique combination of ``Replicate`` + ``Timepoint`` + ``sample
-attributes`` and should be associated to 1 or 2 fastq files, for the forward and reverse
-reads, respectively.
+attributes`` + ``screening attributes`` and should be associated to 1 or 2 fastq files,
+for the forward and reverse reads, respectively.
 
 .. _codon-table:
 
@@ -187,6 +219,9 @@ the workflow, barcode-level information will be preserved in
 high-confidence variants (which does not preserve neither barcode-level nor codon-level
 information).
 
+Please do not include any index column in the file. Whether the file is actually compressed
+or not is not relevant, as long as the file is properly named (ending with ``.csv.gz``).
+
 .. _norm-gen:
 
 Normalization with the number of cellular generations
@@ -207,7 +242,7 @@ matching row. Once the file is edited, re-run the workflow.
     useful to spot any error related to setting up the sample layout.
 
     Check that the expected groups are listed based on your current selection, with the
-    appropriate values for each of your sample attributes.
+    appropriate values for each of your sample and screening attributes.
 
 Final checklist for the main config file
 ----------------------------------------
@@ -216,7 +251,7 @@ Go over your main config file one last time and check the following:
 
 .. |check| unicode:: ☑
 
-- |check| list your ``sample attributes``
+- |check| list your ``sample attributes`` and ``screening attributes``
 - |check| replace all parameter values with the ones adapted for your project. Note: a
   first pass might be necessary to establish what would be a good **read count
   threshold** (specified under ``reads``). Feel free to adjust it and re-run the workflow
@@ -224,14 +259,15 @@ Go over your main config file one last time and check the following:
   important because the ``avg_scores`` dataframe is built only upon “high confidence”
   variants, i.e. variants with a read count above the set threshold in all T0
   replicates.
+- |check| set the ``process_all_samples`` to ``True`` if you want to include all samples for
+  processing and reporting
 - |check| set the ``perform_qc`` parameter to ``True`` if you want to analyze your raw FASTQ
   with Fastp (and generate a MultiQC report)
-- |check| set the ``process_read_counts`` to ``True`` if you want to convert read counts to
-  functional impact scores (``False`` if you simply want read counts, e.g. to assess
-  diversity in T0 libraries)
+- |check| set the ``process_frequencies`` to ``True`` if you want to convert allele frequencies
+  into functional impact scores (``False`` if you simply want heatmaps of raw read counts and
+  frequencies, e.g. to assess diversity in unscreened libraries)
 - |check| set the ``normalize_with_gen`` parameter to ``True`` if you want to normalize with
-  the number of cellular generations (only valid if you opted in for processing read
-  counts)
+  the number of cellular generations (only valid if you opted in for processing frequencies)
 - |check| edit the directory paths to :ref:`project-specific files <project-specific-files>`
   and :ref:`reads <sequencing-data>` if necessary.
 
@@ -248,6 +284,15 @@ improper format, etc.):
 - :ref:`files with expected sequences <exp-mut-file>`
 - :ref:`codon table <codon-table>`
 - :ref:`file with the number of cellular generations <norm-gen>`
+
+These validations **do not cover** the following:
+
+- if CSV files are actually formatted as TSV
+- if there's a problem with specific row(s) of a CSV file
+
+In some cases, the error message displayed might still help you troubleshoot.
+
+.. _profiles:
 
 Profiles for execution
 ----------------------
@@ -268,3 +313,5 @@ profile.
     By default, an email will be sent every time a job fails. This is useful to catch
     ``TIMEOUT`` and ``MEM_OUT`` errors, but we recommend automatically redirecting emails to
     prevent inbox overflow.
+
+More details on execution profiles can be found :ref:`here <run-pipeline>`

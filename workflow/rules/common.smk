@@ -1,6 +1,7 @@
 ##### Import libraries #####
 
 import sys
+import subprocess
 import pandas as pd
 from snakemake.utils import validate
 from pathlib import Path
@@ -27,6 +28,7 @@ EXPMUT_PATH = PROJECT_DIR / "expected_mut/"
 NBGEN_PATH = PROJECT_DIR / "nbgen.csv"
 
 SAMPLE_ATTR = config["project"]["sample_attributes"]
+SCREEN_ATTR = config["project"]["screening_attributes"]
 
 ##### Import and validate sample layout #####
 
@@ -69,8 +71,10 @@ print("Sample layout validated.")
 ##### Validate sample attributes and group samples #####
 
 for x in layout_add_cols:
-    if x not in SAMPLE_ATTR:
-        warnings.warn(f"Column {x} is not listed in your sample attributes.")
+    if x not in SAMPLE_ATTR + SCREEN_ATTR:
+        warnings.warn(
+            f"Column {x} is not listed in your sample or screening attributes."
+        )
 
 if not SAMPLE_ATTR:
     raise ValueError(
@@ -81,39 +85,47 @@ else:
         if attr not in layout_csv.columns:
             raise Exception(f"Missing sample attribute column in the layout: {attr}.")
 
-    TR_layout = layout_csv[["Sample_name"] + SAMPLE_ATTR]
+    print("Sample attributes imported.")
+
     # Initial sample grouping based on layout
     all_groups = defaultdict(list)
-    for _, row in TR_layout.iterrows():
-        key = tuple(row[col] for col in SAMPLE_ATTR)
-        all_groups[key].append(row["Sample_name"])
-    print("Sample attributes imported.")
+
+    # Map groups <-> samples by separating input (T0) and output
+    # For each df, we need to convert the index to a tuple in case there's a single attribute
+    tn = layout_csv.groupby(SAMPLE_ATTR + SCREEN_ATTR)["Sample_name"].agg(list)
+    tn.index = tn.index.map(lambda x: (x,) if not isinstance(x, tuple) else x)
+    t0 = (
+        layout_csv[layout_csv.Timepoint == "T0"]
+        .groupby(SAMPLE_ATTR)["Sample_name"]
+        .agg(list)
+    )
+    t0.index = t0.index.map(lambda x: (x,) if not isinstance(x, tuple) else x)
+
+    allg_df = tn.copy()
+
+    for idx in allg_df.index:
+        sample_key = idx[: len(SAMPLE_ATTR)]
+        if sample_key in t0.index:
+            allg_df[idx] = allg_df[idx] + t0[sample_key]
+    all_groups = dict(allg_df)
 
 
 ##### Select samples to analyze/report #####
 
 
-# Helper function to rescue T0 + matching output timepoint replicates
+# Helper function to restrict to samples selected by the user
 def select_samples(selection_column, sample_layout, all_groups):
-    selected_samples = sample_layout[sample_layout[selection_column]].index.tolist()
+    # Which sample_names are selected?
+    selected_samples = set(sample_layout.index[sample_layout[selection_column]])
+
     groups = {}
-    for group, samples in all_groups.items():
+    for group_key, samples in all_groups.items():
+        # Keep only samples belonging to this group AND selected by the user
         selected_in_group = [s for s in samples if s in selected_samples]
-        if not selected_in_group:
-            continue
-        selected_timepoints = {
-            sample_layout.loc[s, "Timepoint"]
-            for s in selected_in_group
-            if sample_layout.loc[s, "Timepoint"] != "T0"
-        }
-        groups[group] = sorted(
-            [
-                s
-                for s in samples
-                if sample_layout.loc[s, "Timepoint"] == "T0"
-                or sample_layout.loc[s, "Timepoint"] in selected_timepoints
-            ]
-        )
+
+        if selected_in_group:
+            groups[group_key] = selected_in_group
+
     return groups
 
 
@@ -122,12 +134,29 @@ report_groups = select_samples("Report", sample_layout, all_groups)
 
 ##### Merge all groups #####
 
-final_groups = defaultdict(list)
-for group, samples in analyze_groups.items():
-    final_groups[group].extend(samples)
-for group, samples in report_groups.items():
-    final_groups[group].extend(samples)
-final_groups = {group: sorted(set(samples)) for group, samples in final_groups.items()}
+if config["process_all_samples"]:
+    report_groups = all_groups
+    final_groups = all_groups
+else:
+    final_groups = {
+        g: sorted(set(analyze_groups.get(g, []) + report_groups.get(g, [])))
+        for g in set(analyze_groups) | set(report_groups)
+    }
+
+##### Final list of samples #####
+
+SAMPLES = sorted({s for samples in final_groups.values() for s in samples})
+REPORTED_SAMPLES = sorted({s for samples in report_groups.values() for s in samples})
+MUTATED_SEQS = sorted(set(sample_to_mutseq[s] for s in SAMPLES))
+
+T0_SAMPLES = [s for s in SAMPLES if sample_layout.loc[s, "Timepoint"] == "T0"]
+
+if not T0_SAMPLES:
+    raise WorkflowError(
+        "Please select at least 1 T0 sample by writing Y in the Analyze column or in the Report column of the layout."
+    )
+
+print(f"{len(SAMPLES)} sample(s) selected for analysis.")
 
 
 ##### Convert sample grouping wilcard <-> string #####
@@ -157,47 +186,55 @@ pos_offset_by_group = {
     for group_key, samples in final_groups_str.items()
 }
 
-##### Determine groups with output timepoints #####
-
-groups_with_output_timepoints = {}
-for group, samples in final_groups.items():
-    timepoints = {sample_layout.loc[s, "Timepoint"] for s in samples}
-    if "T0" in timepoints and any(tp != "T0" for tp in timepoints):
-        groups_with_output_timepoints[group] = samples
-
-ATTR_GROUPS_WITH_OUTPUTS = [
-    serialize_key(group) for group in groups_with_output_timepoints
-]
-REPORTED_GROUPS_WITH_OUTPUTS = [
-    g for g in ATTR_GROUPS_WITH_OUTPUTS if g in REPORTED_GROUPS
-]
-
 ##### Get combinations of groups and output time points #####
+# Keep only input/output pairs with at least one matching replicate
 
 GT_WITH_OUTPUTS = []
-for group, samples in groups_with_output_timepoints.items():
-    gkey = serialize_key(group)
-    timepoints = sorted(
-        {
-            sample_layout.loc[s, "Timepoint"]
-            for s in samples
-            if sample_layout.loc[s, "Timepoint"] != "T0"
-        }
+
+for g, samples in final_groups.items():
+    # Collect output samples
+    outputs = [s for s in samples if sample_layout.loc[s, "Timepoint"] != "T0"]
+    if not outputs:
+        continue
+
+    # Collect T0 replicates for matching
+    t0_reps = {sample_layout.loc[s, "Replicate"] for s in T0_SAMPLES}
+
+    # Collect if there's a matching T0 replicate
+    outputs_with_matching_t0 = [
+        s for s in outputs if sample_layout.loc[s, "Replicate"] in t0_reps
+    ]
+
+    if not outputs_with_matching_t0:
+        continue
+
+    # Get corresponding time point
+    tp = sample_layout.loc[outputs_with_matching_t0[0], "Timepoint"]
+
+    GT_WITH_OUTPUTS.append((serialize_key(g), tp))
+
+if (not GT_WITH_OUTPUTS) & (config["process_frequencies"]):
+    raise WorkflowError(
+        "Error.. Please select at least one pair of matching input/output replicates.\n"
+        "(or disable process_frequencies to analyze input samples only)."
     )
-    GT_WITH_OUTPUTS.extend([(gkey, t) for t in timepoints])
 
-GT_REPORTED = [(g, t) for (g, t) in GT_WITH_OUTPUTS if g in REPORTED_GROUPS]
-
-##### Final list of samples #####
-
-SAMPLES = sorted({s for samples in final_groups.values() for s in samples})
-REPORTED_SAMPLES = sorted({s for samples in report_groups.values() for s in samples})
-MUTATED_SEQS = sorted(set(sample_to_mutseq[s] for s in SAMPLES))
-
-if not SAMPLES:
-    raise Exception("No samples marked for analysis in the layout.")
-
-print(f"{len(SAMPLES)} sample(s) selected for analysis.")
+ATTR_GROUPS_WITH_OUTPUTS = sorted({g for (g, tp) in GT_WITH_OUTPUTS})
+REPORTED_GROUPS_WITH_OUTPUTS = sorted(
+    [
+        serialize_key(group)
+        for group, samples in final_groups.items()
+        if group in report_groups
+        and any(
+            sample_layout.loc[s, "Timepoint"] != "T0" for s in report_groups[group]
+        )  # at least one reported non-T0
+        and serialize_key(group)
+        in ATTR_GROUPS_WITH_OUTPUTS  # valid processed output (GT)
+    ]
+)
+REPORTED_GT = sorted(
+    (g, tp) for (g, tp) in GT_WITH_OUTPUTS if g in REPORTED_GROUPS_WITH_OUTPUTS
+)
 
 ##### Validate CSV file containing WT DNA sequences #####
 # Required only for 'codon' and 'random' designs
@@ -208,6 +245,13 @@ mutseq_to_wtseq = {}
 if exists(WT_PATH):
     wtseqs = pd.read_csv(WT_PATH)
     validate(wtseqs, schema="../schemas/wt_seqs.schema.yaml")
+
+    if set(wtseqs.Mutated_seq.unique()).isdisjoint(set(MUTATED_SEQS)):
+        raise WorkflowError(
+            f"Error.. None of the Mutated_seq values in {WT_PATH} match those in {LAYOUT_PATH}"
+        )
+
+    wtseqs["WT_seq"] = wtseqs["WT_seq"].str.upper()
     mutseq_to_wtseq = dict(zip(wtseqs["Mutated_seq"], wtseqs["WT_seq"]))
     print("WT imported.")
 
@@ -215,12 +259,15 @@ if exists(WT_PATH):
 # Note: WT CSV is not required for 'provided' design
 # For 'provided' and 'random' designs, we get the WT from the list of expected mutants
 
+expmut_mutseqs = []
+
 for f in EXPMUT_PATH.glob("*.csv.gz"):
     expmut = pd.read_csv(f)
     validate(expmut, schema="../schemas/exp_mut.schema.yaml")
     if expmut["Mutated_seq"].nunique() != 1:
         raise ValueError(f"Error.. Multiple 'Mutated_seq' values in {f.name}")
     mutseq = expmut.at[0, "Mutated_seq"]
+    expmut_mutseqs.append(mutseq)
     if expmut["WT_seq"].nunique() != 1:
         raise ValueError(f"Error.. Multiple 'WT_seq' values in {f.name}")
     wtseq = expmut.at[0, "WT_seq"].upper()
@@ -230,12 +277,65 @@ for f in EXPMUT_PATH.glob("*.csv.gz"):
             f"Not all 'nt_seq's have the same length as 'WT_seq' in {f.name}"
         )
     print(f"Imported expectant mutants of {mutseq}.")
+else:
+    expmut_mutseqs = MUTATED_SEQS
+
+if set(expmut_mutseqs).isdisjoint(set(MUTATED_SEQS)):
+    raise WorkflowError(
+        f"Error.. None of the Mutated_seq values imported from files in {EXPMUT_PATH} match those in {LAYOUT_PATH}"
+    )
 
 ##### Validate codon table #####
 
 codon_table = pd.read_csv(GEN_CODE_PATH, header=0)
 validate(codon_table, schema="../schemas/codon_table.schema.yaml")
 print("Codon table validated.")
+codon_table["aminoacid"] = codon_table["aminoacid"].str.upper()
+codon_table["codon"] = codon_table["codon"].str.upper()
+GEN_CODE = dict(zip(codon_table["codon"], codon_table["aminoacid"]))
+
+
+# Define function to translate any DNA sequence
+def get_aa_seq(nt, codon_dict):
+    r"""Translates nucleotide sequence to amino acid sequence from codon dict.
+
+    Parameters
+    ----------
+    nt : str
+        DNA sequence (length should be a multiple of 3).
+    codon_dict : dict
+        Codon table associating codons to amino acid residues.
+
+    Returns
+    -------
+    str
+
+    Raises
+    ------
+    ValueError
+        If the length of `nt` is not a multiple of 3.
+    """
+    if len(nt) % 3 != 0:
+        raise ValueError(
+            f"Error.. the length of the DNA sequence is not a multiple of 3."
+        )
+
+    nt_codons = [nt[i : i + 3] for i in range(0, len(nt), 3)]
+    aa = "".join([codon_dict.get(x) for x in nt_codons])
+
+    return aa
+
+
+# Map WT amino acid sequence for each mutated locus
+mutseq_to_wtaa = {
+    mutseq: get_aa_seq(wtseq, GEN_CODE) for mutseq, wtseq in mutseq_to_wtseq.items()
+}
+
+# Map WT amino acid sequence for each group
+group_to_wtaa = {
+    group_key: get_aa_seq(mutseq_to_wtseq[sample_to_mutseq[samples[0]]], GEN_CODE)
+    for group_key, samples in final_groups_str.items()
+}
 
 ##### Generate template CSV file to write the number of cellular generations between time points #####
 # Note: At this time, this file is required to exist even if the user opts out of this normalization
@@ -244,65 +344,72 @@ print("Codon table validated.")
 # If the user opts in, a warning will notify the user that the template needs to be filled
 # Once the column contains other values than 1 for every row, we'll use the data for normalization
 
-required_rows = layout_csv[
-    layout_csv["Sample_name"].isin(SAMPLES) & (layout_csv["Timepoint"] != "T0")
-][SAMPLE_ATTR + ["Replicate", "Timepoint"]].drop_duplicates()
+if not config["process_frequencies"]:
+    print("Skipping processing allele frequencies.")
 
-if exists(NBGEN_PATH):
-    nbgen = pd.read_csv(NBGEN_PATH, dtype={"Replicate": str})
-    validate(nbgen, schema="../schemas/nbgen.schema.yaml")
-    if (config["normalize_with_gen"]) & ((nbgen.Nb_gen == 1).any()):
-        raise Exception(
-            f">>Please fill in the file {NBGEN_PATH} with the number of cellular generations<<\n"
-            ">>(or deactivate this normalization in the main config file)<<"
-        )
-    elif config["normalize_with_gen"]:
-        # Find missing rows from existing file
-        merged = required_rows.merge(
-            nbgen,
-            on=SAMPLE_ATTR + ["Replicate", "Timepoint"],
-            how="left",
-            indicator=True,
-        )
-        missing_rows = merged[merged["_merge"] == "left_only"].drop(columns=["_merge"])
-        missing_rows["Nb_gen"] = 1
+else:
+    print("Ready to process allele frequencies.")
+    required_rows = layout_csv[
+        layout_csv["Sample_name"].isin(SAMPLES) & (layout_csv["Timepoint"] != "T0")
+    ][SAMPLE_ATTR + SCREEN_ATTR + ["Replicate", "Timepoint"]].drop_duplicates()
 
-        # Append to existing file
-        if not missing_rows.empty:
-            print(f"Adding {len(missing_rows)} missing row(s) to {NBGEN_PATH}")
-            nbgen = pd.concat([nbgen, missing_rows], ignore_index=True)
-            nbgen.to_csv(NBGEN_PATH, index=False)
-
-        # Additional check to make sure all rows from selection are filled properly
-        # This is done to prevent bothering the user with filling data for non currently selected samples
-        selected_rows = nbgen.merge(
-            required_rows,
-            on=SAMPLE_ATTR + ["Replicate", "Timepoint"],
-            how="inner",
-        )
-
-        if (selected_rows["Nb_gen"] == 1).any():
+    if exists(NBGEN_PATH):
+        nbgen = pd.read_csv(NBGEN_PATH, dtype={"Replicate": str})
+        validate(nbgen, schema="../schemas/nbgen.schema.yaml")
+        if (config["normalize_with_gen"]) & ((nbgen.Nb_gen == 1).any()):
             raise Exception(
-                f">> Please fill in the file {NBGEN_PATH} with the number of cellular generations <<\n"
+                f">>Please fill in the file {NBGEN_PATH} with the number of cellular generations<<\n"
                 ">>(or deactivate this normalization in the main config file)<<"
             )
-        else:
-            print(
-                "Ready to normalize with the provided numbers of cellular generations."
+        elif config["normalize_with_gen"]:
+            # Find missing rows from existing file
+            merged = required_rows.merge(
+                nbgen,
+                on=SAMPLE_ATTR + SCREEN_ATTR + ["Replicate", "Timepoint"],
+                how="left",
+                indicator=True,
             )
+            missing_rows = merged[merged["_merge"] == "left_only"].drop(
+                columns=["_merge"]
+            )
+            missing_rows["Nb_gen"] = 1
+
+            # Append to existing file
+            if not missing_rows.empty:
+                print(f"Adding {len(missing_rows)} missing row(s) to {NBGEN_PATH}")
+                nbgen = pd.concat([nbgen, missing_rows], ignore_index=True)
+                nbgen.to_csv(NBGEN_PATH, index=False)
+
+            # Additional check to make sure all rows from selection are filled properly
+            # This is done to prevent bothering the user with filling data for non currently selected samples
+            selected_rows = nbgen.merge(
+                required_rows,
+                on=SAMPLE_ATTR + SCREEN_ATTR + ["Replicate", "Timepoint"],
+                how="inner",
+            )
+
+            if (selected_rows["Nb_gen"] == 1).any():
+                raise Exception(
+                    f">> Please fill in the file {NBGEN_PATH} with the number of cellular generations <<\n"
+                    ">>(or deactivate this normalization in the main config file)<<"
+                )
+            else:
+                print(
+                    "Ready to normalize with the provided numbers of cellular generations."
+                )
+        else:
+            print("No normalization with cellular generations")
     else:
-        print("No normalization with cellular generations")
-else:
-    nbgen_temp = required_rows
-    nbgen_temp["Nb_gen"] = 1
-    nbgen_temp.to_csv(NBGEN_PATH, index=None)
-    if config["normalize_with_gen"]:
-        raise Exception(
-            f">> Please fill in {NBGEN_PATH} with the number of cellular generations <<\n"
-            ">> Or disable this normalization in the config <<"
-        )
-    else:
-        print("No normalization with cellular generations")
+        nbgen_temp = required_rows
+        nbgen_temp["Nb_gen"] = 1
+        nbgen_temp.to_csv(NBGEN_PATH, index=None)
+        if config["normalize_with_gen"]:
+            raise Exception(
+                f">> Please fill in {NBGEN_PATH} with the number of cellular generations <<\n"
+                ">> Or disable this normalization in the config <<"
+            )
+        else:
+            print("No normalization with cellular generations")
 
 
 ##### Helper functions for dynamic allocation of resources #####
@@ -343,23 +450,23 @@ def calc_time(wildcards, input, attempt):
 def collect_graphs():
     graph_dir = Path("results/graphs")
 
-    agg_graphs = ["rc_filter_plot.svg", "unexp_rc_plot.svg"]
-    group_specific_graphs = [f"heatmap_readcount_{s}.svg" for s in REPORTED_SAMPLES]
+    agg_graphs = ["rc_filter_plot.svg", "unexp_rc_plot.svg", "rc_var_plot.svg"]
+    group_specific_graphs = (
+        [f"heatmap_readcount_{s}.svg" for s in REPORTED_SAMPLES]
+        + [f"hist_plot_{k}.svg" for k in REPORTED_GROUPS]
+        + [f"upset_plot_{k}.svg" for k in REPORTED_GROUPS]
+    )
 
-    if config["process_read_counts"]:
+    if config["process_frequencies"]:
         agg_graphs += [
-            "rc_var_plot.svg",
             "scoeff_violin_plot.svg",
             "replicates_heatmap_plot.svg",
             "replicates_plot.svg",
             "s_through_time_plot.svg",
         ]
-        group_specific_graphs += (
-            [f"hist_plot_{k}.svg" for k in REPORTED_GROUPS]
-            + [f"upset_plot_{k}.svg" for k in REPORTED_GROUPS]
-            + [f"timepoints_plot_{k}.svg" for k in REPORTED_GROUPS]
-            + [f"heatmap_fitness_{k}_{t}.svg" for (k, t) in GT_REPORTED]
-        )
+        group_specific_graphs += [
+            f"timepoints_plot_{k}.svg" for k in REPORTED_GROUPS_WITH_OUTPUTS
+        ] + [f"heatmap_fitness_{k}_{t}.svg" for (k, t) in REPORTED_GT]
 
     return [
         str(graph_dir / f)
@@ -407,22 +514,65 @@ def generate_report():
 
 
 def get_target():
-    targets = ["results/df/all_stats.csv"]
+    targets = ["results/df/all_stats.csv", "results/graphs/rc_var_plot.svg"]
     targets += expand("results/graphs/heatmap_readcount_{sample}.svg", sample=SAMPLES)
 
-    if config["process_read_counts"]:
-        targets.append(
-            "results/df/all_scores.csv"
-        )
+    if config["process_frequencies"]:
+        targets += [
+            "results/df/all_scores.csv",
+            "results/graphs/scoeff_violin_plot.svg",
+        ]
         targets += expand(
             "results/graphs/heatmap_fitness_{group_key}_{t}.svg",
             zip,
             group_key=[g for g, t in GT_WITH_OUTPUTS],
             t=[t for g, t in GT_WITH_OUTPUTS],
         )
-        targets.append("results/graphs/rc_var_plot.svg")
 
     if config["perform_qc"]:
         targets.append("results/0_qc/multiqc.html")
 
     return targets
+
+
+##### Resolve pipeline version #####
+
+
+def resolve_pipeline_version(
+    snakefile_path,
+    declared_version=None,
+):
+    """
+    Resolve pipeline version.
+
+    Priority:
+    1) declared_version (e.g. PIPELINE_VERSION in Snakefile)
+    2) git describe
+    3) 'unknown'
+    """
+
+    if declared_version:
+        sf_version = declared_version
+    else:
+        sf_version = None
+
+    git_version = None
+    try:
+        git_version = subprocess.check_output(
+            ["git", "describe", "--tags", "--dirty", "--always"],
+            cwd=Path(snakefile_path).parent,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip()
+    except Exception:
+        pass
+
+    if sf_version:
+        if git_version and sf_version not in git_version:
+            return f"{sf_version} ({git_version})"
+        return sf_version
+
+    if git_version:
+        return git_version
+
+    return "unknown"

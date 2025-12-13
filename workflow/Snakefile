@@ -1,8 +1,12 @@
+##### Set version #####
+
+PIPELINE_VERSION = "v1.2.0" # bump right before new release 
+
 ##### Load main report caption #####
 
 report: "report/workflow.rst"
 
-##### Load rules #####
+##### Load common #####
 
 RF_VALS = ["R1"]
 RC_LEVEL = "nt_seq"
@@ -10,10 +14,19 @@ BC_ATTR = []
 
 include: "rules/common.smk"
 
+PIPELINE_VERSION_RESOLVED = resolve_pipeline_version(
+    snakefile_path=__file__,
+    declared_version=PIPELINE_VERSION,
+)
+
+config["pipeline_version"] = PIPELINE_VERSION_RESOLVED
+
+##### Load rules #####
+
 if config["reads"]["paired"]:
     RF_VALS.append("R2")
     include: "rules/cutadapt.smk"
-    include: "rules/pandaseq.smk"
+    include: "rules/bbmerge.smk"
     include: "rules/vsearch.smk"
 else:
     include: "rules/cutadapt-se.smk"
@@ -49,9 +62,10 @@ else:
 include: "rules/stats.smk"
 include: "rules/pool_stats.smk"
 include: "rules/plot_read_counts.smk"
+include: "rules/process_read_counts.smk"
 
-if config["process_read_counts"]:
-    include: "rules/process_read_counts.smk"
+if config["process_frequencies"]:
+    include: "rules/functional_impact.smk"
     include: "rules/plot_final_heatmaps.smk"
 
 ##### Target(s) #####

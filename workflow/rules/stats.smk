@@ -1,7 +1,7 @@
 rule stats:
     input:
         cutadapt_log="logs/1_trim/cutadapt-sample={sample}.stats",
-        pandaseq_log="logs/2_merge/pandaseq-sample={sample}.stats",
+        bbmerge_log="logs/2_merge/bbmerge-sample={sample}.stats",
         vsearch_log="logs/3_aggregate/vsearch-sample={sample}.stats",
         N_discarded_log="logs/4_readcounts/parse-fasta-sample={sample}.log",
     output:

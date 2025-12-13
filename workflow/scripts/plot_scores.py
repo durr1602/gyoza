@@ -21,12 +21,12 @@ prot_seq_attributes = [
 
 def concatenate_df(df_files):
     r"""Opens and concatenates multiple dataframes.
-    
+
     Parameters
     ----------
     df_files : list of str
         List of paths to CSV-formatted dataframes.
-    
+
     Returns
     -------
     pandas.DataFrame
@@ -39,87 +39,9 @@ def concatenate_df(df_files):
     return df
 
 
-def plot_allele_freq(df, outpath, mean_exp_freq, plot_formats):
-    r"""Plot distributions of allele frequencies for each sample group.
-    
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        Dataframe of allele frequencies. Should contain columns:
-
-        * ``Sample attributes`` (**str**, sample group identifier)
-        * ``frequency`` (**float**)
-        * ``Timepoint`` (**str**)
-        * ``Replicate`` (**str**, replicates are shown as split violins)
-    
-    outpath : str
-        Path to save violin plot as SVG (should end with ``.svg``).
-    mean_exp_freq : float
-        Log10 of average expected allele frequency.
-    plot_formats : list of str
-        Formats other than SVG in which the plot should be saved.
-    """
-    labels = df["Sample attributes"].unique()
-    timepoints = sorted(df.Timepoint.unique())
-    g = sns.catplot(
-        df,
-        x="Sample attributes",
-        y="frequency",
-        row="Timepoint",
-        row_order=timepoints,
-        hue="Replicate",
-        palette="hls",
-        split=True,  # should work for more than 2 samples but might be ugly
-        log_scale=10,
-        kind="violin",
-        cut=0,
-        linewidth=1,
-        inner="quart",
-        height=2,
-        aspect=0.8 * len(labels),
-    )
-    g.map(plt.axhline, y=10**mean_exp_freq, linestyle="--", color=".8")
-
-    g.set_axis_labels("", "Frequency")
-    g.set_titles(row_template="{row_name}")
-    avg_label_length = sum(len(label) for label in labels) / len(labels)
-    if avg_label_length > 20:  # wrap long labels
-        labels = [
-            "\n".join([a[i : i + 20] for i in range(0, len(a), 20)]) for a in labels
-        ]
-    g.set_xticklabels(labels, rotation=min(90, 4.5 * avg_label_length), ha="right")
-    g.tight_layout()
-    plt.savefig(outpath, format="svg", dpi=300)
-    [
-        plt.savefig(f"{outpath.split('.svg')[0]}.{x}", format=x, dpi=300)
-        for x in plot_formats
-    ]
-    return
-
-
-def get_allele_freq_plot(df_files, outpath, plot_formats):
-    r"""Aggregate data and plot distributions of allele frequencies.
-    
-    Parameters
-    ----------
-    df_files : list of str
-        List of paths to CSV-formatted dataframes.
-    outpath : str
-        Path to save violin plot as SVG (should end with ``.svg``).
-    plot_formats : list of str
-        Formats other than SVG in which the plot should be saved.
-    """
-    df = concatenate_df(df_files)
-    mean_exp_freq = (
-        df.groupby("Sample attributes")[["Mean_exp_freq"]].first().mean(axis=None)
-    )
-    plot_allele_freq(df, outpath, mean_exp_freq, plot_formats)
-    return
-
-
 def plot_scoeff_violin(df, outpath, plot_formats):
     r"""Plot distributions of functional impact scores for each sample group.
-    
+
     Parameters
     ----------
     df : pandas.DataFrame
@@ -129,7 +51,7 @@ def plot_scoeff_violin(df, outpath, plot_formats):
         * ``s`` (**float**, functional impact score)
         * ``Compared timepoints`` (**str**)
         * ``Replicate`` (**str**, replicates are shown as split violins)
-    
+
     outpath : str
         Path to save violin plot as SVG (should end with ``.svg``).
     plot_formats : list of str
@@ -173,7 +95,7 @@ def plot_scoeff_violin(df, outpath, plot_formats):
 
 def plot_impact_over_time(df, outpath, plot_formats):
     r"""Plot functional impact over time for each sample group.
-    
+
     Parameters
     ----------
     df : pandas.DataFrame
@@ -184,7 +106,7 @@ def plot_impact_over_time(df, outpath, plot_formats):
         * ``Compared timepoints`` (**str**)
         * ``Replicate`` (**str**, replicates are shown as different markers)
         * ``Nham_aa`` (**int**, number of amino acid changes as different colors)
-    
+
     outpath : str
         Path to save plot as SVG (should end with ``.svg``).
     plot_formats : list of str
@@ -216,7 +138,7 @@ def plot_impact_over_time(df, outpath, plot_formats):
 
 def plot_spearman_heatmaps(df, replicates, outpath, plot_formats):
     r"""Plot Spearman correlation between replicates as heatmaps.
-    
+
     Parameters
     ----------
     df : pandas.DataFrame
@@ -225,7 +147,7 @@ def plot_spearman_heatmaps(df, replicates, outpath, plot_formats):
         * ``Sample attributes`` (**str**, sample group identifier)
         * ``Compared timepoints`` (**str**)
         * `replicates`
-    
+
     replicates : list of str
         List of replicates that should feature as columns in `df`.
         Spearman correlation coefficients are obtained for each pairwise comparison
@@ -237,42 +159,50 @@ def plot_spearman_heatmaps(df, replicates, outpath, plot_formats):
     """
     labels = df["Sample attributes"].unique()
     timepoints = sorted(df["Compared timepoints"].unique())
-    g = sns.FacetGrid(
-        df,
-        col="Sample attributes",
-        col_order=labels,
-        row="Compared timepoints",
-        row_order=timepoints,
-    )
-    g.set_titles(col_template="{col_name}", row_template="{row_name}")
 
-    for i, t in enumerate(timepoints):
-        for j, l in enumerate(labels):
-            yl = []
-            for y in replicates:
-                xl = []
-                for x in replicates:
-                    xval = df[
-                        (df["Sample attributes"] == l)
-                        & (df["Compared timepoints"] == t)
-                    ][x].values
-                    yval = df[
-                        (df["Sample attributes"] == l)
-                        & (df["Compared timepoints"] == t)
-                    ][y].values
-                    spearmanr, sp = stats.spearmanr(xval, yval)
-                    xl.append(spearmanr)
-                yl.append(xl)
-            spearmanwide = pd.DataFrame(yl, columns=replicates, index=replicates)
-            sns.heatmap(
-                spearmanwide,
-                vmin=0.5,
-                vmax=1,
-                cmap="viridis_r",
-                annot=True,
-                fmt=".2f",
-                ax=g.axes[i][j],
-            )
+    # Check if enough replicates
+    if len(replicates) <= 1:
+        f, ax = plt.subplots(figsize=(4, 4))
+        ax.text(0.5, 0.5, "Not enough replicates to plot", ha="center", va="center")
+        ax.set_axis_off()  # hide axes
+
+    else:
+        g = sns.FacetGrid(
+            df,
+            col="Sample attributes",
+            col_order=labels,
+            row="Compared timepoints",
+            row_order=timepoints,
+        )
+        g.set_titles(col_template="{col_name}", row_template="{row_name}")
+
+        for i, t in enumerate(timepoints):
+            for j, l in enumerate(labels):
+                yl = []
+                for y in replicates:
+                    xl = []
+                    for x in replicates:
+                        xval = df[
+                            (df["Sample attributes"] == l)
+                            & (df["Compared timepoints"] == t)
+                        ][x].values
+                        yval = df[
+                            (df["Sample attributes"] == l)
+                            & (df["Compared timepoints"] == t)
+                        ][y].values
+                        spearmanr, sp = stats.spearmanr(xval, yval)
+                        xl.append(spearmanr)
+                    yl.append(xl)
+                spearmanwide = pd.DataFrame(yl, columns=replicates, index=replicates)
+                sns.heatmap(
+                    spearmanwide,
+                    vmin=0.5,
+                    vmax=1,
+                    cmap="viridis_r",
+                    annot=True,
+                    fmt=".2f",
+                    ax=g.axes[i][j],
+                )
     plt.savefig(outpath, format="svg", dpi=300)
     [
         plt.savefig(f"{outpath.split('.svg')[0]}.{x}", format=x, dpi=300)
@@ -283,7 +213,7 @@ def plot_spearman_heatmaps(df, replicates, outpath, plot_formats):
 
 def plot_replicate_scatter(df, replicates, outpath, plot_formats):
     r"""Plot correlation between first two replicates, for each sample group.
-    
+
     Parameters
     ----------
     df : pandas.DataFrame
@@ -292,7 +222,7 @@ def plot_replicate_scatter(df, replicates, outpath, plot_formats):
         * ``Sample attributes`` (**str**, sample group identifier)
         * ``Compared timepoints`` (**str**)
         * `replicates`
-    
+
     replicates : list of str
         List of replicates that should feature as columns in `df`.
     outpath : str
@@ -300,18 +230,25 @@ def plot_replicate_scatter(df, replicates, outpath, plot_formats):
     plot_formats : list of str
         Formats other than SVG in which the plot should be saved.
     """
-    g = sns.lmplot(
-        df,
-        x=replicates[0],
-        y=replicates[1],
-        col="Sample attributes",
-        col_wrap=3,
-        hue="Compared timepoints",
-        palette="mako",
-        height=1.5,
-        scatter_kws={"s": 8, "alpha": 0.2},
-    )
-    g.set_titles(col_template="{col_name}")
+    # Check if enough replicates
+    if len(replicates) <= 1:
+        f, ax = plt.subplots(figsize=(4, 4))
+        ax.text(0.5, 0.5, "Not enough replicates to plot", ha="center", va="center")
+        ax.set_axis_off()  # hide axes
+
+    else:
+        g = sns.lmplot(
+            df,
+            x=replicates[0],
+            y=replicates[1],
+            col="Sample attributes",
+            col_wrap=3,
+            hue="Compared timepoints",
+            palette="mako",
+            height=1.5,
+            scatter_kws={"s": 8, "alpha": 0.2},
+        )
+        g.set_titles(col_template="{col_name}")
     plt.savefig(outpath, format="svg", dpi=300)
     [
         plt.savefig(f"{outpath.split('.svg')[0]}.{x}", format=x, dpi=300)
@@ -329,7 +266,7 @@ def get_s_plots(
     plot_formats,
 ):
     r"""Aggregate data and plot functional impact scores.
-    
+
     Parameters
     ----------
     df_files : list of str
@@ -351,35 +288,36 @@ def get_s_plots(
     """
     df = concatenate_df(df_files)
     df["Replicate"] = df["Replicate"].astype(str)
-    plot_scoeff_violin(df, scoeff_plot_outpath, plot_formats)
-    plot_impact_over_time(df, s_time_plot_outpath, plot_formats)
+    plot_scoeff_violin(df.dropna(subset=["s"]), scoeff_plot_outpath, plot_formats)
+    plot_impact_over_time(df.dropna(subset=["s"]), s_time_plot_outpath, plot_formats)
 
     # Save list of replicates
-    replicates = sorted(df.Replicate.unique())
-    if len(replicates) == 1:
-        firstTwoReplicates = replicates * 2
-    else:
-        firstTwoReplicates = replicates[:2]
+    replicates = sorted(df.dropna(subset=["s"]).Replicate.unique())
 
     # Reshape dataframe
-    repwide = df.pivot(
-        index=prot_seq_attributes + ["Sample attributes", "Compared timepoints"],
-        columns="Replicate",
-        values="s",
-    ).reset_index()
-
-    plot_spearman_heatmaps(repwide, replicates, heatmaps_outpath, plot_formats)
-    plot_replicate_scatter(
-        repwide, firstTwoReplicates, replicate_plot_outpath, plot_formats
+    repwide = (
+        df.dropna(subset=["s"])
+        .pivot(
+            index=prot_seq_attributes + ["Sample attributes", "Compared timepoints"],
+            columns="Replicate",
+            values="s",
+        )
+        .reset_index()
     )
+
+    # Need to plot even if not enough replicates in order to generate expected files
+    plot_spearman_heatmaps(repwide, replicates, heatmaps_outpath, plot_formats)
+    if len(replicates) == 1:
+        plot_replicate_scatter(
+            repwide, replicates, replicate_plot_outpath, plot_formats
+        )
+    else:
+        plot_replicate_scatter(
+            repwide, replicates[:2], replicate_plot_outpath, plot_formats
+        )
+
     return
 
-
-get_allele_freq_plot(
-    snakemake.input.freq_df,
-    snakemake.output.rc_var_plot,
-    snakemake.params.plot_formats,
-)
 
 get_s_plots(
     snakemake.input.aa_df,

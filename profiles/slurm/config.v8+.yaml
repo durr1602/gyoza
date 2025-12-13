@@ -36,7 +36,7 @@ set-resources:
     time: max(int(0.002 * input.size_mb * attempt + 0.99), 1)
   cutadapt:
     time: max(int(0.01 * input.size_mb * attempt + 0.99), 1)
-  pandaseq:
+  bbmerge:
     time: max(int(0.005 * input.size_mb * attempt + 0.99), 1)
   vsearch_fastx_uniques:
     time: max(int(0.0004 * input.size_mb * attempt + 0.99), 1)
@@ -51,7 +51,7 @@ set-resources:
 
 set-threads:
   fastp: 4
-  pandaseq: 4
+  bbmerge: 8
   vsearch: 1  # This command of vsearch is not multi-threaded
 
 local-cores: 10

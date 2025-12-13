@@ -5,7 +5,7 @@ rule cutadapt_se:
         adapters=lambda wildcards: f"-g {sample_layout.loc[wildcards.sample, 'N_forward']}",
         extra="-e 0.15 --no-indels --discard-untrimmed",
     output:
-        touch("logs/2_merge/pandaseq-sample={sample}.stats"),
+        touch("logs/2_merge/bbmerge-sample={sample}.stats"),
         fastq=temp("results/2_merge/{sample}_merged.fasta"),
         qc="logs/1_trim/cutadapt-sample={sample}.stats",
     message:

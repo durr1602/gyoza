@@ -9,11 +9,16 @@ project:
     design: 'codon'
     # Specify path to folder containing project-specific files
     folder: 'config/project_files/'
-    # Specify what makes each sample unique (other than Timepoint and Replicate)
+    # Specify what makes each sample unique for any unscreened library
+    # (other than Replicate)
     sample_attributes: ['Species', 'Mating_type', 'Fragment']
+    # Specify what makes each screening condition unique
+    # (other than Timepoint)
+    screening_attributes: []
 
 reads:
     # Specify if reads are paired-end (True) or single-end (False)
+    # Set to False to only analyze R1 from paired-end
     paired: True
     # Specify path to directory containing sequencing data
     path: 'config/reads/'
@@ -32,11 +37,16 @@ random:
     # Acceptable number of amino acid changes relative to wild-type
     Nham_aa_max: 1
 
+process_all_samples: False
+    # Set to True to override sample selection specified in the Analyze/Report columns of the layout
+    # This will include all samples from the layout for both processing and reporting
+
 perform_qc: True
     # Set to True if you want to run Fastp on all raw FASTQ files and generate a MultiQC report
 
-process_read_counts: True
-    # Set to True if you want to convert read counts into functional impact scores
+process_frequencies: True
+    # Set to True if you want to convert allele frequencies into functional impact scores
+    # Set to False to analyze unscreened libraries or output samples with no matching input replicate
 
 normalize_with_gen: False
     # Set to True if you want to normalize impact scores with the number of cellular generations

@@ -15,28 +15,9 @@ import pandas as pd
 import json
 
 
-def load_codon_dic(table):
-    r"""Convert the CSV-formatted codon table to a ``dict``.
-    
-    Parameters
-    ----------
-    table : str
-        Path to CSV-formatted codon table.
-        Header must be on first line and include columns ``codon`` and ``aminoacid``
-    
-    Returns
-    -------
-    dict
-    """
-    codon_table = pd.read_csv(table, header=0)
-    codon_table["codon"] = codon_table["codon"].str.upper()
-    codon_dic = dict(zip(codon_table["codon"], codon_table["aminoacid"]))
-    return codon_dic
-
-
 def get_mutations(seq, wt, codon_dic):
     r"""Collect differences between a mutated DNA sequence and the wild-type.
-    
+
     Parameters
     ----------
     seq : str
@@ -47,7 +28,7 @@ def get_mutations(seq, wt, codon_dic):
         Length should be the same as `seq` and be a multiple of 3.
     codon_dic : dict
         Codon table associating codons to amino acid residues.
-    
+
     Returns
     -------
     is_wt : bool
@@ -77,7 +58,7 @@ def get_mutations(seq, wt, codon_dic):
         Alternative residue translated from `mutation_alt_codon`
     mutation_type : list
         Either ``silent``, ``missense`` or ``nonsense`` based on ``mutation_alt_aa``
-    
+
     Raises
     ------
     ValueError
@@ -86,16 +67,16 @@ def get_mutations(seq, wt, codon_dic):
         If the lengths of `seq` and `wt` are not equal.
     ValueError
         If `seq` contains unrecognized characters.
-    
+
     Notes
     -----
     Mutations are formatted as # mutated codon / position / alternative codon /
     alternative amino acid, in lists with matching indexes to be able
     to quickly convert to 1 row per mutation per mutated codon.
-    
+
     The alternative and corresponding wild-type codons are translated into
     their corresponding amino acid using the `codon_dic`.
-    
+
     Sequence-level attributes include the Hamming distances (``Nham``),
     i.e. the number of codon, nucleotide and amino acid changes.
     """
@@ -203,19 +184,19 @@ def get_mutations(seq, wt, codon_dic):
 
 def annotate_mutants(df, codon_dic):
     r"""Annotate a dataframe of mutated DNA sequences with mutations.
-    
+
     Parameters
     ----------
     df : pandas.DataFrame
         DataFrame containing at least two columns: ``nt_seq`` and ``WT_seq``
     codon_dic : dict
         Codon table associating codons to amino acid residues.
-    
+
     Returns
     -------
     pandas.DataFrame
         `df` with additional columns to describe mutations.
-    
+
     Notes
     -----
     Uses custom function to collect mutations by comparing each sequence
@@ -255,9 +236,9 @@ def annotate_mutants(df, codon_dic):
     return df
 
 
-def get_annotated_mutants(mut_path, outpath, position_offset, codon_table):
+def get_annotated_mutants(mut_path, outpath, position_offset, codon_dic):
     r"""Annotates non-empty dataframes of mutated DNA sequences (1 df per sample).
-    
+
     Parameters
     ----------
     mut_path : str
@@ -268,10 +249,9 @@ def get_annotated_mutants(mut_path, outpath, position_offset, codon_table):
         with column headers only (if input df is empty).
     position_offset : int
         Starting position in the full protein sequence.
-    codon_table : str
-        Path to CSV-formatted codon table.
-        Header must be on first line and include columns ``codon`` and ``aminoacid``
-    
+    codon_dic : dict
+        Codon table associating codons to amino acid residues.
+
     Notes
     -----
     One column, ``aa_pos``, is obtained by adding the position offset to the
@@ -280,9 +260,6 @@ def get_annotated_mutants(mut_path, outpath, position_offset, codon_table):
     Special care is taken to ensure that these lists can be parsed later on
     even if they are saved as strings in the CSV file at `outpath`.
     """
-    # Load codon dictionary
-    codon_dic = load_codon_dic(codon_table)
-
     # Load dataframe
     df = pd.read_csv(mut_path)
 

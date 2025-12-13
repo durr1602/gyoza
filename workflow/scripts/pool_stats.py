@@ -14,7 +14,7 @@ plt.rcParams["svg.fonttype"] = "none"
 
 def plot_stacked_barplot(df, outpath, exp_rc_per_sample, plot_formats):
     r"""Stacked bar plot of read count statistics.
-    
+
     Parameters
     ----------
     df : pandas.DataFrame
@@ -27,7 +27,7 @@ def plot_stacked_barplot(df, outpath, exp_rc_per_sample, plot_formats):
         * ``Aggregating`` (**int**, number of singletons)
         * ``Unexpected`` (**int**, number of reads for unexpected sequences)
         * ``Contain_Ns`` (**int**, number of reads discarded for containing Ns)
-    
+
     outpath : str
         Path to save bar plot as SVG (should end with ``.svg``).
     exp_rc_per_sample : float
@@ -87,7 +87,7 @@ def plot_stacked_barplot(df, outpath, exp_rc_per_sample, plot_formats):
 
 def plot_unexp_plot(df, outpath, plot_formats):
     r"""Plots distributions of read counts for unexpected variants.
-    
+
     Parameters
     ----------
     df : pandas.DataFrame
@@ -95,7 +95,7 @@ def plot_unexp_plot(df, outpath, plot_formats):
 
         * ``Sample_name`` (**str**, sample identifier)
         * ``readcount`` (**int**)
-    
+
     outpath : str
         Path to save plot as SVG (should end with ``.svg``).
     plot_formats : list of str
@@ -134,7 +134,7 @@ def get_pooled_stats(
     plot_formats,
 ):
     r"""Aggregate and plot read count statistics.
-    
+
     Parameters
     ----------
     sample_stats : list of str
@@ -157,8 +157,23 @@ def get_pooled_stats(
     """
     list_df = []
     for f in sample_stats:
+        sample_df = pd.read_csv(f)
+
+        # Calculate number of reads discarded at the trimming stage
+        sample_df["Trimming"] = (
+            sample_df["Total_raw_reads"] - sample_df["Total_trimmed_reads"]
+        )
+
+        # Calculate number of reads discarded at the merging step
+        sample_df["Merging"] = (
+            sample_df["Total_trimmed_reads"] - sample_df["Total_merged_reads"]
+        )
+
+        # Calculate number of reads discarded at the aggregating step (= number of singletons)
+        sample_df["Aggregating"] = sample_df["Nb_singletons"]
+
         list_df.append(
-            pd.read_csv(f)[
+            sample_df[
                 [
                     "Sample_name",
                     "Total_raw_reads",

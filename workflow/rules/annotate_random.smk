@@ -1,6 +1,7 @@
 rule discard_indels:
     input:
         rules.parse_fasta.output.readcounts,
+        WT_PATH,
     output:
         observed="results/df/observed_seqs/{sample}_observed.csv",
         indels=temp("results/df/indels/{sample}_indels.csv"),
@@ -17,13 +18,15 @@ rule discard_indels:
 rule annotate_random:
     input:
         rules.discard_indels.output.observed,
+        LAYOUT_PATH,
+        GEN_CODE_PATH,
     output:
         annot_rc="results/df/unfiltered/{sample}_unfiltered-rc.csv",
     params:
         position_offset=lambda wildcards: sample_layout.loc[
             wildcards.sample, "Pos_start"
         ],
-        genetic_code=GEN_CODE_PATH,
+        genetic_code=GEN_CODE,
     message:
         f"Annotating mutants observed in sequencing data (number of mutations, alternative codons, etc)"
     log:

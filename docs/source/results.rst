@@ -79,25 +79,24 @@ which is "Interactive QC report". Clicking on |eye-icon| should open the
 MultiQC report. **If it doesn't**, you can still open the MultiQC report
 separately (``results/0_qc/multiqc.html``).
 
-Read filtering
-~~~~~~~~~~~~~~
+Read processing
+~~~~~~~~~~~~~~~
 
-The "Read filtering" section contains up to two entries:
+The "Read processing" section contains up to two entries:
 
-- Aggregated: contains plots with several samples on each plots
+- Aggregated: contains plots with several samples on each plot
 
   - Summary of filtered reads
   - Read counts of unexpected variants  
 
-- Heatmaps of raw read counts
+- Heatmaps of raw read counts (one per sample)
 
-Read processing
-~~~~~~~~~~~~~~~
+Read counts and allele frequencies
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The "Read processing" section appears only when you've enabled
-``process_read_counts`` in the config. It contains:
+The "Read counts and allele frequencies" section contains:
 
-- one entry per unique combination of :ref:`sample attributes <layout>`:
+- one entry per unique combination of :ref:`attributes <layout>`:
 
   - Raw read count per variant
   - Overlap across time points and replicates
@@ -109,8 +108,10 @@ The "Read processing" section appears only when you've enabled
 Functional impact
 ~~~~~~~~~~~~~~~~~
 
-The "Functional impact" sections appears only when you've enabled
-``process_read_counts`` in the config. It contains:
+The "Functional impact" section appears only when you've enabled
+``process_frequencies`` in the :ref:`config <config-file>`
+and includes only groups for which there was at list one pair of
+matching input/output replicates. It contains:
 
 - Correlation between time points
 - Aggregated
@@ -144,6 +145,7 @@ Dataframes can be found in the ``results/df``, including:
 ``all_scores.csv`` contains the following columns (from coarse to fine):
 
 - one column per sample attribute
+- one column per screening attribute
 - ``Replicate``
 - sequence attributes:
   
@@ -197,7 +199,7 @@ median and error across replicates. The lower and upper error values
 (``lower_err`` and ``upper_err``, respectively)
 are obtained by subtracting the 2.5th or 97.5th percentile.
 
-Other columns in ``avg_scores.csv`` include the sample attributes and the
+Other columns in ``avg_scores.csv`` include the sample, screening and
 protein sequence attributes, namely:
 
 - ``Nham_aa``
@@ -205,5 +207,8 @@ protein sequence attributes, namely:
 - ``aa_pos``
 - ``alt_aa``
 - ``wt_aa``
+
+These last three columns read "``not-applicable``" for any amino acid
+sequence that does not differ from the WT by exactly one residue.
 
 Graphs can be found in the ``results/graphs`` folder.

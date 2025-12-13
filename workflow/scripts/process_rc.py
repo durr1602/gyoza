@@ -1,4 +1,4 @@
-"""Module to convert read counts into functional impact scores."""
+"""Module to calculate and plot allele frequencies."""
 
 from snakemake.script import snakemake
 import pandas as pd
@@ -15,20 +15,80 @@ from upsetplot import from_indicators
 from upsetplot import UpSet
 import warnings
 
+MUTATION_ATTRIBUTES = [
+    "mutated_codon",
+    "mutation_aa_pos",
+    "mutation_alt_codons",
+    "mutation_alt_aa",
+    "mutation_type",
+]
+
+SEQUENCE_ATTRIBUTES = [
+    "nt_seq",
+    "aa_seq",
+    "Nham_nt",
+    "Nham_aa",
+    "Nham_codons",
+    "aa_pos",
+    "alt_aa",
+    "wt_aa",
+]
+
 CSCORES = [1, 2, 3]
 CSCORE_COLORS = ["green", "orange", "red"]
 
 
+def load_read_counts(readcount_files, layout):
+    """Load read counts for each sample, merge with layout and concatenate.
+
+    Parameters
+    ----------
+    readcount_files : list of str
+        List of paths to CSV-formatted dataframes of read counts per sample.
+    layout : pandas.DataFrame
+        Dataframe of sample layout.
+
+    Returns
+    -------
+    pandas.DataFrame
+    """
+    df_list = []
+
+    for f in readcount_files:
+        groupdf = pd.read_csv(
+            f,
+            dtype={
+                "WT": "boolean",  # Boolean type supports missing data
+                "mutation_aa_pos": str,
+            },
+            converters={
+                "aa_pos": json.loads,  # List
+                "alt_aa": json.loads,  # List
+                "wt_aa": json.loads,  # List
+            },
+        )
+        groupdf = groupdf.merge(
+            layout[["Timepoint", "Replicate"]],
+            left_on="Sample_name",
+            right_index=True,
+        )
+        df_list.append(groupdf.explode(["aa_pos", "alt_aa", "wt_aa"]))
+
+    df = pd.concat(df_list, ignore_index=True)
+
+    return df
+
+
 def get_confidence_score(g, threshold):
     r"""Get confidence score based on read count at T0.
-    
+
     Parameters
     ----------
     g : pandas.Series
         Read counts across replicates for a single sequence.
     threshold : int
         Read count threshold.
-    
+
     Returns
     -------
     {1, 2, 3}
@@ -46,9 +106,97 @@ def get_confidence_score(g, threshold):
         return 3
 
 
+def build_variant_matrix(df, sample_group, rc_level, barcode_attributes, rc_threshold):
+    """Build matrix of variants across time points and replicates.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Dataframe of read counts. Should contain columns:
+
+        * ``Sample_name`` (**str**, unique sample identifier)
+        * ``Timepoint`` (**str**)
+        * ``Replicate`` (**str**)
+        * ``WT`` (**boolean**, is WT or not)
+        * ``mutation_aa_pos`` (**str**, position in the protein sequence
+        at which the wild-type codon has been mutated
+        * ``aa_pos`` (**list** of positions in the protein sequence
+        at which the wild-type residue has been mutated
+        * ``alt_aa`` (**list** of alternative amino acid residues at ``aa_pos``)
+        * ``wt_aa`` (**list** of wild-type amino acid residues at ``aa_pos``)
+
+    sample_group : str
+        Sample group identifier.
+        Should contain sample and screening attributes concatenated with ``__``.
+    rc_level : {"nt_seq", "barcode"}
+        Level to which read counts are attributed.
+    barcode_attributes : list of str
+        List of barcode attributes (includes `rc_level`).
+    rc_threshold : int
+        Threshold to label variants with a confidence score based on their
+        read count at T0 across replicates.
+
+    Returns
+    -------
+    df : pandas.DataFrame
+        Matrix of variants
+    TR_sample_dict : dict
+        Dictionary mapping each combination of time points and replicates
+        with the corresponding ``Sample_name`` value as in `df`.
+
+    Warns
+    -----
+    UserWarning
+        If less than 75% high confidence variants.
+
+    """
+    # Build mapping conditions <> samples
+    df["TR"] = df["Timepoint"] + "_" + df["Replicate"]
+    TR_sample_dict = (
+        df[["TR", "Sample_name"]]
+        .drop_duplicates()
+        .set_index("TR")["Sample_name"]
+        .to_dict()
+    )
+    T0_conditions = [x for x in TR_sample_dict.keys() if "T0" in x]
+
+    # Add rows corresponding to variants not present in all replicates/time points
+    upset = df.pivot_table(
+        index=MUTATION_ATTRIBUTES + SEQUENCE_ATTRIBUTES + barcode_attributes,
+        columns="TR",
+        values="readcount",
+        fill_value=0,
+    ).reset_index(level=MUTATION_ATTRIBUTES + SEQUENCE_ATTRIBUTES + barcode_attributes)
+
+    upset["confidence_score"] = upset[T0_conditions].apply(
+        lambda row: get_confidence_score(row, rc_threshold), axis=1
+    )
+
+    # Get total number of sequences
+    tot_rc_level = upset[rc_level].nunique()
+
+    # Determine how many "high confidence" variants
+    high_conf_count = upset[upset["confidence_score"] == 1][rc_level].nunique()
+
+    # Compute proportion
+    high_conf_fraction = high_conf_count / tot_rc_level
+
+    # Warn if less than 75%
+    if high_conf_fraction < 0.75:
+        cscore_statement = (
+            f"Warning: For group {sample_group}, less than 75% of your {rc_level}s are labeled with high confidence "
+            f"(i.e., sequenced fewer than {rc_threshold} times in all replicates). "
+            "Because only these variants are used to calculate a median score across replicates,"
+            "consider reviewing the config file and adjusting the rc_threshold parameter."
+        )
+        warnings.warn(cscore_statement, UserWarning)
+
+    return upset, TR_sample_dict
+
+
 def plot_rc_per_seq(df1, df2, outpath, sample_group, thresh, thresh_freq, plot_formats):
     r"""Plot side-by-side distributions of read counts/frequencies.
-    
+
     Parameters
     ----------
     df1 : pandas.DataFrame
@@ -77,7 +225,7 @@ def plot_rc_per_seq(df1, df2, outpath, sample_group, thresh, thresh_freq, plot_f
     ax2.set(xlabel="Frequency")
 
     plt.subplots_adjust(top=0.9)
-    plt.suptitle(f"Samples attributes: {sample_group}")
+    plt.suptitle(f"{sample_group}")
     plt.savefig(outpath, format="svg", dpi=300)
     [
         plt.savefig(f"{outpath.split('.svg')[0]}.{x}", format=x, dpi=300)
@@ -88,7 +236,7 @@ def plot_rc_per_seq(df1, df2, outpath, sample_group, thresh, thresh_freq, plot_f
 
 def plot_upset_TR(df, conditions, outpath, sample_group, plot_formats):
     r"""Plot overlap of unique sequences found across time points and replicates.
-    
+
     Parameters
     ----------
     df : pandas.DataFrame
@@ -99,7 +247,7 @@ def plot_upset_TR(df, conditions, outpath, sample_group, plot_formats):
           time point / replicate)
         * ``confidence_score``
         * ``mean_input`` (**float**, average read frequency at T0)
-    
+
     conditions : list of str
         Columns in `df`, should refer to combinations of time point / replicate
     outpath : str
@@ -107,89 +255,61 @@ def plot_upset_TR(df, conditions, outpath, sample_group, plot_formats):
     plot_formats : list of str
         Formats other than SVG in which the plot should be saved.
     """
-    fig = plt.figure(figsize=(6, 6))
-    upset_obj = UpSet(
-        from_indicators(conditions, data=df),
-        # show_percentages=True,
-        show_counts=True,
-        min_subset_size="1%",
-        sort_by="cardinality",
-        element_size=None,
-        intersection_plot_elements=0,  # height of intersection barplot in matrix elements
-        totals_plot_elements=2,  # width of totals barplot in matrix elements
-    )
-
-    upset_obj.add_stacked_bars(
-        by="confidence_score", colors=dict(zip(CSCORES, CSCORE_COLORS)), elements=3
-    )
-
-    upset_obj.add_catplot(
-        value="mean_input",
-        kind="violin",
-        cut=0,
-        density_norm="count",
-        log_scale=10,
-        linewidth=0.5,
-        elements=3,  # height in number of matrix elements
-    )
-
-    d = upset_obj.plot(
-        fig=fig
-    )  # Assigns all plots to a dictionary containing axes subplots - same keys as gridspec returned by upset_obj.make_grid()
-    ax0 = d[
-        "extra0"  # Key corresponding to 1st stacked barplot - confidence score ('intersections' = intersection barplot)
-    ]
-    ax1 = d["extra1"]  # Key corresponding to 1st catplot - read count for input samples
-
-    ax0.set_ylabel("# Variants")
-    ax0.legend(title="Confidence score")
-
-    ax1.set_ylabel("Mean\nT0 freq.")
-
-    plt.subplots_adjust(top=0.95)
-    plt.suptitle(f"Samples attributes: {sample_group}")
-
-    plt.savefig(outpath, format="svg", dpi=300)
-    [
-        plt.savefig(f"{outpath.split('.svg')[0]}.{x}", format=x, dpi=300)
-        for x in plot_formats
-    ]
-    return
-
-
-def plot_timepoint_corr(df, outpath, sample_group, plot_formats):
-    r"""Plot pairwise comparisons of functional impact scores between time points.
-    
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        Dataframe of functional impact scores.
-        Should contain column ``confidence_score``.
-    outpath : str
-        Path to save plot as SVG (should end with ``.svg``).
-    sample_group: str
-        Sample group identifier
-    plot_formats : list of str
-        Formats other than SVG in which the plot should be saved.
-    """
-    # Check number of columns
-    if len([x for x in df.columns if x != "confidence_score"]) <= 1:
+    # Check number of conditions
+    if len(conditions) < 2:
         f, ax = plt.subplots(figsize=(max(4, 0.1 * len(sample_group)), 4))
-        ax.text(0.5, 0.5, "Not enough time points to plot", ha="center", va="center")
-        ax.set_axis_off()  # hide axes
-    else:
-        g = sns.pairplot(
-            df,
-            hue="confidence_score",
-            hue_order=CSCORES,
-            palette=dict(zip(CSCORES, CSCORE_COLORS)),
-            plot_kws={"s": 8, "alpha": 0.2},
-            height=1.5,
-            corner=True,
+        ax.text(
+            0.5, 0.5, "Not enough conditions\nto plot overlap", ha="center", va="center"
         )
-        g.tight_layout()
-        plt.subplots_adjust(top=0.9)
-    plt.suptitle(f"Samples attributes: {sample_group}")
+        ax.set_axis_off()  # hide axes
+
+    else:
+        fig = plt.figure(figsize=(6, 6))
+        upset_obj = UpSet(
+            from_indicators(conditions, data=df),
+            # show_percentages=True,
+            show_counts=True,
+            min_subset_size="1%",
+            sort_by="cardinality",
+            element_size=None,
+            intersection_plot_elements=0,  # height of intersection barplot in matrix elements
+            totals_plot_elements=2,  # width of totals barplot in matrix elements
+        )
+
+        upset_obj.add_stacked_bars(
+            by="confidence_score", colors=dict(zip(CSCORES, CSCORE_COLORS)), elements=3
+        )
+
+        if df["mean_input"].values[0] != "not-applicable":
+            upset_obj.add_catplot(
+                value="mean_input",
+                kind="violin",
+                cut=0,
+                density_norm="count",
+                log_scale=10,
+                linewidth=0.5,
+                elements=3,  # height in number of matrix elements
+            )
+
+        d = upset_obj.plot(
+            fig=fig
+        )  # Assigns all plots to a dictionary containing axes subplots - same keys as gridspec returned by upset_obj.make_grid()
+        ax0 = d[
+            "extra0"  # Key corresponding to 1st stacked barplot - confidence score ('intersections' = intersection barplot)
+        ]
+
+        ax0.set_ylabel("# Variants")
+        ax0.legend(title="Confidence score")
+
+        if "extra1" in d.keys():
+            ax1 = d[
+                "extra1"
+            ]  # Key corresponding to 1st catplot - read count for input samples
+            ax1.set_ylabel("Mean\nT0 freq.")
+
+        plt.subplots_adjust(top=0.95)
+
+    plt.suptitle(f"{sample_group}")
 
     plt.savefig(outpath, format="svg", dpi=300)
     [
@@ -199,233 +319,66 @@ def plot_timepoint_corr(df, outpath, sample_group, plot_formats):
     return
 
 
-def get_selcoeffs(
-    readcount_files,
-    nbgen_path,
-    outpath,
-    avg_outpath,
-    histplot_outpath,
-    upsetplot_outpath,
-    timepointsplot_outpath,
-    freq_outpath,
-    aa_df_outpath,
+def get_frequencies(
+    upset,
+    TR_sample_dict,
     sample_group,
-    layout_path,
-    sample_attributes,
-    rc_level,
     barcode_attributes,
     rc_threshold,
-    plot_formats,
+    freq_outpath,
 ):
-    r"""Convert read counts into functional impact scores for grouped samples.
-    
+    """Calculate read frequencies for grouped samples.
+
     Parameters
     ----------
-    readcount_files : list of str
-        List of paths to CSV-formatted dataframes of read counts per sample.
-    nbgen_path : str
-        Path to CSV-formatted dataframe containing the number of mitotic
-        generations between T0 and each time point.
-    outpath : str
-        Path to save output dataframe of functional impact scores.
-    avg_outpath : str
-        Path to save output dataframe of fitness and error values (functional
-        impact scores averaged over replicates for high confidence variants only).
-    histplot_outpath : str
-        Path to save plot with distributions of read counts/frequencies as SVG
-        (should end with ``.svg``).
-    upsetplot_outpath : str
-        Path to save upset plot showing overlap of unique sequences found across
-        time points and replicates, as SVG (should end with ``.svg``).
-    timepointsplot_outpath : str
-        Path to save plot with comparisons between time points as SVG
-        (should end with ``.svg``).
-    freq_outpath : str
-        Path to save output dataframe of allele frequencies.
-    aa_df_outpath : str
-        Path to save output dataframe of functional impact scores aggregated at
-        the protein level.
+    upset : pandas.DataFrame
+        Matrix of variants.
+    TR_sample_dict : dict
+        Dictionary mapping each combination of time points and replicates
+        with the corresponding ``Sample_name`` value as in `df`.
     sample_group : str
         Sample group identifier.
-        Should contain sample attributes concatenated with ``__``.
-    layout_path : str
-        Path to CSV-formatted sample layout.
-    sample_attributes : list of str
-        List of sample attributes.
-        The corresponding values should feature in `sample_group`.
-    rc_level : {"nt_seq", "barcode"}
-        Level to which read counts are attributed.
+        Should contain sample and screening attributes concatenated with ``__``.
     barcode_attributes : list of str
         List of barcode attributes (includes `rc_level`).
     rc_threshold : int
         Threshold to label variants with a confidence score based on their
         read count at T0 across replicates.
-    plot_formats : list of str
-        Formats other than SVG in which the plot should be saved.
-    
-    Raises
-    ------
-    Exception
-        In case of null sample depth.
-    
-    Warns
-    -----
-    UserWarning
-        If too many low confidence variants.
-    
-    Notes
-    -----
-    Functional impact scores are obtained with a log ratio method:
-    
-    .. math:: s_v=\ \log_2{\left(\frac{c_{v,output}}{\sum\nolimits_{i} c_{i,\ output}}\right)}\ -\log_2{\left(\frac{c_{v,input}}{\sum\nolimits_{i} c_{i,\ input}}\right)}
-    
-    with :math:`c_v` being the raw read count of a variant + 1,
-    "input" being T0 and "output" designating any post-screening time point.
+    freq_outpath : str
+        Path to save output dataframe of allele frequencies for downstream
+        processing (plots + calculation of functional impact scores).
+
+    Returns
+    -------
+    freq : pandas.DataFrame
+        Unmelted version of dataframe saved at `freq_outpath`.
     """
-    mutation_attributes = [
-        "mutated_codon",
-        "mutation_aa_pos",
-        "mutation_alt_codons",
-        "mutation_alt_aa",
-        "mutation_type",
-    ]
-
-    sequence_attributes = [
-        "nt_seq",
-        "aa_seq",
-        "Nham_nt",
-        "Nham_aa",
-        "Nham_codons",
-        "aa_pos",
-        "alt_aa",
-        "wt_aa",
-    ]
-
-    prot_seq_attributes = [
-        "Nham_aa",
-        "aa_seq",
-        "aa_pos",
-        "alt_aa",
-        "wt_aa",
-    ]
-
-    # Get back tuple from str wildcard
-    sample_group_tuple = tuple(sample_group.split("__"))
-
-    layout = pd.read_csv(
-        layout_path,
-        dtype={
-            "Replicate": str,
-        },
-    ).set_index("Sample_name")
-
-    df_list = []
-
-    for f in readcount_files:
-        groupdf = pd.read_csv(
-            f,
-            dtype={
-                "WT": "boolean",  # Boolean type supports missing data
-                "mutation_aa_pos": str,
-            },
-            converters={
-                "aa_pos": json.loads,  # List
-                "alt_aa": json.loads,  # List
-                "wt_aa": json.loads,  # List
-            },
-        )
-        groupdf = groupdf.merge(
-            layout[["Timepoint", "Replicate"]],
-            left_on="Sample_name",
-            right_index=True,
-        )
-        df_list.append(groupdf.explode(["aa_pos", "alt_aa", "wt_aa"]))
-
-    df = pd.concat(df_list, ignore_index=True)
-
-    # Add rows corresponding to variants not present in all replicates/time points
-    df["TR"] = df["Timepoint"] + "_" + df["Replicate"]
-    conditions = df.TR.unique()
-    T0_conditions = [x for x in conditions if "T0" in x]
-
-    upset = df.pivot_table(
-        index=mutation_attributes + sequence_attributes + barcode_attributes,
-        columns="TR",
-        values="readcount",
-        fill_value=0,
-    ).reset_index(level=mutation_attributes + sequence_attributes + barcode_attributes)
-
-    upset["confidence_score"] = upset[T0_conditions].apply(
-        lambda row: get_confidence_score(row, rc_threshold), axis=1
-    )
-    sequence_attributes += ["confidence_score"]
-
-    # Get total number of sequences
-    tot_rc_level = upset[rc_level].nunique()
-
-    # Determine how many sequences are labeled with lowest confidence_score
-    low_conf_count = upset[upset["confidence_score"] == 3][rc_level].nunique()
-
-    # Compute proportion
-    low_conf_fraction = low_conf_count / tot_rc_level
-
-    # Warn if more than 25%
-    if low_conf_fraction > 0.25:
-        cscore_statement = (
-            f"Warning: More than 25% of your {rc_level}s are labeled with low confidence "
-            f"(i.e., sequenced fewer than {rc_threshold} times in all replicates). "
-            "Consider reviewing the config file and adjusting the rc_threshold parameter."
-        )
-        warnings.warn(cscore_statement, UserWarning)
-
-    # Calculate frequencies
-    freq = upset.copy()
+    # Retrieve conditions
+    conditions = list(TR_sample_dict)
     freq_conditions = [f"{x}_freq" for x in conditions]
-    T0_freq = [x for x in freq_conditions if "T0" in x]
 
-    if (freq[conditions].sum() == 0).any(axis=None):
+    if (upset[conditions].sum() == 0).any(axis=None):
         raise Exception(
             f"Oops.. at least one of your condition (and/or combination of time point and replicate) shows a null sample depth (no reads at all!)\n"
             f"Make sure your sample layout is OK. Unique combination of attributes should each have their T0 samples referencing the same FASTQ files."
         )
 
+    # Calculate frequencies
+    freq = upset.copy()
     freq[freq_conditions] = freq[conditions].add(1) / freq[conditions].sum()
 
     # Retrieve overall mean frequency corresponding to the specified read count threshold
     mean_thresh_freq = (
         np.log10((rc_threshold + 1) / freq.groupby("nt_seq")[conditions].first().sum())
     ).mean(axis=None)
-
-    # Plot read count per sequence
-    graph1df = freq.groupby("nt_seq")[conditions].first()
-    graph2df = freq.groupby("nt_seq")[freq_conditions].first()
-    plot_rc_per_seq(
-        graph1df,
-        graph2df,
-        histplot_outpath,
-        sample_group,
-        rc_threshold,
-        mean_thresh_freq,
-        plot_formats,
-    )
-
-    # Plot overlap across time points and replicates
-    upset_freq = freq.copy()
-    upset_freq["mean_input"] = upset_freq[T0_freq].mean(axis=1)
-    bool_conditions = [f"{x}_indicator" for x in conditions]
-    upset_freq[bool_conditions] = upset_freq[conditions].astype(bool)
-    upset_sub = (
-        upset_freq.groupby("nt_seq")[
-            bool_conditions + ["mean_input", "confidence_score"]
-        ]
-        .first()
-        .rename(columns=dict(zip(bool_conditions, conditions)))
-    )
-    plot_upset_TR(upset_sub, conditions, upsetplot_outpath, sample_group, plot_formats)
+    freq["Mean_exp_freq"] = mean_thresh_freq
 
     # Reshape dataframe
     longfreq = freq.melt(
-        id_vars=mutation_attributes + sequence_attributes + barcode_attributes,
+        id_vars=MUTATION_ATTRIBUTES
+        + SEQUENCE_ATTRIBUTES
+        + barcode_attributes
+        + ["confidence_score", "Mean_exp_freq"],
         value_vars=freq_conditions,
         var_name="TR_freq",
         value_name="frequency",
@@ -433,215 +386,147 @@ def get_selcoeffs(
     ).reset_index(drop=True)
     longfreq["Timepoint"] = longfreq.TR_freq.apply(lambda x: x.split("_")[0])
     longfreq["Replicate"] = longfreq.TR_freq.apply(lambda x: x.split("_")[1])
-    timepoints = sorted(longfreq.Timepoint.unique())
-
-    # Output dataframe to plot distribution of allele frequencies
-    longfreq_per_seq = (
-        longfreq.groupby(
-            sequence_attributes + barcode_attributes + ["Timepoint", "Replicate"]
-        )[["frequency"]]
-        .first()
-        .reset_index()
+    longfreq["Sample attributes"] = sample_group
+    longfreq["Sample_name"] = longfreq.TR_freq.apply(
+        lambda x: TR_sample_dict.get(x.split("_freq")[0])
     )
-    # Save metadata in df for simplicity
-    longfreq_per_seq["Sample attributes"] = sample_group
-    longfreq_per_seq["Mean_exp_freq"] = mean_thresh_freq
-    longfreq_per_seq.to_csv(freq_outpath, index=False)
+    longfreq.to_csv(freq_outpath, index=False)
 
-    # Calculate Log2(fold-change) for every time point relative to T0
-    # We cannot just go back to wide format since we need to melt Replicate --> pivot again
-    freq_wide = longfreq.pivot(
-        index=mutation_attributes
-        + sequence_attributes
-        + barcode_attributes
-        + ["Replicate"],
-        columns="Timepoint",
-        values="frequency",
+    return freq
+
+
+def main(
+    readcount_files,
+    sample_group,
+    layout,
+    freq_outpath,
+    histplot_outpath,
+    upsetplot_outpath,
+    reported_samples,
+    plot_formats,
+    rc_level,
+    barcode_attributes,
+    rc_threshold,
+):
+    """Convert read counts into frequencies and generate diagnostic plots.
+
+    Parameters
+    ----------
+    readcount_files : list of str
+        List of paths to CSV-formatted dataframes of read counts per sample.
+    sample_group : str
+        Sample group identifier.
+        Should contain sample and screening attributes concatenated with ``__``.
+    layout : pandas.DataFrame
+        Dataframe of sample layout.
+    freq_outpath : str
+        Path to save output dataframe of allele frequencies for downstream
+        processing (plots + calculation of functional impact scores).
+    histplot_outpath : str
+        Path to save plot with distributions of read counts/frequencies as SVG
+        (should end with ``.svg``).
+    upsetplot_outpath : str
+        Path to save upset plot showing overlap of unique sequences found across
+        time points and replicates, as SVG (should end with ``.svg``).
+    reported_samples : list of str
+        List of samples to include in plot.
+    plot_formats : list of str
+        Formats other than SVG in which the plot should be saved.
+    rc_level : {"nt_seq", "barcode"}
+        Level to which read counts are attributed.
+    barcode_attributes : list of str
+        List of barcode attributes (includes `rc_level`).
+    rc_threshold : int
+        Threshold to label variants with a confidence score based on their
+        read count at T0 across replicates.
+
+    """
+    df = load_read_counts(readcount_files, layout)
+    upset, TR_sample_dict = build_variant_matrix(
+        df, sample_group, rc_level, barcode_attributes, rc_threshold
     )
-    lfc_combinations = [(x, "T0") for x in timepoints[1:]]
-    lfc_cols = [f'Lfc_{"_".join(x)}' for x in lfc_combinations]
-    for i, v in enumerate(lfc_cols):
-        freq_wide[v] = freq_wide.apply(
-            lambda row: np.log2(
-                row[lfc_combinations[i][0]] / row[lfc_combinations[i][1]]
-            ),
-            axis=1,
-        )
-
-    # Normalize with number of cellular generations
-    nbgen_df = pd.read_csv(nbgen_path, dtype={"Replicate": str})
-    # Select correct group
-    nbgen_group = nbgen_df[
-        nbgen_df[sample_attributes].apply(tuple, axis=1) == sample_group_tuple
-    ]
-    nbgen_wide = nbgen_group.pivot(
-        index="Replicate", columns="Timepoint", values="Nb_gen"
-    )
-    nbgen_wide.columns = [f"{x}_gen" for x in nbgen_wide.columns]
-    gen_cols = nbgen_wide.columns
-    lfc_wide = freq_wide.reset_index().merge(
-        right=nbgen_wide.reset_index(), on="Replicate"
-    )
-
-    for x in list(zip(lfc_cols, gen_cols)):
-        lfc_wide[x[0]] /= lfc_wide[x[1]]
-
-    # Normalize with median of silent mutants
-    syn = (
-        lfc_wide[(lfc_wide.Nham_nt > 0) & (lfc_wide.Nham_aa == 0)]
-        .groupby(["Replicate", "nt_seq"])[lfc_cols]
-        .first()
-        .reset_index()
-    )
-    mediansyn = syn.groupby("Replicate")[lfc_cols].median()
-    mediansyn.columns = [x.replace("Lfc", "med") for x in mediansyn.columns]
-    med_cols = mediansyn.columns
-
-    # Calculate functional impact scores
-    selcoeff_cols = [x.replace("Lfc", "s") for x in lfc_cols]
-    s_wide = lfc_wide.merge(right=mediansyn.reset_index(), on="Replicate")
-    for i, s in enumerate(selcoeff_cols):
-        s_wide[s] = s_wide[lfc_cols[i]] - s_wide[med_cols[i]]
-
-    # Save metadata in df for simplicity
-    s_wide[sample_attributes] = sample_group_tuple
-
-    # Export full dataframe
-    s_wide[
-        sample_attributes + ["Replicate"] + sequence_attributes + mutation_attributes + barcode_attributes + selcoeff_cols
-    ].to_csv(outpath, index=False)
-
-    # Calculate median functional impact score (over synonymous codons), for each replicate separately
-    median_df = (
-        s_wide.groupby(["Replicate"] + prot_seq_attributes)[
-            selcoeff_cols + ["confidence_score"]
-        ]
-        .agg(
-            dict(
-                zip(
-                    selcoeff_cols + ["confidence_score"],
-                    ["median"] * len(selcoeff_cols) + ["min"],
-                )
-            )
-        )
-        .reset_index(level=prot_seq_attributes)
+    freq = get_frequencies(
+        upset,
+        TR_sample_dict,
+        sample_group,
+        barcode_attributes,
+        rc_threshold,
+        freq_outpath,
     )
 
-    # Plot correlation between time points
-    dataset1_r1 = median_df.index[0]  # select first replicate only
-    graphdf = median_df.loc[dataset1_r1].reset_index()[
-        selcoeff_cols + ["confidence_score"]
+    # Get conditions from samples marked for reporting
+    reported_conditions = [
+        k for k, v in TR_sample_dict.items() if v in reported_samples
     ]
 
-    # Warn if many low confidence variants
-    # Note: we do this here since there's the same number of variants for each replicate
-    has_score = graphdf[selcoeff_cols].notna().any(axis=1)
-    perc_counts = graphdf[has_score].groupby("confidence_score").size()
-    perc_by_score = (
-        perc_counts.div(perc_counts.sum()).to_frame("proportion").reset_index()
-    )
-    if (
-        perc_by_score.loc[(perc_by_score.confidence_score == 1, "proportion")] < 0.75
-    ).any():
-        warnings.warn(
-            f"Warning.. Group {sample_group} shows less than 75% of variants labeled with high confidence.\n"
-            "Because only these variants are used to calculate a median score across replicates,"
-            "you may want to double check the config file and adjust the rc_threshold parameter.",
-            UserWarning,
+    if reported_conditions:
+        # Retrieve mean expected frequency based on read count threshold
+        mean_thresh_freq = freq["Mean_exp_freq"].values[0]
+
+        # Plot read count per sequence
+        graph1df = freq.groupby("nt_seq")[reported_conditions].first()
+        graph2df = freq.groupby("nt_seq")[
+            [f"{x}_freq" for x in reported_conditions]
+        ].first()
+
+        plot_rc_per_seq(
+            graph1df,
+            graph2df,
+            histplot_outpath,
+            sample_group,
+            rc_threshold,
+            mean_thresh_freq,
+            plot_formats,
         )
 
-    # Note: I decided to keep low confidence variants in this plot
-    # but we filter right after
-    plot_timepoint_corr(graphdf, timepointsplot_outpath, sample_group, plot_formats)
-
-    # Filter only high confidence variants + reshape
-    median_long = (
-        median_df[median_df.confidence_score == 1]
-        .melt(
-            id_vars=prot_seq_attributes,
-            value_vars=selcoeff_cols,
-            var_name="Compared timepoints",
-            value_name="s",
-            ignore_index=False,
-        )
-        .reset_index()
-    )
-    # Rename column to keep only output time point (all are compared relative to T0)
-    median_long["Compared timepoints"] = median_long["Compared timepoints"].apply(
-        lambda x: x.split("_")[1]
-    )
-    # Save metadata in df for simplicity
-    median_long["Sample attributes"] = sample_group
-
-    # Output dataframe to plot more graphs (aggregating over sample groups)
-    median_long.to_csv(aa_df_outpath, index=False)
-
-    # Calculate median across replicates for high confidence variants
-    avg_df = (
-        median_df[median_df.confidence_score == 1]
-        .groupby(prot_seq_attributes)[selcoeff_cols]
-        .agg(
-            [
-                "median",
-                lambda x: (
-                    np.percentile(x.dropna(), 2.5) if len(x.dropna()) > 0 else np.nan
-                ),
-                lambda x: (
-                    np.percentile(x.dropna(), 97.5) if len(x.dropna()) > 0 else np.nan
-                ),
-            ]
-        )
-    )
-
-    # Rename columns
-    cols_to_rename = [x for x in avg_df.columns if x not in prot_seq_attributes]
-    new_names = []
-    for c in cols_to_rename:
-        if c[1] == "median":
-            new_names.append(f"fitness_{c[0].split('_')[1]}")
-        elif c[1] == "<lambda_0>":
-            new_names.append(f"lower_err_{c[0].split('_')[1]}")
-        elif c[1] == "<lambda_1>":
-            new_names.append(f"upper_err_{c[0].split('_')[1]}")
+        # Plot overlap across time points and replicates
+        upset_freq = freq.copy()
+        T0_reported_conditions = [f"{x}_freq" for x in reported_conditions if "T0" in x]
+        if T0_reported_conditions:
+            upset_freq["mean_input"] = upset_freq[T0_reported_conditions].mean(axis=1)
         else:
-            print("could not rename columns")
+            upset_freq["mean_input"] = "not-applicable"
+        bool_conditions = [f"{x}_indicator" for x in reported_conditions]
+        upset_freq[bool_conditions] = upset_freq[reported_conditions].astype(bool)
+        upset_sub = (
+            upset_freq.groupby("nt_seq")[
+                bool_conditions + ["mean_input", "confidence_score"]
+            ]
+            .first()
+            .rename(columns=dict(zip(bool_conditions, reported_conditions)))
+        )
+        plot_upset_TR(
+            upset_sub,
+            reported_conditions,
+            upsetplot_outpath,
+            sample_group,
+            plot_formats,
+        )
 
-    avg_df.columns = new_names
-
-    for x in new_names:
-        if "lower_err_" in x:
-            tp = x.split("lower_err_")[1]
-            avg_df[x] = avg_df[f"fitness_{tp}"] - avg_df[x]
-        elif "upper_err_" in x:
-            tp = x.split("upper_err_")[1]
-            avg_df[x] = avg_df[x] - avg_df[f"fitness_{tp}"]
-
-    # Save metadata in df for simplicity
-    avg_df[sample_attributes] = sample_group_tuple
-
-    # Export dataframe with fitness and error values
-    avg_df.reset_index()[
-        sample_attributes + prot_seq_attributes + new_names
-    ].to_csv(avg_outpath, index=False)
-
-    return
+    else:
+        # Empty plots with distinct message (samples not marked for reporting)
+        f, ax = plt.subplots(figsize=(max(4, 0.1 * len(sample_group)), 4))
+        ax.text(0.5, 0.5, "Samples not marked for reporting", ha="center", va="center")
+        ax.set_axis_off()  # hide axes
+        plt.suptitle(f"{sample_group}")
+        plt.savefig(histplot_outpath, format="svg", dpi=300)
+        plt.savefig(upsetplot_outpath, format="svg", dpi=300)
+        for x in plot_formats:
+            plt.savefig(f"{histplot_outpath.split('.svg')[0]}.{x}", format=x, dpi=300)
+            plt.savefig(f"{upsetplot_outpath.split('.svg')[0]}.{x}", format=x, dpi=300)
 
 
-get_selcoeffs(
-    snakemake.input.readcounts,
-    snakemake.input.nbgen,
-    snakemake.output.selcoeffs,
-    snakemake.output.avg_scores,
-    snakemake.output.hist_plot,
-    snakemake.output.upset_plot,
-    snakemake.output.timepoints_plot,
-    snakemake.output.freq_df,
-    snakemake.output.aa_df,
-    snakemake.wildcards.group_key,
-    snakemake.params.layout,
-    snakemake.params.sample_attributes,
-    snakemake.params.readcount_level,
-    snakemake.params.barcode_attributes,
-    snakemake.params.rc_threshold,
-    snakemake.params.plot_formats,
-)
+if __name__ == "__main__":
+    main(
+        snakemake.input.readcounts,
+        snakemake.wildcards.group_key,
+        snakemake.params.layout,
+        snakemake.output.freq_df,
+        snakemake.output.hist_plot,
+        snakemake.output.upset_plot,
+        snakemake.params.reported_samples,
+        snakemake.params.plot_formats,
+        snakemake.params.readcount_level,
+        snakemake.params.barcode_attributes,
+        snakemake.params.rc_threshold,
+    )

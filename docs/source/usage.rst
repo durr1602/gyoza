@@ -26,6 +26,8 @@ the workflow (built dynamically based on the config). If you’re running the wo
 the first time and you toggled in normalization with growth data, you should see a
 warning prompting you to :ref:`edit the generated template file <norm-gen>`.
 
+.. _run-pipeline:
+
 Run pipeline
 ------------
 

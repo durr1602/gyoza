@@ -6,7 +6,7 @@ import pandas as pd
 
 def concatenate_dfs(input_dfs, output_df):
     r"""Concatenate a list of dataframes into a single one.
-    
+
     Parameters
     ----------
     input_dfs : list of str

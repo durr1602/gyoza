@@ -1,10 +1,17 @@
 rule format_read_counts:
     input:
-        "results/df/annotated_readcounts/{sample}_annot_rc.csv",
+        GEN_CODE_PATH,
+        readcounts="results/df/annotated_readcounts/{sample}_annot_rc.csv",
     output:
         heatmap_df="results/df/formatted_readcounts/{sample}_format_rc.csv",
         heatmap_meta="results/heatmap_metadata/{sample}_rc.pkl",
     params:
+        wt=lambda wc: {
+            "nt": mutseq_to_wtseq[sample_to_mutseq[wc.sample]],
+            "aa": mutseq_to_wtaa[sample_to_mutseq[wc.sample]],
+            "pos_start": int(sample_layout.loc[wc.sample, "Pos_start"]),
+        },
+        codon_table=codon_table,
         exp_rc=float(config["reads"]["exp_rc_per_sample"]),
     message:
         f"Format read counts.."
@@ -24,7 +31,7 @@ rule plot_read_counts:
         report(
             "results/graphs/heatmap_readcount_{sample}.svg",
             "../report/heatmap_rc.rst",
-            category="1. Read filtering",
+            category="1. Read processing",
             subcategory="1.2. Heatmaps of raw read counts",
             labels={"figure": "{sample}"},
         ),

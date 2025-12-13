@@ -9,7 +9,7 @@ use-conda: True
 
 set-threads:
   fastp: 4
-  pandaseq : 4
+  bbmerge: 8
 
 # Manually allocate more memory to specific rules
 # (uncomment following lines to do so)

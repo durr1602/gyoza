@@ -9,14 +9,14 @@ rule pool_stats:
         rc_filter_plot=report(
             "results/graphs/rc_filter_plot.svg",
             "../report/rc_filter_plot.rst",
-            category="1. Read filtering",
+            category="1. Read processing",
             subcategory="1.1. Aggregated",
             labels={"figure": "1.1.a. Summary of filtered reads"},
         ),
         unexp_rc_plot=report(
             "results/graphs/unexp_rc_plot.svg",
             "../report/unexp_rc_plot.rst",
-            category="1. Read filtering",
+            category="1. Read processing",
             subcategory="1.1. Aggregated",
             labels={"figure": "1.1.b. Read counts of unexpected variants"},
         ),
