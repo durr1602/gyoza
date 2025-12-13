@@ -1,6 +1,7 @@
 ##### Import libraries #####
 
 import sys
+import subprocess
 import pandas as pd
 from snakemake.utils import validate
 from pathlib import Path
@@ -532,3 +533,46 @@ def get_target():
         targets.append("results/0_qc/multiqc.html")
 
     return targets
+
+
+##### Resolve pipeline version #####
+
+
+def resolve_pipeline_version(
+    snakefile_path,
+    declared_version=None,
+):
+    """
+    Resolve pipeline version.
+
+    Priority:
+    1) declared_version (e.g. PIPELINE_VERSION in Snakefile)
+    2) git describe
+    3) 'unknown'
+    """
+
+    if declared_version:
+        sf_version = declared_version
+    else:
+        sf_version = None
+
+    git_version = None
+    try:
+        git_version = subprocess.check_output(
+            ["git", "describe", "--tags", "--dirty", "--always"],
+            cwd=Path(snakefile_path).parent,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip()
+    except Exception:
+        pass
+
+    if sf_version:
+        if git_version and sf_version not in git_version:
+            return f"{sf_version} ({git_version})"
+        return sf_version
+
+    if git_version:
+        return git_version
+
+    return "unknown"

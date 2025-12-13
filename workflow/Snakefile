@@ -1,14 +1,27 @@
+##### Set version #####
+
+PIPELINE_VERSION = "v1.2.0" # bump right before new release 
+
 ##### Load main report caption #####
 
 report: "report/workflow.rst"
 
-##### Load rules #####
+##### Load common #####
 
 RF_VALS = ["R1"]
 RC_LEVEL = "nt_seq"
 BC_ATTR = []
 
 include: "rules/common.smk"
+
+PIPELINE_VERSION_RESOLVED = resolve_pipeline_version(
+    snakefile_path=__file__,
+    declared_version=PIPELINE_VERSION,
+)
+
+config["pipeline_version"] = PIPELINE_VERSION_RESOLVED
+
+##### Load rules #####
 
 if config["reads"]["paired"]:
     RF_VALS.append("R2")

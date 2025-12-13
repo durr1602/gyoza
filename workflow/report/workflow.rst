@@ -3,6 +3,8 @@
 Config
 ------
 
+``>`` gyōza version: ``{{ snakemake.config["pipeline_version"] }}``
+
 ``>`` gyōza analyzed your DMS data generated with a ``{{ snakemake.config["project"]["design"] }}`` design.
 
 ``>`` You specified the following sample attributes : ``{{ snakemake.config["project"]["sample_attributes"] }}``
@@ -15,7 +17,7 @@ Read processing
 {% if snakemake.config["reads"]["paired"] %}
 ``>`` Trimming was performed on paired-end reads with `Cutadapt <http://cutadapt.readthedocs.io>`_ using constant regions.
 
-``>`` Overlapping reads were merged with `PANDAseq <https://github.com/neufeld/pandaseq>`_.
+``>`` Overlapping reads were merged with `BBMerge <https://github.com/bbushnell/BBTools>`_.
 {% else %}
 ``>`` Trimming was performed on single-end reads with `Cutadapt <http://cutadapt.readthedocs.io>`_ using constant regions.
 {% endif %}
