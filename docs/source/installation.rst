@@ -60,11 +60,12 @@ tree that will allow you to use gyōza.
 
 It is specific to both the version of gyōza deployed and the DMS project your want to
 analyze, and should make it easier to create a repository for improved reproducibility.
-The ``--tag`` argument accepts any branch or release version tag
+Specify a release version tag for the ``--tag`` argument (latest release to use the
+latest version of gyōza), or a specific commit to use a development version (advanced).
 
 ::
 
-    snakedeploy deploy-workflow https://github.com/durr1602/gyoza my_gyoza_project --tag main
+    snakedeploy deploy-workflow https://github.com/durr1602/gyoza my_gyoza_project --tag v1.2.0
     cd my_gyoza_project
 
 Clone the repository (advanced)
