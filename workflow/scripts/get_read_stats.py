@@ -253,6 +253,7 @@ def generate_read_stats(
     else:
         # case when single-end
         fullstats["Total_merged_reads"] = cutadapt_stats["Total_trimmed_reads"]
+        fullstats["Nb_no_merging_solution"] = 0
 
     # Step 3 - Parse vsearch log
     vsearch_stats = parse_vsearch_stats(
