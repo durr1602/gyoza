@@ -28,15 +28,17 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
-      - name: Test workflow (${{ matrix.paired && 'paired' || 'single-end' }})
+      - name: Test workflow (${{ matrix.paired && 'paired-end' || 'single-end' }})
         uses: snakemake/snakemake-github-action@v2.0.3
         with:
           task: run
           stagein: |
             mkdir -p .test
+            # Create symbolic mirror of project root inside .test
             ln -snf ../config .test/config
             ln -snf ../workflow .test/workflow
             
+            # Handle the conditional flag for single-end mode
             if [ "${{ matrix.paired }}" = "false" ]; then
               export ADD_FLAG="--until stats"
             else
