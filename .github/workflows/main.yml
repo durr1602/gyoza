@@ -47,7 +47,7 @@ jobs:
           args: >-
             --directory .test
             --snakefile workflow/Snakefile
-            --config reads:paired=${{ matrix.paired }}
+            --config ci_paired=${{ matrix.paired }}
             --cores 3
             --use-conda
             --show-failed-logs

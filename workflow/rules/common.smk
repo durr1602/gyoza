@@ -51,15 +51,20 @@ for key in [
         )
     config[key] = cast_to_bool(config[key], key, strict=True)
 
-# Handle nest switch
+# Handle nested switch
 if "reads" not in config or "paired" not in config["reads"]:
     raise KeyError(
         "Config Error: 'reads:paired' is a required entry but was not found."
     )
 
-config["reads"]["paired"] = cast_to_bool(
-    config["reads"].get("paired", True), "reads:paired", strict=True
-)
+if "ci_paired" in config:  # CI hack
+    config["reads"]["paired"] = cast_to_bool(
+        config["ci_paired"], "reads:paired", strict=True
+    )
+else:
+    config["reads"]["paired"] = cast_to_bool(
+        config["reads"].get("paired", True), "reads:paired", strict=True
+    )
 
 validate(config, schema="../schemas/config.schema.yaml")
 print("Main config validated.")
