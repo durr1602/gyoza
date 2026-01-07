@@ -11,15 +11,14 @@ import warnings
 ##### Helper function to parse user-typed booleans #####
 
 TRUTHY = {"true", "t", "yes", "y", "ok", "1"}
-FALSY = {"false", "f", "no", "n", "0", ""}
+FALSY = {"false", "f", "no", "n", "0"}
 
 
 def cast_to_bool(val, name="value", strict=True):
     """Cast input value to a strict Python boolean based on TRUTHY/FALSY sets."""
     if isinstance(val, bool):
         return val
-
-    s = str(val).strip().lower()
+    s = str(val).strip().lower() if val is not None else ""
     if s in TRUTHY:
         return True
     if s in FALSY:
