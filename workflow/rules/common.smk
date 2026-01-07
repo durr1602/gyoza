@@ -8,16 +8,67 @@ from pathlib import Path
 from collections import defaultdict
 import warnings
 
-##### Import and validate main config #####
+##### Helper function to parse user-typed booleans #####
+
+TRUTHY = {"true", "t", "yes", "y", "ok", "1"}
+FALSY = {"false", "f", "no", "n", "0"}
+
+
+def cast_to_bool(val, name="value", strict=True):
+    """Cast input value to a strict Python boolean based on TRUTHY/FALSY sets."""
+    if isinstance(val, bool):
+        return val
+    s = str(val).strip().lower() if val is not None else ""
+    if s in TRUTHY:
+        return True
+    if s in FALSY:
+        return False
+
+    if strict:
+        raise ValueError(
+            f"Invalid boolean for {name}: '{val}'. Expected: {TRUTHY| FALSY}"
+        )
+    return False  # default for the sample layout
+
+
+##### Import, parse and validate main config #####
 
 
 configfile: "config/config.yaml"
 
 
+# Parse boolean switches
+for key in [
+    "process_all_samples",
+    "perform_qc",
+    "process_frequencies",
+    "normalize_with_gen",
+]:
+    if key not in config:
+        raise KeyError(
+            f"Config Error: '{key}' is a required boolean switch but was not found."
+        )
+    config[key] = cast_to_bool(config[key], key, strict=True)
+
+# Handle nested switch
+if "reads" not in config or "paired" not in config["reads"]:
+    raise KeyError(
+        "Config Error: 'reads:paired' is a required entry but was not found."
+    )
+
+if "ci_paired" in config:  # CI hack
+    config["reads"]["paired"] = cast_to_bool(
+        config["ci_paired"], "reads:paired", strict=True
+    )
+else:
+    config["reads"]["paired"] = cast_to_bool(
+        config["reads"].get("paired", True), "reads:paired", strict=True
+    )
+
 validate(config, schema="../schemas/config.schema.yaml")
 print("Main config validated.")
 
-##### Paths and other constant variables #####
+##### Paths and other config-based variables #####
 
 PROJECT_DIR = Path(config["project"]["folder"])
 READS_PATH = Path(config["reads"]["path"])
@@ -30,7 +81,7 @@ NBGEN_PATH = PROJECT_DIR / "nbgen.csv"
 SAMPLE_ATTR = config["project"]["sample_attributes"]
 SCREEN_ATTR = config["project"]["screening_attributes"]
 
-##### Import and validate sample layout #####
+##### Import, parse and validate sample layout #####
 
 layout_mandatory_cols = [
     "Sample_name",
@@ -52,11 +103,10 @@ layout_csv = pd.read_csv(LAYOUT_PATH, dtype={"Replicate": str})
 layout_csv["Replicate"] = layout_csv["Replicate"].fillna("").astype(str).str.strip()
 validate(layout_csv, schema="../schemas/sample_layout.schema.yaml")
 
-# Convert Report column to strict boolean
-truthy = {"true", "t", "yes", "y", "ok", "1"}
+# Sanitize Analyze and Report columns
 for col in ["Analyze", "Report"]:
     layout_csv[col] = (
-        layout_csv[col].fillna("").astype(str).str.strip().str.lower().isin(truthy)
+        layout_csv[col].fillna("false").map(lambda x: cast_to_bool(x, strict=False))
     )
 
 # Retrieve non-mandatory columns
@@ -276,7 +326,7 @@ for f in EXPMUT_PATH.glob("*.csv.gz"):
         raise ValueError(
             f"Not all 'nt_seq's have the same length as 'WT_seq' in {f.name}"
         )
-    print(f"Imported expectant mutants of {mutseq}.")
+    print(f"Imported expected mutants of {mutseq}.")
 else:
     expmut_mutseqs = MUTATED_SEQS
 
