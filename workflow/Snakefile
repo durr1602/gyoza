@@ -1,6 +1,6 @@
 ##### Set version #####
 
-PIPELINE_VERSION = "v1.2.0" # bump right before new release 
+PIPELINE_VERSION = "v1.2.1" # bump right before new release 
 
 ##### Load main report caption #####
 
