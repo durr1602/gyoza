@@ -9,4 +9,4 @@ dependencies:
   - seaborn>=0.13.2
   - pip
   - pip:
-      - UpSetPlot @ git+https://github.com/durr1602/UpSetPlot.git@08f0648
+      - UpSetPlot @ git+https://github.com/durr1602/UpSetPlot.git@7fa2661
