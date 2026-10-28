@@ -32,6 +32,7 @@ jobs:
         uses: snakemake/snakemake-github-action@v2.0.3
         with:
           task: run
+          snakemake-version: "9.14.0"
           stagein: |
             mkdir -p .test
             # Create symbolic mirror of project root inside .test

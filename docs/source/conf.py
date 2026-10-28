@@ -1,6 +1,6 @@
 # Configuration file for the Sphinx documentation builder.
 
-import sys, os
+import sys, os, re
 
 from setuptools_scm import get_version
 
@@ -17,6 +17,12 @@ if os.environ.get("READTHEDOCS") == "True":
     version = ".".join(version.split(".")[:3])
 
 release = version
+
+# Latest release tag, bumped in the Snakefile right before each release
+with open(os.path.join(os.path.dirname(__file__), "../../workflow/Snakefile")) as snakefile:
+    latest_tag = re.search(r'^PIPELINE_VERSION = "(.+?)"', snakefile.read(), re.M).group(1)
+
+rst_prolog = f".. |latest_tag| replace:: {latest_tag}"
 
 # -- General configuration
 

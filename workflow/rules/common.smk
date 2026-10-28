@@ -101,13 +101,17 @@ layout_csv = pd.read_csv(LAYOUT_PATH, dtype={"Replicate": str})
 
 # Sanitize Replicate column
 layout_csv["Replicate"] = layout_csv["Replicate"].fillna("").astype(str).str.strip()
-validate(layout_csv, schema="../schemas/sample_layout.schema.yaml")
 
 # Sanitize Analyze and Report columns
+# Before validation: schema defaults (bool) can't be written into str columns (pandas>=3)
 for col in ["Analyze", "Report"]:
+    if col not in layout_csv.columns:
+        layout_csv[col] = False  # schema default
     layout_csv[col] = (
         layout_csv[col].fillna("false").map(lambda x: cast_to_bool(x, strict=False))
     )
+
+validate(layout_csv, schema="../schemas/sample_layout.schema.yaml")
 
 # Retrieve non-mandatory columns
 layout_add_cols = [x for x in layout_csv.columns if x not in layout_mandatory_cols]
